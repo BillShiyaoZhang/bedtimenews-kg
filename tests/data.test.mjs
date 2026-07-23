@@ -4,13 +4,20 @@ import test from "node:test";
 import { validate } from "../scripts/lib/validate.mjs";
 
 const root = new URL("../", import.meta.url);
-const [kg, ontology] = await Promise.all([
+const [kg, generatedKG, ontology] = await Promise.all([
   readJson(new URL("data/kg.json", root)),
+  readJson(new URL("data/generated/kg.json", root)),
   readJson(new URL("data/ontology.json", root)),
 ]);
 
 test("curated knowledge graph passes schema and reference checks", () => {
   assert.deepEqual(validate(kg, ontology), []);
+});
+
+test("full generated archive index passes schema and reference checks", () => {
+  assert.deepEqual(validate(generatedKG, ontology), []);
+  assert.ok(generatedKG.sources.length > 2_000);
+  assert.ok(generatedKG.events.length > 5_000);
 });
 
 test("every event is traceable to a repository source", () => {

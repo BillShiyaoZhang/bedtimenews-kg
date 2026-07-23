@@ -9,17 +9,23 @@ import { validate } from "./lib/validate.mjs";
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const args = parseArgs(process.argv.slice(2));
 const sourceRoot = resolve(
-  args.source ?? process.env.BEDTIMENEWS_ARCHIVE ?? "../bedtimenews-archive-contents",
+  args.source ??
+    process.env.BEDTIMENEWS_ARCHIVE ??
+    "sources/bedtimenews-archive-contents",
 );
 const outputPath = resolve(
   projectRoot,
   args.output ?? "data/generated/kg.json",
 );
 const limit = Number(args.limit ?? 0);
-const includeRoots = String(args.include ?? "main,daily")
+const includeRoots = String(
+  args.include ??
+    "main,daily,reference,opinion,business,commercial,livestream,shorts",
+)
   .split(",")
   .map((item) => item.trim())
   .filter(Boolean);
+const generatedAt = String(args["generated-at"] ?? new Date().toISOString());
 
 const [ontology, seedFile] = await Promise.all([
   readJson(resolve(projectRoot, "data/ontology.json")),
@@ -64,7 +70,7 @@ for (const filePath of markdownFiles) {
       "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/" +
       repositoryPath,
     publishedAt: sourceDate,
-    kind: repositoryPath.startsWith("daily/") ? "daily" : "episode",
+    kind: sourceKind(repositoryPath),
   });
 
   const sections = repositoryPath.startsWith("daily/")
@@ -99,7 +105,7 @@ for (const filePath of markdownFiles) {
 const eventRelations = buildChronologyRelations(events, seedEntities);
 const kg = {
   schemaVersion: ontology.version,
-  generatedAt: new Date().toISOString(),
+  generatedAt,
   source: {
     name: "bedtimenews/bedtimenews-archive-contents",
     url: "https://github.com/bedtimenews/bedtimenews-archive-contents",
@@ -236,10 +242,15 @@ function extractDate(repositoryPath, body, attributes) {
   );
   if (pathDate) return `${pathDate[1]}-${pathDate[2]}-${pathDate[3]}`;
   return (
-    extractExplicitDate(body)?.date ??
     normalizeIsoDate(attributes.dateCreated || attributes.date) ??
+    extractExplicitDate(body)?.date ??
     "1900-01-01"
   );
+}
+
+function sourceKind(repositoryPath) {
+  const root = repositoryPath.split("/", 1)[0];
+  return root === "main" ? "episode" : root;
 }
 
 function extractExplicitDate(value) {

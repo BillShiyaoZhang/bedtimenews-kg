@@ -6,6 +6,9 @@
 - 原文溯源；
 - 浏览器内 ontology / KG 编辑；
 - 确定性 Markdown 解析和实体词典匹配；
+- 8 个内容栏目的全量事件索引；
+- submodule 上游跟踪和 append-only 自动同步；
+- 上游修改、删除与疑似改名的审查隔离；
 - 数据校验与 GitHub Pages 部署。
 
 ## 0.2 · 数据扩展

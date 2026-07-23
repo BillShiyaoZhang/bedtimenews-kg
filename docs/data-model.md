@@ -1,6 +1,13 @@
 # 数据模型
 
-`data/kg.json` 是浏览器直接载入的静态知识图谱。所有 ID 都应稳定、可读，并在合并前通过 `npm run kg:validate`。
+浏览器会合并两个静态知识图谱：
+
+- `data/generated/kg.json`：由上游内容确定性生成的 append-only 全量索引；
+- `data/kg.json`：维护者人工校订的实体、事件与解释关系。
+
+ID 必须稳定，并在合并前分别通过 `npm run kg:validate` 和 `npm run kg:validate:generated`。同一 ID 同时出现在两层时，人工校订层优先。
+
+`data/archive-state.json` 记录每个已接受上游文件的 SHA-256。增量更新只接受新路径、新内容；已接受路径的内容变化、删除和疑似改名只进入 `data/review/upstream-changes.json`。
 
 ## 顶层结构
 

@@ -1,0 +1,728 @@
+{
+  "schemaVersion": 1,
+  "upstreamCommit": "cea5d25fbb70635b8badd0c64db3ec91c98c9986",
+  "observedAt": "2026-07-20T07:38:17Z",
+  "policy": "Ontology and entity vocabulary changes require maintainer review; this report never edits data/ontology.json or existing entities.",
+  "coverage": {
+    "totalEvents": 5951,
+    "totalKnownEntities": 9,
+    "eventsWithKnownEntities": 2811,
+    "eventsWithoutKnownEntities": 3140,
+    "entityCoveragePercent": 47.24,
+    "eventTypeCounts": {
+      "historical_milestone": 3902,
+      "infrastructure": 159,
+      "policy_change": 820,
+      "market_shift": 477,
+      "technology": 183,
+      "public_debate": 410
+    }
+  },
+  "currentIncrement": {
+    "newEvents": 5951,
+    "newEventsWithoutKnownEntities": 3140,
+    "fallbackTypeEvents": 3902,
+    "reviewSample": [
+      {
+        "id": "event-82e84c89a4eb",
+        "title": "【产经破壁机024】技术升级，港交所台风天上班",
+        "sourceIds": [
+          "source-6c6d30ad6c77"
+        ]
+      },
+      {
+        "id": "event-1861475a1f74",
+        "title": "【产经破壁机032】筷子夹星舰，下一个时代开始了",
+        "sourceIds": [
+          "source-f7103aad5da8"
+        ]
+      },
+      {
+        "id": "event-ea84f76285a1",
+        "title": "【产经破壁机043】美国大选，160亿美元从哪里来？到哪里去？",
+        "sourceIds": [
+          "source-270844b9b1f9"
+        ]
+      },
+      {
+        "id": "event-d91898411b66",
+        "title": "【产经破壁机045】问世16年，双十一怎么哑火了？",
+        "sourceIds": [
+          "source-8b007317ed42"
+        ]
+      },
+      {
+        "id": "event-7c7c4eb1c353",
+        "title": "【产经破壁机060】比特币足够没用，所以值十万美元？",
+        "sourceIds": [
+          "source-f7c42edf41c0"
+        ]
+      },
+      {
+        "id": "event-302133209e56",
+        "title": "【产经破壁机063】狂发2亿美元奖金，霉霉背后的明星经济学",
+        "sourceIds": [
+          "source-e2ce8041aa51"
+        ]
+      },
+      {
+        "id": "event-2bbbe920cf49",
+        "title": "【产经破壁机064】猪圈改成小洋楼，如何科学养猪？",
+        "sourceIds": [
+          "source-73cb1df3ca10"
+        ]
+      },
+      {
+        "id": "event-e965684884e0",
+        "title": "【产经破壁机065】阿里卖掉银泰，新消费革命的失败",
+        "sourceIds": [
+          "source-961ae838c962"
+        ]
+      },
+      {
+        "id": "event-5d50c6a9d26d",
+        "title": "【产经破壁机066】学历贬值，张雪峰值多少钱？",
+        "sourceIds": [
+          "source-d11afe511568"
+        ]
+      },
+      {
+        "id": "event-f33bb3a3c8e0",
+        "title": "【产经破壁机079】一些所谓的“电影人”，根本就没在拍电影",
+        "sourceIds": [
+          "source-ff22fb42aed2"
+        ]
+      },
+      {
+        "id": "event-1a1632ee4a60",
+        "title": "【产经破壁机080】如何让按摩椅征服16亿东亚人？",
+        "sourceIds": [
+          "source-a9f3fff3692f"
+        ]
+      },
+      {
+        "id": "event-949977902531",
+        "title": "【产经破壁机082】为什么兰州拉面店里，总有个写作业的小孩？",
+        "sourceIds": [
+          "source-4957c5a965c4"
+        ]
+      },
+      {
+        "id": "event-87ac1f796dc9",
+        "title": "【产经破壁机084】为什么职场上总会无效内卷？",
+        "sourceIds": [
+          "source-2694921b62ef"
+        ]
+      },
+      {
+        "id": "event-8c4b00359aee",
+        "title": "【产经破壁机085】北海道房子免费送了，为什么也无人问津？",
+        "sourceIds": [
+          "source-f6bfa3a3ff88"
+        ]
+      },
+      {
+        "id": "event-3ac8315fb166",
+        "title": "【产经破壁机086】让人脸红心跳的云南山歌，是怎么传遍全国的？",
+        "sourceIds": [
+          "source-fc96e4a4f7b0"
+        ]
+      },
+      {
+        "id": "event-554a746d346a",
+        "title": "【讲点黑话10】阿根廷“美元化”？并不新鲜的新试验",
+        "sourceIds": [
+          "source-a2891eaadbae"
+        ]
+      },
+      {
+        "id": "event-20de45f9cca7",
+        "title": "【讲点黑话15】米莱“放炮”，还是为了要钱要权",
+        "sourceIds": [
+          "source-69a018144d32"
+        ]
+      },
+      {
+        "id": "event-21b14ef049ca",
+        "title": "【讲点黑话18】亲不亲，阶级分，巴基斯坦乱局",
+        "sourceIds": [
+          "source-2728ef97e82e"
+        ]
+      },
+      {
+        "id": "event-c9c7b5885908",
+        "title": "【讲点黑话35】曼德拉战友堕落：三妻四妾，洗澡防艾滋",
+        "sourceIds": [
+          "source-1c9d72f5b62c"
+        ]
+      },
+      {
+        "id": "event-d02a86491832",
+        "title": "【讲点黑话49】尹锡悦祝贺“韩国学校”夺得甲子园冠军！但队中只有半个韩国人",
+        "sourceIds": [
+          "source-6264b213a1e8"
+        ]
+      },
+      {
+        "id": "event-215bb3812a05",
+        "title": "【讲点黑话6.5】后续与回应，哈瑞迪人的故事",
+        "sourceIds": [
+          "source-9e2ad339a3a9"
+        ]
+      },
+      {
+        "id": "event-37b0ee134926",
+        "title": "【讲点黑话6】生育率3.0，就能占稳土地？",
+        "sourceIds": [
+          "source-1f195ba8b42a"
+        ]
+      },
+      {
+        "id": "event-2b72031326df",
+        "title": "【讲点黑话60】尹“卡卡”的三小时政变",
+        "sourceIds": [
+          "source-c629a3217a60"
+        ]
+      },
+      {
+        "id": "event-a2755d1f1779",
+        "title": "【讲点黑话62】韩国“特朗普”要当大统领",
+        "sourceIds": [
+          "source-261e1103ab95"
+        ]
+      },
+      {
+        "id": "event-baa36977637a",
+        "title": "【讲点黑话63】六十年家国：叙利亚复兴党兴亡史（上）",
+        "sourceIds": [
+          "source-75a9b09c20e4"
+        ]
+      },
+      {
+        "id": "event-a7f8470a79f9",
+        "title": "【讲点黑话64】六十年家国：叙利亚复兴党兴亡史（下）",
+        "sourceIds": [
+          "source-0372f4caef47"
+        ]
+      },
+      {
+        "id": "event-c4f90a68521c",
+        "title": "【讲点黑话68】明尼苏达ICE枪击案全网首发爆料，无死角逐帧分析",
+        "sourceIds": [
+          "source-2ccbc9ddfa06"
+        ]
+      },
+      {
+        "id": "event-f82cd3bc5c9a",
+        "title": "【讲点黑话7】我的女神很能打，一路打进奥委会",
+        "sourceIds": [
+          "source-22a34d10053f"
+        ]
+      },
+      {
+        "id": "event-ba2c53435e96",
+        "title": "【讲点黑话8】军政府“北洋化”，缅北大败是必然",
+        "sourceIds": [
+          "source-d53d0b81a606"
+        ]
+      },
+      {
+        "id": "event-312073d9df6b",
+        "title": "【讲点黑话9】“顶流政客”也闹剧，台湾没有“体面人”",
+        "sourceIds": [
+          "source-421ea47c9673"
+        ]
+      },
+      {
+        "id": "event-91ad54f64e0d",
+        "title": "国际单位制新增4个数量级描述，度量衡数量级扩张到10的30次方",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-8c5f8bf4e881",
+        "title": "TOT模式有限放开 地方政府多了融资方式",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-9dcfc26f96b2",
+        "title": "新华社评论员：既要整治层层加码，也要防止放松防控",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-e1e1f8d80f22",
+        "title": "怀孕时被拐离乡三十多年，本人报案，公安局称过了追诉期",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-492395cbda2f",
+        "title": "西安楼市调控“松绑”：落户就能买房",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-9b26e1d25ade",
+        "title": "河南建业传闻裁员7000、在职员工降薪40%",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-f9e9f0d6e7d7",
+        "title": "英国新首相苏纳克突访基辅，承诺增加军援",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-abc93adc9fa1",
+        "title": "土耳其越境轰炸库尔德武装",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-acd405673ec4",
+        "title": "新西兰非婚生子女过去一年超半数",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-d036841c8493",
+        "title": "特朗普账号半天涨粉2000万",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-79cdadefd35f",
+        "title": "杭州马拉松，3.5万人西湖沿途开跑",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-40be4e7396e7",
+        "title": "椰树四美”穿羽绒服直播跳操",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-74ba7c739997",
+        "title": "世界杯前夜 梅西C罗一起为奢侈品拍广告",
+        "sourceIds": [
+          "source-482afba7fc4c"
+        ]
+      },
+      {
+        "id": "event-946aeac21203",
+        "title": "北京朝阳一小区半地下室供暖水泄漏，两名刚工作的女生死亡",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-14b67e9bc034",
+        "title": "全国城镇非私营单位平均工资首超10万元大关，京沪超19万",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-c5feb4c61f25",
+        "title": "河北石家庄最新通告：6个区连续5天全员核酸筛查",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-a62778acdc22",
+        "title": "国务院联防联控机制印发《新冠肺炎疫情防控核酸检测实施办法》等4个文件",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-87dbe177581a",
+        "title": "内蒙古：不能因为怕管不好就不敢放、不真放",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-463851d4364c",
+        "title": "张忠谋证实台积电将在美国设立3纳米晶圆厂",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-20ffd05091ab",
+        "title": "盛大金禧“董事长刚说完不跑路就失联” 未兑付投资者资金或超百亿",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-0ab34b5ae397",
+        "title": "马来西亚大选结果首次出现“悬峙国会” 97岁马哈蒂尔败选",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-1614a9aeea1b",
+        "title": "哈萨克斯坦修宪限制总统连任后 托卡耶夫得票81.31%当选新总统",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-51b5cbdd4bda",
+        "title": "浙江永康女子上公厕被男子殴打，警方：会给嫌疑人做精神鉴定",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-4c5847cc2304",
+        "title": "世界杯史上东道主揭幕战“不败金身”告破 卡塔尔0:2负厄瓜多尔",
+        "sourceIds": [
+          "source-e2d175631355"
+        ]
+      },
+      {
+        "id": "event-d099ca85a720",
+        "title": "河北故城县：动员适龄群众，努力生产连花清瘟",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-494e32a777db",
+        "title": "伊朗队为支持国内女性争取自由，拒绝唱国歌",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-9b0b02351fb5",
+        "title": "“男子被跪压视频”热传 新疆检察：事发地不在新疆",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-94cb557521b8",
+        "title": "近一周全国日均报告本土感染者2.22万例，较前一周增加一倍",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-3db79be1e43a",
+        "title": "云南曲靖回应“20万人被赋黄码”：5天5检阴性可改码",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-1d11cd3cc35e",
+        "title": "巴菲特再卖比亚迪：本次套现6.3亿港元，累计减持逼5000万股",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-4c5a7de50b5e",
+        "title": "河南安阳一纺织企业火灾致38死两伤",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-e48092416bec",
+        "title": "刘强东：明年1月起京东高管降薪10%-20%、100亿投向基层员工",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-5f70e4b72f32",
+        "title": "马克龙宴请欧洲工业家，呼吁他们留在欧洲",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-8f50aa6eae52",
+        "title": "印尼5.5级地震死亡人数升至252人 死伤者多为儿童",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-fa1dfcbaf7d9",
+        "title": "江西铅山一高中生校内失踪40余天 多方搜寻未果",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-0ec8b27bbdbf",
+        "title": "沙特2-1逆转战胜阿根廷",
+        "sourceIds": [
+          "source-f20ca3b11733"
+        ]
+      },
+      {
+        "id": "event-b56e08535899",
+        "title": "北京市朝阳区开展吸入式新冠肺炎疫苗接种",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-0b3afbc5e4ad",
+        "title": "富士康回应：未改变招工补贴政策",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-ab6f5dc4c568",
+        "title": "罗永浩AR创业公司融资3.57亿",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-33fd5ce7d2f5",
+        "title": "河南安阳厂房火灾致38人死亡 事发公司0人缴纳工伤保险",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-6db2bec69a1d",
+        "title": "四川轻化工大学教师涉嫌对同事投毒百草枯",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-8aa594594e0c",
+        "title": "哈萨克斯坦外交部副部长怒斥俄方“哈萨克纳粹化进程”说法",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-112389976341",
+        "title": "英最高法院驳回苏格兰独立公投申请：未经英政府批准无权举行",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-019c28a19d2c",
+        "title": "威马全员降薪 员工七折 高管对半",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-f6b7df7a97d6",
+        "title": "连花清瘟遇到“连花清温”",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-9911955eb8f3",
+        "title": "美军打造简版“武库机” 运输机投放防区外弹药",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-9d657479774a",
+        "title": "四川阆中拖欠乡村医生两年补助经费超2千万元，官方督促发放",
+        "sourceIds": [
+          "source-9458f184afc3"
+        ]
+      },
+      {
+        "id": "event-04db98992fb5",
+        "title": "富士康回应补贴政策变动：系信息输入错误所致，承诺薪资与招工海报一致",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-c536690a9fdc",
+        "title": "特斯拉降价引战 比亚迪“涨价”应战",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-ea0f5a5264e7",
+        "title": "郑州主城区25日起进行5天流动性管理 市民非必要不外出",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-a0960c47deea",
+        "title": "北京一饭店违反防疫政策私自承接婚宴，被多部门处罚",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-edcfbf5b51c8",
+        "title": "深圳立法护士可以开处方",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-c58ac2dcbfe0",
+        "title": "俄罗斯今年前10月天然气产量下降13%",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-4bd2dd98f88a",
+        "title": "英国首次向乌克兰派遣直升机，还将增加提供1万枚炮弹",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-2dbf88fde5d1",
+        "title": "埃尔多安称将在叙利亚对库尔德武装发动地面进攻，俄反对",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-5db19e92c9be",
+        "title": "安瓦尔将出任马来西亚新总理",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-2cc28c0b7ff4",
+        "title": "国家网信办原副主任彭波一审从轻被刑14年",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-b06b542097fc",
+        "title": "中纪委网站：莫让赌球毁了年轻干部",
+        "sourceIds": [
+          "source-06289586d9e9"
+        ]
+      },
+      {
+        "id": "event-57f307647b91",
+        "title": "湖南健康码上线蓝码",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-6c3cbf3f510a",
+        "title": "烟台一方舱专项债文件称“往后5年内有疫情” 官方：大体估计，不是一定有",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-ddb6cb940be9",
+        "title": "乌鲁木齐“低风险区”一高层住宅楼发生火灾 致10人遇难",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-0c706568205a",
+        "title": "广州管控区内有人员聚集、冲卡",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-955e2dfc9e3c",
+        "title": "南京辟谣“全城静默”",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-e4183033fb1e",
+        "title": "英国7万名教师罢工，11.5万名皇家邮政员工罢工",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-8f47d1de0e23",
+        "title": "韩国卡车司机罢工 尹锡悦警告别把供应链“当人质”，或首次动用开工令",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-1d6532d25f4d",
+        "title": "穆尼尔将接任巴基斯坦陆军参谋长，曾任三军情报局局长",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-44b78bd2caa8",
+        "title": "欧洲再投3.6亿欧元挽救火星探测计划，此前因与俄断联而暂停",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-0292f37a5be1",
+        "title": "吴亦凡案一审被判十三年 附加驱逐出境",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-5aac513bf3b8",
+        "title": "“关羽”去世二十天后 “张飞”也走了",
+        "sourceIds": [
+          "source-c64bf39b6c5a"
+        ]
+      },
+      {
+        "id": "event-560b6d7e7e08",
+        "title": "北京四名社区干部商讨威胁群众“他的软肋是儿子” 街道回应",
+        "sourceIds": [
+          "source-26f97cab7b5d"
+        ]
+      }
+    ]
+  }
+}

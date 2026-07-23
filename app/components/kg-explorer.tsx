@@ -70,30 +70,39 @@ export function KGExplorer({
   const importRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as {
-          ontology?: Ontology;
-          kg?: KnowledgeBase;
-        };
-        if (parsed.ontology && parsed.kg) {
-          setOntology(parsed.ontology);
-          setKG(parsed.kg);
+    const handle = window.setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored) as {
+            ontology?: Ontology;
+            kg?: KnowledgeBase;
+          };
+          if (parsed.ontology && parsed.kg) {
+            setOntology(parsed.ontology);
+            setKG(parsed.kg);
+          }
         }
+        const hash = new URLSearchParams(window.location.hash.slice(1));
+        const entityId = hash.get("entity");
+        const eventId = hash.get("event");
+        if (
+          entityId &&
+          initialKG.entities.some((entity) => entity.id === entityId)
+        ) {
+          setSelectedEntityId(entityId);
+        }
+        if (
+          eventId &&
+          initialKG.events.some((event) => event.id === eventId)
+        ) {
+          setSelectedEventId(eventId);
+        }
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
       }
-      const hash = new URLSearchParams(window.location.hash.slice(1));
-      const entityId = hash.get("entity");
-      const eventId = hash.get("event");
-      if (entityId && initialKG.entities.some((entity) => entity.id === entityId)) {
-        setSelectedEntityId(entityId);
-      }
-      if (eventId && initialKG.events.some((event) => event.id === eventId)) {
-        setSelectedEventId(eventId);
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    }, 0);
+    return () => window.clearTimeout(handle);
   }, [initialKG]);
 
   useEffect(() => {

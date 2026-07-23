@@ -1,0 +1,3 @@
+[submodule "sources/bedtimenews-archive-contents"]
+	path = sources/bedtimenews-archive-contents
+	url = https://github.com/bedtimenews/bedtimenews-archive-contents.git

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "additions": "append_automatically",
+    "modifications": "report_only_preserve_existing_records",
+    "deletions": "report_only_preserve_existing_records",
+    "renames": "report_only_preserve_existing_records",
+    "ontology": "report_candidates_only_never_mutate_automatically"
+  },
+  "upstreamCommit": "cea5d25fbb70635b8badd0c64db3ec91c98c9986",
+  "observedAt": "2026-07-20T07:38:17Z",
+  "bootstrap": true,
+  "summary": {
+    "ingestedFiles": 2040,
+    "appendedSources": 2038,
+    "appendedEvents": 5951,
+    "appendedEntities": 9,
+    "appendedRelations": 2612,
+    "modifiedFilesAwaitingReview": 0,
+    "deletedFilesAwaitingReview": 0,
+    "possibleRenamesAwaitingReview": 0,
+    "duplicateAdditionsAwaitingReview": 0
+  },
+  "ingestedPaths": [],
+  "pendingReview": {
+    "modified": [],
+    "deleted": [],
+    "possibleRenames": [],
+    "duplicateAdditions": []
+  }
+}

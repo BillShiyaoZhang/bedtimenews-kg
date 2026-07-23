@@ -1,0 +1,77 @@
+name: Sync Bedtime News archive
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [archive-updated]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: archive-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout with archive
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Advance archive submodule
+        run: |
+          git -C sources/bedtimenews-archive-contents fetch origin main
+          git -C sources/bedtimenews-archive-contents checkout --detach origin/main
+
+      - name: Append safe archive additions
+        run: npm run kg:update
+
+      - name: Validate generated and curated data
+        run: |
+          npm run kg:validate
+          npm run kg:validate:generated
+          node --test tests/*.test.mjs
+
+      - name: Build GitHub Pages artifact
+        run: npm run build:pages
+
+      - name: Open or refresh review pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automation/archive-sync
+          delete-branch: true
+          commit-message: "data: sync Bedtime News archive"
+          title: "data: sync Bedtime News archive"
+          body: |
+            Automated archive sync.
+
+            - Brand-new Markdown files are appended to the generated KG.
+            - Existing upstream files that changed, disappeared, or appear to
+              have moved are preserved unchanged and listed in
+              `data/review/upstream-changes.json`.
+            - Ontology and entity coverage gaps are listed in
+              `data/review/ontology-candidates.json`; ontology is never edited
+              automatically.
+
+            Review the reports and the submodule commit before merging.
+          add-paths: |
+            sources/bedtimenews-archive-contents
+            data/archive-state.json
+            data/generated/kg.json
+            data/review/upstream-changes.json
+            data/review/ontology-candidates.json

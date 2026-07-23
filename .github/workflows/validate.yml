@@ -13,11 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run kg:validate
+      - run: npm run kg:validate:generated
       - run: node --test tests/*.test.mjs
       - run: npm run build:pages

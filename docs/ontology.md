@@ -39,6 +39,8 @@
 
 发布后的 ID 应保持稳定。显示名称和描述可以演进，重命名不会自动重写历史数据。
 
+自动同步不会直接修改 ontology。每次新增内容的未识别实体比例、默认事件类型数量和样本会写入 `data/review/ontology-candidates.json`。维护者确认现有类型确实无法表达后，再通过独立 Pull Request 修改 ontology 和实体词典。
+
 ## 版本
 
 `ontology.version` 与 `kg.schemaVersion` 应同步。兼容性说明：

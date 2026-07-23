@@ -15,18 +15,19 @@
 - 导入/导出完整 JSON 工作区，通过 Pull Request 回写；
 - 完全静态，可直接部署到 GitHub Pages。
 
-当前仓库带有两条小型人工校订示例链：
+当前仓库的数据分成两层：
 
-1. 1909—2020 年的沿江铁路建设路径；
-2. 1983—2022 年合成氨、页岩气与能源安全的关系。
+1. `data/generated/kg.json` 是从 8 个上游内容栏目建立的全量、确定性事件索引；
+2. `data/kg.json` 是人工校订层，目前包含沿江铁路和能源安全两条示例链。
 
-示例用于验证产品与数据契约，不声称已经覆盖原文全集。
+网页会合并两层数据：自动层保证原文覆盖，人工层补充实体消歧、历史事件和有证据的解释关系。自动抽取不等同于完整语义标注，覆盖缺口会写入审查报告。
 
 ## 快速开始
 
 需要 Node.js 22 或更高版本。
 
 ```bash
+git submodule update --init --recursive
 npm install
 npm run dev
 ```
@@ -41,34 +42,41 @@ npm run build:pages
 
 `npm run build:pages` 在 `out/` 生成可直接托管的静态站点。
 
-## 从新闻原库生成索引
+## 更新新闻索引
 
-先在相邻目录克隆新闻原库：
-
-```bash
-git clone https://github.com/bedtimenews/bedtimenews-archive-contents.git ../bedtimenews-archive-contents
-npm run kg:build
-```
-
-也可以指定路径、栏目、数量和输出：
+新闻原库固定为 Git submodule：
 
 ```bash
-node scripts/build-kg.mjs \
-  --source /path/to/bedtimenews-archive-contents \
-  --include main,daily \
-  --limit 500 \
-  --output data/generated/kg.json
+git submodule update --init --recursive
+git -C sources/bedtimenews-archive-contents fetch origin main
+git -C sources/bedtimenews-archive-contents checkout --detach origin/main
+npm run kg:update
 ```
+
+`kg:update` 默认覆盖 `main`、`daily`、`reference`、`opinion`、`business`、`commercial`、`livestream`、`shorts` 八个内容目录。更新策略是：
+
+- 上游新增文件：自动解析并只追加新来源、事件和时间关系；
+- 上游既有文件被修改：保留已接受记录，只写审查报告；
+- 上游文件被删除、改名或重复复制：同样不自动删除、不自动迁移；
+- ontology 与实体词典：只生成覆盖缺口，不自动改写。
+
+第一次建立全量基线时才使用 `npm run kg:bootstrap`。该命令在基线文件已经存在时会拒绝覆盖，避免误把增量更新变成全量重建。
 
 生成流程是确定性的：
 
 1. 解析 Wiki.js 风格 front matter；
-2. 每日新闻按二级标题拆为事件，节目长文先按期作为事件；
+2. 每日新闻按二级标题拆为事件，其他节目和栏目按篇建立事件；
 3. 使用 `data/seeds/entities.json` 的名称与别名匹配实体；
 4. 仅自动生成同一实体相邻事件的时间先后关系，不自动声称因果；
 5. 生成后立即执行完整引用校验。
 
-机器结果建议先写入 `data/generated/kg.json`，经维护者审查、消歧和补充关系证据后，再合并进 `data/kg.json`。详细约束见 [数据模型](docs/data-model.md) 和 [本体设计](docs/ontology.md)。
+`data/archive-state.json` 保存已接受文件的内容哈希，`data/review/upstream-changes.json` 保存需要人工处理的上游变更，`data/review/ontology-candidates.json` 保存实体与事件类型覆盖缺口。详细约束见 [数据模型](docs/data-model.md) 和 [本体设计](docs/ontology.md)。
+
+## 自动同步
+
+`.github/workflows/sync-archive.yml` 每 6 小时检查一次上游，也支持手动运行和 `archive-updated` repository dispatch。发现变化后会更新 submodule、执行保守增量更新、跑完校验和静态构建，并创建或刷新一个审查 Pull Request；不会直接写入 `main`。
+
+要实现近实时触发，可以在上游 webhook 或另一个可信工作流中向本仓库发送 `archive-updated` repository dispatch。没有额外凭据时，定时轮询仍会自动发现新内容。
 
 ## 维护流程
 
@@ -107,10 +115,15 @@ Pull Request 与其他分支会运行数据、测试和静态构建检查，但�
 ```text
 app/                         检索、时间线、图谱与维护界面
 data/ontology.json           本体类型与关系约束
-data/kg.json                 人工校订、站点使用的知识图谱
+data/kg.json                 人工校订层
+data/generated/kg.json       全量自动事件索引（append-only）
+data/archive-state.json      已接受上游文件的哈希基线
+data/review/                 上游风险变更与 ontology 覆盖报告
 data/seeds/                  确定性实体与关系种子
 scripts/build-kg.mjs         Markdown → KG 生成器
+scripts/update-kg.mjs        保守增量更新器
 scripts/validate-kg.mjs      命令行校验器
+sources/                     新闻原库 submodule
 tests/                       数据契约与证据检查
 .github/workflows/           PR 检查与 Pages 部署
 ```
