@@ -1,0 +1,153 @@
+{
+  "version": "0.1.0",
+  "label": "睡前消息历史知识本体",
+  "description": "面向新闻事件、参与实体、历史关联与证据出处的轻量本体。",
+  "entityTypes": [
+    {
+      "id": "person",
+      "label": "人物",
+      "description": "自然人或具有明确身份的历史人物",
+      "color": "#c05a3a"
+    },
+    {
+      "id": "organization",
+      "label": "组织",
+      "description": "政府机构、企业、国际组织或社会团体",
+      "color": "#355f8a"
+    },
+    {
+      "id": "place",
+      "label": "地点",
+      "description": "国家、地区、城市或具有地理边界的区域",
+      "color": "#6a7d45"
+    },
+    {
+      "id": "infrastructure",
+      "label": "基础设施",
+      "description": "铁路、桥梁、管网等长期运行的物质系统",
+      "color": "#8b6847"
+    },
+    {
+      "id": "policy",
+      "label": "政策",
+      "description": "规划、监管安排与公共政策工具",
+      "color": "#755a9c"
+    },
+    {
+      "id": "industry",
+      "label": "产业",
+      "description": "产业部门、技术路线或供应链",
+      "color": "#26877b"
+    },
+    {
+      "id": "concept",
+      "label": "概念",
+      "description": "用于连接跨时期报道的议题、制度或分析概念",
+      "color": "#a46b20"
+    }
+  ],
+  "eventTypes": [
+    {
+      "id": "historical_milestone",
+      "label": "历史节点",
+      "description": "形成长期路径依赖的重要历史事实",
+      "color": "#786f63"
+    },
+    {
+      "id": "infrastructure",
+      "label": "基建进展",
+      "description": "基础设施的规划、开工、通车或组织调整",
+      "color": "#bd5734"
+    },
+    {
+      "id": "policy_change",
+      "label": "政策变化",
+      "description": "公共政策、规划或监管规则发生变化",
+      "color": "#4f6d94"
+    },
+    {
+      "id": "market_shift",
+      "label": "市场变化",
+      "description": "价格、供需、贸易或产业格局出现显著变化",
+      "color": "#3c7c70"
+    },
+    {
+      "id": "technology",
+      "label": "技术进展",
+      "description": "技术能力、产量或工程方法出现转折",
+      "color": "#7a5d9d"
+    },
+    {
+      "id": "public_debate",
+      "label": "公共讨论",
+      "description": "引发社会关注、争议或制度反思的事件",
+      "color": "#a66e2c"
+    }
+  ],
+  "relationTypes": [
+    {
+      "id": "precedes",
+      "label": "先于",
+      "description": "两个事件具有可确认的时间先后顺序",
+      "from": ["event"],
+      "to": ["event"],
+      "directed": true
+    },
+    {
+      "id": "enables",
+      "label": "促成",
+      "description": "前一事件为后一事件提供必要能力或条件",
+      "from": ["event"],
+      "to": ["event"],
+      "directed": true
+    },
+    {
+      "id": "responds_to",
+      "label": "回应",
+      "description": "后一事件是对前一问题、压力或变化的制度性回应",
+      "from": ["event"],
+      "to": ["event"],
+      "directed": true
+    },
+    {
+      "id": "continues",
+      "label": "延续",
+      "description": "两个事件属于同一长期过程的连续阶段",
+      "from": ["event"],
+      "to": ["event"],
+      "directed": true
+    },
+    {
+      "id": "contrasts_with",
+      "label": "对照",
+      "description": "两个事件或路径形成有解释意义的对照",
+      "from": ["event"],
+      "to": ["event"],
+      "directed": false
+    },
+    {
+      "id": "located_in",
+      "label": "位于",
+      "description": "实体位于某个地理区域",
+      "from": ["infrastructure", "organization"],
+      "to": ["place"],
+      "directed": true
+    },
+    {
+      "id": "operates",
+      "label": "运营",
+      "description": "组织负责建设、管理或运营某个基础设施",
+      "from": ["organization"],
+      "to": ["infrastructure"],
+      "directed": true
+    },
+    {
+      "id": "part_of",
+      "label": "属于",
+      "description": "实体属于更大的系统、政策或产业",
+      "from": ["infrastructure", "policy", "industry", "concept"],
+      "to": ["infrastructure", "policy", "industry", "concept"],
+      "directed": true
+    }
+  ]
+}
