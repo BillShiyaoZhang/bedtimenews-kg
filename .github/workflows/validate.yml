@@ -21,6 +21,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run kg:validate
-      - run: npm run kg:validate:generated
       - run: node --test tests/*.test.mjs
       - run: npm run build:pages

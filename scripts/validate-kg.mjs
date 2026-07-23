@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { validate } from "./lib/validate.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const kgPath = resolve(root, process.argv[2] ?? "data/kg.json");
+const kgPath = resolve(root, process.argv[2] ?? "data/generated/kg.json");
 const ontologyPath = resolve(root, process.argv[3] ?? "data/ontology.json");
 const [kg, ontology] = await Promise.all([
   readJson(kgPath),

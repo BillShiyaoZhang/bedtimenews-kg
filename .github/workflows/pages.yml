@@ -33,7 +33,7 @@ jobs:
         run: npm ci
 
       - name: Validate knowledge graph
-        run: npm run kg:validate && npm run kg:validate:generated
+        run: npm run kg:validate
 
       - name: Build static site
         run: npm run build:pages

@@ -24,6 +24,7 @@ const execFile = promisify(execFileCallback);
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const args = parseArgs(process.argv.slice(2));
 const bootstrap = Boolean(args.bootstrap);
+const rebuild = Boolean(args.rebuild);
 const sourceRoot = resolve(
   projectRoot,
   args.source ??
@@ -81,13 +82,14 @@ if (bootstrap) {
   if (issues.length) throwValidationError(issues);
 
   const state = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     source: {
       name: "bedtimenews/bedtimenews-archive-contents",
       url: "https://github.com/bedtimenews/bedtimenews-archive-contents",
       submodulePath: relative(projectRoot, sourceRoot).replaceAll("\\", "/"),
     },
     includedRoots: includeRoots,
+    extractionVersion: candidate.source.extractionVersion,
     initialImportCommit: upstreamCommit,
     lastObservedCommit: upstreamCommit,
     lastObservedAt: observedAt,
@@ -95,6 +97,7 @@ if (bootstrap) {
   };
   const report = buildUpstreamReport({
     bootstrap: true,
+    rebuild: false,
     observedAt,
     upstreamCommit,
     changes: emptyChanges(),
@@ -138,6 +141,69 @@ if (JSON.stringify(state.includedRoots) !== JSON.stringify(includeRoots)) {
 }
 
 const changes = classifyArchiveChanges(state.acceptedFiles, currentFiles);
+if (rebuild) {
+  const unsafeChanges =
+    changes.modified.length +
+    changes.deleted.length +
+    changes.possibleRenames.length +
+    changes.duplicateAdditions.length;
+  if (unsafeChanges) {
+    throw new Error(
+      `Semantic rebuild refused because ${unsafeChanges} upstream change(s) still require review. ` +
+        "Resolve modifications, deletions, renames, and duplicate additions before rebuilding.",
+    );
+  }
+  const issues = validate(candidate, ontology);
+  if (issues.length) throwValidationError(issues);
+  const nextState = {
+    ...state,
+    schemaVersion: 2,
+    extractionVersion: candidate.source.extractionVersion,
+    lastObservedCommit: upstreamCommit,
+    lastObservedAt: observedAt,
+    acceptedFiles: sortObject(currentFiles),
+  };
+  const report = buildUpstreamReport({
+    bootstrap: false,
+    rebuild: true,
+    observedAt,
+    upstreamCommit,
+    changes,
+    ingestedPaths: Object.keys(currentFiles).sort(),
+    appended: {
+      sources: candidate.sources,
+      events: candidate.events,
+      entities: candidate.entities,
+      eventRelations: candidate.eventRelations,
+      entityRelations: candidate.entityRelations,
+    },
+  });
+  await Promise.all([
+    writeJson(generatedPath, candidate),
+    writeJson(statePath, nextState),
+    writeJson(upstreamReportPath, report),
+    writeJson(
+      ontologyReportPath,
+      buildOntologyReport(
+        candidate,
+        candidate.events,
+        upstreamCommit,
+        observedAt,
+      ),
+    ),
+  ]);
+  printSummary("Rebuilt", report, candidate);
+  process.exit(0);
+}
+if (
+  state.extractionVersion !== candidate.source.extractionVersion ||
+  existing.source?.extractionVersion !== candidate.source.extractionVersion
+) {
+  throw new Error(
+    "Ontology extraction rules changed. Run `npm run kg:rebuild` explicitly; " +
+      "incremental update will not silently rewrite accepted semantic records.",
+  );
+}
 const { kg, appended } = appendNewRecords(
   existing,
   candidate,
@@ -157,6 +223,7 @@ const nextState = {
 };
 const report = buildUpstreamReport({
   bootstrap: false,
+  rebuild: false,
   observedAt,
   upstreamCommit,
   changes,
@@ -195,6 +262,7 @@ printSummary(writes.length ? "Updated" : "Already current", report, kg);
 
 function buildUpstreamReport({
   bootstrap: isBootstrap,
+  rebuild: isRebuild,
   observedAt: timestamp,
   upstreamCommit: commit,
   changes,
@@ -208,11 +276,14 @@ function buildUpstreamReport({
       modifications: "report_only_preserve_existing_records",
       deletions: "report_only_preserve_existing_records",
       renames: "report_only_preserve_existing_records",
-      ontology: "report_candidates_only_never_mutate_automatically",
+      ontology:
+        "versioned_extraction_rules_require_explicit_reviewed_semantic_rebuild",
     },
     upstreamCommit: commit,
     observedAt: timestamp,
     bootstrap: isBootstrap,
+    semanticRebuild: isRebuild,
+    extractionVersion: candidate.source.extractionVersion,
     summary: {
       ingestedFiles: ingestedPaths.length,
       appendedSources: appended.sources.length,
@@ -225,7 +296,7 @@ function buildUpstreamReport({
       possibleRenamesAwaitingReview: changes.possibleRenames.length,
       duplicateAdditionsAwaitingReview: changes.duplicateAdditions.length,
     },
-    ingestedPaths: isBootstrap ? [] : ingestedPaths,
+    ingestedPaths: isBootstrap || isRebuild ? [] : ingestedPaths,
     pendingReview: {
       modified: changes.modified,
       deleted: changes.deleted,
@@ -236,10 +307,19 @@ function buildUpstreamReport({
 }
 
 function buildOntologyReport(kg, newEvents, commit, timestamp) {
+  const entitiesById = new Map(
+    kg.entities.map((entity) => [entity.id, entity]),
+  );
   const eventTypeCounts = Object.fromEntries(
     ontology.eventTypes.map((type) => [
       type.id,
       kg.events.filter((event) => event.type === type.id).length,
+    ]),
+  );
+  const entityTypeCounts = Object.fromEntries(
+    ontology.entityTypes.map((type) => [
+      type.id,
+      kg.entities.filter((entity) => entity.type === type.id).length,
     ]),
   );
   const eventsWithoutKnownEntities = kg.events.filter(
@@ -248,15 +328,32 @@ function buildOntologyReport(kg, newEvents, commit, timestamp) {
   const newEventsWithoutKnownEntities = newEvents.filter(
     (event) => !event.entityIds?.length,
   );
-  const fallbackEvents = newEvents.filter(
-    (event) => event.type === "historical_milestone",
+  const otherEvents = newEvents.filter((event) => event.type === "other");
+  const facetCoverage = Object.fromEntries(
+    ontology.facets
+      .filter((facet) => facet.entityTypes)
+      .map((facet) => {
+        const types = new Set(facet.entityTypes);
+        const matching = kg.events.filter((event) =>
+          event.entityIds.some((id) => types.has(entitiesById.get(id)?.type)),
+        ).length;
+        return [
+          facet.id,
+          {
+            events: matching,
+            percent: percentage(matching, kg.events.length),
+          },
+        ];
+      }),
   );
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     upstreamCommit: commit,
     observedAt: timestamp,
+    ontologyVersion: ontology.version,
+    extractionVersion: kg.source.extractionVersion,
     policy:
-      "Ontology and entity vocabulary changes require maintainer review; this report never edits data/ontology.json or existing entities.",
+      "Ontology and extraction rules are versioned review artifacts. Incremental updates append only; changing semantics requires an explicit full rebuild with no unresolved upstream edits.",
     coverage: {
       totalEvents: kg.events.length,
       totalKnownEntities: kg.entities.length,
@@ -267,17 +364,40 @@ function buildOntologyReport(kg, newEvents, commit, timestamp) {
         kg.events.length - eventsWithoutKnownEntities.length,
         kg.events.length,
       ),
+      specificallyClassifiedEvents:
+        kg.events.length - eventTypeCounts.other,
+      eventTypeCoveragePercent: percentage(
+        kg.events.length - eventTypeCounts.other,
+        kg.events.length,
+      ),
+      averageEntitiesPerEvent: Number(
+        (
+          kg.events.reduce(
+            (total, event) => total + event.entityIds.length,
+            0,
+          ) / (kg.events.length || 1)
+        ).toFixed(2),
+      ),
+      facetCoverage,
+      entityTypeCounts,
       eventTypeCounts,
     },
     currentIncrement: {
       newEvents: newEvents.length,
       newEventsWithoutKnownEntities: newEventsWithoutKnownEntities.length,
-      fallbackTypeEvents: fallbackEvents.length,
-      reviewSample: newEventsWithoutKnownEntities.slice(0, 100).map((event) => ({
+      otherTypeEvents: otherEvents.length,
+      untypedReviewSample: otherEvents.slice(0, 100).map((event) => ({
         id: event.id,
         title: event.title,
         sourceIds: event.sourceIds,
       })),
+      entityGapReviewSample: newEventsWithoutKnownEntities
+        .slice(0, 100)
+        .map((event) => ({
+          id: event.id,
+          title: event.title,
+          sourceIds: event.sourceIds,
+        })),
     },
   };
 }

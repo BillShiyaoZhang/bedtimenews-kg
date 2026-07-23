@@ -1,23 +1,14 @@
 # 数据模型
 
-浏览器会合并两个静态知识图谱：
-
-- `data/generated/kg.json`：由上游内容确定性生成的 append-only 全量索引；
-- `data/kg.json`：维护者人工校订的实体、事件与解释关系。
-
-ID 必须稳定，并在合并前分别通过 `npm run kg:validate` 和 `npm run kg:validate:generated`。同一 ID 同时出现在两层时，人工校订层优先。
-
-`data/archive-state.json` 记录每个已接受上游文件的 SHA-256。增量更新只接受新路径、新内容；已接受路径的内容变化、删除和疑似改名只进入 `data/review/upstream-changes.json`。
-
-## 顶层结构
+`data/generated/kg.json` 是唯一可发布知识图谱。所有记录都由上游存档、ontology 与版本化抽取规则确定性生成。
 
 ```text
 KnowledgeBase
-├── source              数据来源与生成模式
-├── entities[]          可跨事件复用的实体
-├── events[]            发生在时间轴上的事实单元
-├── eventRelations[]    事件之间的解释性关系
-├── entityRelations[]   实体之间的结构关系
+├── source              来源、生成模式与规则版本
+├── entities[]          主体、地点、主题与命名对象
+├── events[]            可检索事件
+├── eventRelations[]    有证据的事件时序关系
+├── entityRelations[]   预留的实体结构关系
 └── sources[]           原文与仓库出处
 ```
 
@@ -25,65 +16,72 @@ KnowledgeBase
 
 ```json
 {
-  "id": "org-yangtze-rail",
-  "label": "长江沿岸铁路集团",
+  "id": "entity-organization-…",
+  "label": "中国人民银行",
   "type": "organization",
-  "aliases": ["沿江铁路公司"],
-  "description": "用于消歧和解释实体边界的短说明"
+  "aliases": [],
+  "description": "由组织名称后缀规则识别的主体；在多条存档事件中出现。",
+  "extraction": {
+    "method": "organization_suffix",
+    "confidence": 0.84,
+    "eventCount": 12
+  }
 }
 ```
 
-- `id`：稳定主键，不因改名改变；
-- `type`：必须存在于 `ontology.entityTypes`；
-- `aliases`：用于检索与确定性匹配；
-- `description`：说明“这个实体是谁/是什么”，避免同名混淆。
+ID 由“类型 + 规范化名称”的哈希生成，跨次构建稳定。`extraction` 说明方法、规则置信度和进入候选表时的事件数。
 
 ## Event
 
 ```json
 {
-  "id": "event-2020-yangtze-company",
-  "title": "长江沿岸铁路集团挂牌成立",
+  "id": "event-…",
+  "title": "事件标题",
   "date": "2020-12-20",
   "datePrecision": "day",
-  "type": "infrastructure",
-  "summary": "可检索的事实摘要",
-  "entityIds": ["org-yangtze-rail", "concept-yangtze-rail"],
-  "sourceIds": ["source-main-214"],
-  "significance": "这件事在长期路径中的意义"
+  "type": "policy_governance",
+  "summary": "用于检索的事实摘要",
+  "entityIds": ["entity-organization-…", "entity-place-…"],
+  "sourceIds": ["source-…"],
+  "significance": ""
 }
 ```
 
-`date` 始终写为 `YYYY-MM-DD`。如果原文只确认年份或月份，用 `datePrecision` 声明精度，并用 `01` 补足未知部分。
-
-`summary` 应尽量陈述原文事实；`significance` 可以给出历史解释，但应与关系证据相互支持。
+日报按二级标题拆分；其他长文按新闻分隔符拆分。事件 ID 来自“上游路径 + 段落序号 + 标题”。日期统一为 `YYYY-MM-DD`，未知月日用 `01` 补足并在 `datePrecision` 标记。
 
 ## Relation
 
 ```json
 {
-  "id": "rel-6",
-  "from": "event-2014-huhanrong",
-  "to": "event-2020-yangtze-company",
-  "type": "responds_to",
-  "confidence": 0.88,
-  "evidence": "说明关系为什么成立，以及依据来自哪里",
-  "sourceId": "source-main-214"
+  "id": "relation-…",
+  "from": "event-earlier",
+  "to": "event-later",
+  "type": "precedes",
+  "viaEntityId": "entity-organization-…",
+  "confidence": 1,
+  "evidence": "两事件均明确涉及同一实体，且日期可确认先后；不表达因果。",
+  "sourceId": "source-later"
 }
 ```
 
-- `from` / `to`：必须引用存在的同类节点；
-- `type`：必须存在于 `ontology.relationTypes`；
-- `confidence`：`0` 到 `1`；不是统计概率，而是维护者对关系证据完整度的记录；
-- `evidence`：必填。应能让另一位维护者复核关系；
-- `sourceId`：证据依赖的主要出处。
+同一事件对只保留一条自动时序关系，避免热门地点或主题制造重复边。
 
 ## Source
 
-来源同时保留：
+来源同时保存：
 
-- 可读的存档站地址 `archiveUrl`；
-- 原始 Markdown 的 `repositoryPath`；
-- 可直接审查版本历史的 `repositoryUrl`。
+- `archiveUrl`：可读存档页；
+- `repositoryPath`：原始 Markdown 路径；
+- `repositoryUrl`：可审查 Git 历史的链接；
+- `publishedAt` 与 `kind`：时间和栏目。
 
-这使 KG 中的每个结论都能回到原始文本与 Git 历史。
+## 增量状态
+
+`data/archive-state.json` 保存：
+
+- 已接受文件的 SHA-256；
+- 上游 commit；
+- 纳入的栏目目录；
+- 当前抽取规则版本。
+
+新路径可以追加；既有路径内容变化、删除、疑似改名或重复复制只进入 `data/review/upstream-changes.json`。

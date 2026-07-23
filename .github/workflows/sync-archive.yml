@@ -41,10 +41,9 @@ jobs:
       - name: Append safe archive additions
         run: npm run kg:update
 
-      - name: Validate generated and curated data
+      - name: Validate ontology and generated knowledge graph
         run: |
           npm run kg:validate
-          npm run kg:validate:generated
           node --test tests/*.test.mjs
 
       - name: Build GitHub Pages artifact
@@ -64,14 +63,18 @@ jobs:
             - Existing upstream files that changed, disappeared, or appear to
               have moved are preserved unchanged and listed in
               `data/review/upstream-changes.json`.
-            - Ontology and entity coverage gaps are listed in
-              `data/review/ontology-candidates.json`; ontology is never edited
-              automatically.
+            - Facet and event-type coverage is measured in
+              `data/review/ontology-candidates.json`.
+            - Ontology or extraction-rule changes require a separately reviewed
+              explicit semantic rebuild; this workflow never rewrites accepted
+              records silently.
 
             Review the reports and the submodule commit before merging.
           add-paths: |
             sources/bedtimenews-archive-contents
             data/archive-state.json
+            data/extraction-rules.json
+            data/ontology.json
             data/generated/kg.json
             data/review/upstream-changes.json
             data/review/ontology-candidates.json

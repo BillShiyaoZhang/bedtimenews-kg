@@ -9,20 +9,26 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "历史经纬｜睡前消息知识图谱",
   description:
-    "从实体进入新闻历史，在时间线上检索事件前后关联，并审查每一条知识图谱关系的证据。",
+    "搜索睡前消息新闻存档，或按事件、主体、地点、主题、命名对象与时间组合检索。",
   applicationName: "历史经纬",
-  keywords: ["睡前消息", "知识图谱", "Ontology", "新闻检索", "时间线"],
+  keywords: [
+    "睡前消息",
+    "知识图谱",
+    "Ontology",
+    "新闻检索",
+    "事件检索",
+  ],
   openGraph: {
     title: "历史经纬｜睡前消息知识图谱",
-    description: "一条新闻，放回时间里看。",
+    description: "关键词搜索，或按事件、主体、地点与主题组合检索。",
     type: "website",
     locale: "zh_CN",
     url: siteUrl,
     images: [
       {
-        url: `${siteUrl}/og.png`,
-        width: 1734,
-        height: 907,
+        url: `${siteUrl}/og-v2.png`,
+        width: 1733,
+        height: 908,
         alt: "历史经纬：一条新闻，放回时间里看。",
       },
     ],
@@ -30,8 +36,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "历史经纬｜睡前消息知识图谱",
-    description: "一条新闻，放回时间里看。",
-    images: [`${siteUrl}/og.png`],
+    description: "关键词搜索，或按事件、主体、地点与主题组合检索。",
+    images: [`${siteUrl}/og-v2.png`],
   },
 };
 

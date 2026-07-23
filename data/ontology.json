@@ -1,152 +1,186 @@
 {
-  "version": "0.1.0",
-  "label": "睡前消息历史知识本体",
-  "description": "面向新闻事件、参与实体、历史关联与证据出处的轻量本体。",
-  "entityTypes": [
+  "version": "1.0.0",
+  "label": "睡前消息新闻知识本体",
+  "description": "把新闻存档统一描述为可追溯的事件、参与主体、地点、命名对象、主题与时间关系；本体类型与自动抽取规则分离并独立版本化。",
+  "facets": [
     {
-      "id": "person",
-      "label": "人物",
-      "description": "自然人或具有明确身份的历史人物",
-      "color": "#c05a3a"
+      "id": "event",
+      "label": "事件",
+      "description": "按发生了什么性质的变化筛选",
+      "eventTypes": ["*"]
     },
     {
-      "id": "organization",
-      "label": "组织",
-      "description": "政府机构、企业、国际组织或社会团体",
-      "color": "#355f8a"
+      "id": "subject",
+      "label": "主体",
+      "description": "事件中的人物与组织",
+      "entityTypes": ["person", "organization"]
     },
     {
       "id": "place",
       "label": "地点",
-      "description": "国家、地区、城市或具有地理边界的区域",
-      "color": "#6a7d45"
+      "description": "事件涉及的国家、地区与城市",
+      "entityTypes": ["place"]
     },
     {
-      "id": "infrastructure",
-      "label": "基础设施",
-      "description": "铁路、桥梁、管网等长期运行的物质系统",
-      "color": "#8b6847"
+      "id": "topic",
+      "label": "主题",
+      "description": "跨事件复用的受控议题",
+      "entityTypes": ["topic"]
+    },
+    {
+      "id": "named_object",
+      "label": "对象",
+      "description": "事件涉及的设施、政策文件与命名报告",
+      "entityTypes": ["facility", "policy", "document"]
+    }
+  ],
+  "entityTypes": [
+    {
+      "id": "person",
+      "label": "人物",
+      "description": "在原文中以姓名出现、并由职务或角色上下文确认的自然人；国名、职位名和泛称不属于人物。",
+      "color": "#bd563d"
+    },
+    {
+      "id": "organization",
+      "label": "组织",
+      "description": "具有可识别名称的政府机构、企业、学校、国际组织、政党或社会团体；泛指的“有关部门”等不纳入。",
+      "color": "#315f86"
+    },
+    {
+      "id": "place",
+      "label": "地点",
+      "description": "国家、行政区、城市或具有稳定名称的地理区域；同一地点的正式名与常用简称归并为一个实体。",
+      "color": "#617b4a"
+    },
+    {
+      "id": "facility",
+      "label": "设施",
+      "description": "铁路、公路、桥梁、机场、港口、电站、园区等可定位的物质或工程系统。",
+      "color": "#8a6848"
     },
     {
       "id": "policy",
-      "label": "政策",
-      "description": "规划、监管安排与公共政策工具",
-      "color": "#755a9c"
+      "label": "政策文件",
+      "description": "原文明确命名的法律、条例、办法、规划、方案、通知、意见、纲要或决定。",
+      "color": "#765a98"
     },
     {
-      "id": "industry",
-      "label": "产业",
-      "description": "产业部门、技术路线或供应链",
-      "color": "#26877b"
+      "id": "document",
+      "label": "报告与文献",
+      "description": "原文明确命名的调查报告、研究报告、白皮书、年鉴或技术标准；它们可作为证据，但不等同于政策。",
+      "color": "#6e6b8f"
     },
     {
-      "id": "concept",
-      "label": "概念",
-      "description": "用于连接跨时期报道的议题、制度或分析概念",
-      "color": "#a46b20"
+      "id": "topic",
+      "label": "主题",
+      "description": "由受控词表定义、可跨时期稳定复用的议题维度；主题不是原文中的独立行动者。",
+      "color": "#a06c25"
     }
   ],
   "eventTypes": [
     {
-      "id": "historical_milestone",
-      "label": "历史节点",
-      "description": "形成长期路径依赖的重要历史事实",
-      "color": "#786f63"
+      "id": "policy_governance",
+      "label": "政策与治理",
+      "description": "政策、规划、监管、行政安排或公共治理方式发生变化。",
+      "color": "#506f97"
     },
     {
-      "id": "infrastructure",
-      "label": "基建进展",
-      "description": "基础设施的规划、开工、通车或组织调整",
-      "color": "#bd5734"
+      "id": "economy_business",
+      "label": "经济与商业",
+      "description": "价格、市场、贸易、投资、企业经营或产业格局发生变化。",
+      "color": "#398073"
     },
     {
-      "id": "policy_change",
-      "label": "政策变化",
-      "description": "公共政策、规划或监管规则发生变化",
-      "color": "#4f6d94"
+      "id": "infrastructure_transport",
+      "label": "基建与交通",
+      "description": "基础设施的规划、建设、投运、维护或组织调整。",
+      "color": "#b85a36"
     },
     {
-      "id": "market_shift",
-      "label": "市场变化",
-      "description": "价格、供需、贸易或产业格局出现显著变化",
-      "color": "#3c7c70"
+      "id": "science_technology",
+      "label": "科学与技术",
+      "description": "科研活动、技术能力、产品路线或工程方法出现进展与争议。",
+      "color": "#725c9c"
     },
     {
-      "id": "technology",
-      "label": "技术进展",
-      "description": "技术能力、产量或工程方法出现转折",
-      "color": "#7a5d9d"
+      "id": "law_justice",
+      "label": "法律与司法",
+      "description": "立法、执法、调查、诉讼、判决或犯罪案件相关进展。",
+      "color": "#866246"
     },
     {
-      "id": "public_debate",
-      "label": "公共讨论",
-      "description": "引发社会关注、争议或制度反思的事件",
-      "color": "#a66e2c"
+      "id": "conflict_security",
+      "label": "冲突与安全",
+      "description": "战争、军事行动、制裁、政变、袭击或国家安全事件。",
+      "color": "#934d4d"
+    },
+    {
+      "id": "disaster_accident",
+      "label": "灾害与事故",
+      "description": "自然灾害、生产安全事故、公共安全事故及其救援和问责。",
+      "color": "#b06a36"
+    },
+    {
+      "id": "public_health",
+      "label": "公共卫生",
+      "description": "疫情、传染病、疫苗、防疫措施或群体健康风险变化。",
+      "color": "#3f7d79"
+    },
+    {
+      "id": "environment_energy",
+      "label": "环境与能源",
+      "description": "能源供给、生态环境、污染治理或气候议题相关变化。",
+      "color": "#5e7d58"
+    },
+    {
+      "id": "education_culture",
+      "label": "教育与文化",
+      "description": "教育制度、学校、科研文化、影视传媒、体育与公共文化事件。",
+      "color": "#8b6588"
+    },
+    {
+      "id": "society_livelihood",
+      "label": "社会与民生",
+      "description": "就业、住房、人口、养老、医疗、劳动与日常生活相关变化。",
+      "color": "#9a7444"
+    },
+    {
+      "id": "international_relations",
+      "label": "国际关系",
+      "description": "外交、国际组织、双边关系、国际谈判与跨国制度变化。",
+      "color": "#4a6f83"
+    },
+    {
+      "id": "other",
+      "label": "其他事件",
+      "description": "证据不足以稳定归入其他通用类型的事件；应在覆盖报告中持续审查。",
+      "color": "#7d7870"
     }
   ],
   "relationTypes": [
     {
       "id": "precedes",
       "label": "先于",
-      "description": "两个事件具有可确认的时间先后顺序",
+      "description": "两个事件涉及同一非泛化实体，并具有可确认的时间先后顺序；只表达时序，不表达因果。",
       "from": ["event"],
       "to": ["event"],
       "directed": true
-    },
-    {
-      "id": "enables",
-      "label": "促成",
-      "description": "前一事件为后一事件提供必要能力或条件",
-      "from": ["event"],
-      "to": ["event"],
-      "directed": true
-    },
-    {
-      "id": "responds_to",
-      "label": "回应",
-      "description": "后一事件是对前一问题、压力或变化的制度性回应",
-      "from": ["event"],
-      "to": ["event"],
-      "directed": true
-    },
-    {
-      "id": "continues",
-      "label": "延续",
-      "description": "两个事件属于同一长期过程的连续阶段",
-      "from": ["event"],
-      "to": ["event"],
-      "directed": true
-    },
-    {
-      "id": "contrasts_with",
-      "label": "对照",
-      "description": "两个事件或路径形成有解释意义的对照",
-      "from": ["event"],
-      "to": ["event"],
-      "directed": false
     },
     {
       "id": "located_in",
       "label": "位于",
-      "description": "实体位于某个地理区域",
-      "from": ["infrastructure", "organization"],
+      "description": "设施或组织位于某个地理区域；仅在原文存在明确定位证据时使用。",
+      "from": ["facility", "organization"],
       "to": ["place"],
-      "directed": true
-    },
-    {
-      "id": "operates",
-      "label": "运营",
-      "description": "组织负责建设、管理或运营某个基础设施",
-      "from": ["organization"],
-      "to": ["infrastructure"],
       "directed": true
     },
     {
       "id": "part_of",
       "label": "属于",
-      "description": "实体属于更大的系统、政策或产业",
-      "from": ["infrastructure", "policy", "industry", "concept"],
-      "to": ["infrastructure", "policy", "industry", "concept"],
+      "description": "一个设施、组织或政策文件是另一个命名对象的组成部分。",
+      "from": ["facility", "organization", "policy"],
+      "to": ["facility", "organization", "policy"],
       "directed": true
     }
   ]

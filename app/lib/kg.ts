@@ -16,10 +16,19 @@ export type RelationType = {
   directed: boolean;
 };
 
+export type Facet = {
+  id: string;
+  label: string;
+  description: string;
+  entityTypes?: string[];
+  eventTypes?: string[];
+};
+
 export type Ontology = {
   version: string;
   label: string;
   description: string;
+  facets: Facet[];
   entityTypes: EntityType[];
   eventTypes: EventType[];
   relationTypes: RelationType[];
@@ -31,6 +40,11 @@ export type Entity = {
   type: string;
   aliases: string[];
   description: string;
+  extraction?: {
+    method: string;
+    confidence: number;
+    eventCount: number;
+  };
 };
 
 export type Event = {
@@ -51,6 +65,7 @@ export type Relation = {
   to: string;
   type: string;
   confidence?: number;
+  viaEntityId?: string;
   evidence: string;
   sourceId: string;
 };
@@ -73,6 +88,7 @@ export type KnowledgeBase = {
     url: string;
     licenseNote: string;
     mode: string;
+    extractionVersion: string;
   };
   entities: Entity[];
   events: Event[];
