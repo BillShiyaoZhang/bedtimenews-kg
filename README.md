@@ -5,7 +5,7 @@
 - 关键词搜索：同时检索事件标题、摘要、主体、地点、主题与原文标题；
 - 按条件检索：组合事件类型、主体、地点、主题、命名对象和时间范围。
 
-每条结果都保留存档页、原始 Markdown 路径与仓库链接。
+首页命中的实体会进入独立详情页，联合展示相关新闻时间线、可交互知识图谱和原文证据。Ontology 浏览页展示 facet、实体/事件/关系类型、实例数量和实时覆盖率。
 
 ## 数据结构
 
@@ -83,7 +83,10 @@ npm run kg:rebuild
 ## 目录
 
 ```text
-app/                         关键词与条件检索首页
+app/                         站点路由与界面
+app/page.tsx                 关键词与条件检索首页
+app/graph/page.tsx           实体相关新闻与 KG 可视化
+app/ontology/page.tsx        Ontology 类型、约束与覆盖率
 data/ontology.json           类型、关系与检索 facet
 data/extraction-rules.json   版本化确定性抽取规则
 data/generated/kg.json       唯一的全量可发布 KG
@@ -102,3 +105,4 @@ tests/                       数据、抽取、增量保护契约
 - 低置信命名模式必须跨事件复现后才进入主体或设施 facet；
 - 全文保留在上游仓库，本项目只保存检索所需的短摘要和出处；
 - 任何覆盖率都是分维度报告，不用一个总数代替语义质量。
+- 站点只通过 GitHub Pages 发布；本项目不使用 OpenAI Sites 部署。

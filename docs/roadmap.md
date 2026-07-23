@@ -10,7 +10,9 @@
 - 仅表达时序的证据关系；
 - append-only 上游同步与显式语义重建；
 - 关键词搜索和组合条件检索首页；
-- GitHub Pages 与 Sites 部署。
+- 实体相关新闻时间线与可交互 KG；
+- 独立 Ontology 类型和覆盖率浏览页；
+- GitHub Pages 静态部署。
 
 ## 下一步
 

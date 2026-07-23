@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useMemo, useState, type CSSProperties } from "react";
 import {
   formatEventDate,
@@ -30,6 +31,7 @@ const EMPTY_FILTERS: Filters = {
   toYear: "",
 };
 const RESULT_LIMIT = 60;
+const ENTITY_RESULT_LIMIT = 12;
 
 export function KGExplorer({
   initialKG,
@@ -64,6 +66,16 @@ export function KGExplorer({
         ]),
       ),
     [initialOntology.eventTypes],
+  );
+  const entityTypeById = useMemo(
+    () =>
+      new Map(
+        initialOntology.entityTypes.map((entityType) => [
+          entityType.id,
+          entityType,
+        ]),
+      ),
+    [initialOntology.entityTypes],
   );
   const entitiesByType = useMemo(() => {
     const counts = new Map<string, number>();
@@ -117,8 +129,16 @@ export function KGExplorer({
   );
 
   const result = useMemo(() => {
-    if (!search) return { total: 0, events: [] as Event[] };
+    if (!search) {
+      return {
+        total: 0,
+        events: [] as Event[],
+        totalEntities: 0,
+        entities: [] as Entity[],
+      };
+    }
     let matching = searchableEvents;
+    let matchingEntities: Entity[] = [];
     if (search.mode === "keyword") {
       const terms = search.query
         .trim()
@@ -128,6 +148,16 @@ export function KGExplorer({
       matching = matching.filter(({ text }) =>
         terms.every((term) => text.includes(term)),
       );
+      matchingEntities = initialKG.entities.filter((entity) => {
+        const text = [
+          entity.label,
+          ...entity.aliases,
+          entity.description,
+        ]
+          .join(" ")
+          .toLocaleLowerCase("zh-CN");
+        return terms.every((term) => text.includes(term));
+      });
     } else {
       const selected = search.filters;
       matching = matching.filter(({ event }) => {
@@ -147,6 +177,15 @@ export function KGExplorer({
         if (selected.toYear && year > Number(selected.toYear)) return false;
         return true;
       });
+      matchingEntities = [
+        selected.subjectId,
+        selected.placeId,
+        selected.topicId,
+        selected.objectId,
+      ]
+        .filter(Boolean)
+        .map((id) => entityById.get(id))
+        .filter(Boolean) as Entity[];
     }
     const ordered = matching
       .map(({ event }) => event)
@@ -155,8 +194,19 @@ export function KGExplorer({
           right.date.localeCompare(left.date) ||
           left.title.localeCompare(right.title, "zh-CN"),
       );
-    return { total: ordered.length, events: ordered.slice(0, RESULT_LIMIT) };
-  }, [search, searchableEvents]);
+    matchingEntities.sort(
+      (left, right) =>
+        (right.extraction?.eventCount ?? 0) -
+          (left.extraction?.eventCount ?? 0) ||
+        left.label.localeCompare(right.label, "zh-CN"),
+    );
+    return {
+      total: ordered.length,
+      events: ordered.slice(0, RESULT_LIMIT),
+      totalEntities: matchingEntities.length,
+      entities: matchingEntities.slice(0, ENTITY_RESULT_LIMIT),
+    };
+  }, [entityById, initialKG.entities, search, searchableEvents]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -363,14 +413,21 @@ export function KGExplorer({
         <SearchResults
           total={result.total}
           events={result.events}
+          totalEntities={result.totalEntities}
+          entities={result.entities}
           entityById={entityById}
           sourceById={sourceById}
           eventTypeById={eventTypeById}
+          entityTypeById={entityTypeById}
         />
       ) : null}
 
       <footer>
-        <span>Ontology {initialOntology.version}</span>
+        <span>
+          <Link href="/ontology">浏览 Ontology {initialOntology.version}</Link>
+          {" · "}
+          <Link href="/graph">浏览知识图谱</Link>
+        </span>
         <span>每条结果均保留原文证据链接</span>
       </footer>
     </main>
@@ -423,18 +480,70 @@ function EntitySelect({
 function SearchResults({
   total,
   events,
+  totalEntities,
+  entities,
   entityById,
   sourceById,
   eventTypeById,
+  entityTypeById,
 }: {
   total: number;
   events: Event[];
+  totalEntities: number;
+  entities: Entity[];
   entityById: Map<string, Entity>;
   sourceById: Map<string, KnowledgeBase["sources"][number]>;
   eventTypeById: Map<string, Ontology["eventTypes"][number]>;
+  entityTypeById: Map<string, Ontology["entityTypes"][number]>;
 }) {
   return (
     <section className="results-section" aria-live="polite">
+      {entities.length ? (
+        <div className="entity-result-block">
+          <div className="entity-result-heading">
+            <div>
+              <span className="eyebrow">匹配实体</span>
+              <h2>
+                找到 <strong>{totalEntities.toLocaleString("zh-CN")}</strong>{" "}
+                个实体
+              </h2>
+            </div>
+            <p>进入实体页查看相关新闻时间线与知识图谱。</p>
+          </div>
+          <div className="entity-result-grid">
+            {entities.map((entity) => {
+              const type = entityTypeById.get(entity.type);
+              return (
+                <Link
+                  className="entity-result-card"
+                  href={{ pathname: "/graph", query: { entity: entity.id } }}
+                  key={entity.id}
+                >
+                  <span
+                    style={{ "--entity-color": type?.color } as CSSProperties}
+                  >
+                    {type?.label ?? entity.type}
+                  </span>
+                  <strong>{entity.label}</strong>
+                  <small>
+                    关联{" "}
+                    {(entity.extraction?.eventCount ?? 0).toLocaleString(
+                      "zh-CN",
+                    )}{" "}
+                    个事件
+                  </small>
+                  <i aria-hidden="true">查看新闻与图谱 →</i>
+                </Link>
+              );
+            })}
+          </div>
+          {totalEntities > ENTITY_RESULT_LIMIT ? (
+            <p className="entity-result-more">
+              当前显示关联事件最多的 {ENTITY_RESULT_LIMIT} 个实体。
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       <div className="results-heading">
         <div>
           <span className="eyebrow">检索结果</span>
@@ -473,9 +582,17 @@ function SearchResults({
                   <p>{event.summary || "原文未提供摘要，请查看出处。"}</p>
                   <div className="entity-tags">
                     {entities.slice(0, 8).map((entity) => (
-                      <span key={entity.id} data-type={entity.type}>
+                      <Link
+                        href={{
+                          pathname: "/graph",
+                          query: { entity: entity.id },
+                        }}
+                        key={entity.id}
+                        data-type={entity.type}
+                        title={`查看“${entity.label}”的相关新闻与知识图谱`}
+                      >
                         {entity.label}
-                      </span>
+                      </Link>
                     ))}
                     {entities.length > 8 ? (
                       <span>+{entities.length - 8}</span>
