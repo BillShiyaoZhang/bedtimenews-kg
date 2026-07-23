@@ -59,22 +59,28 @@ jobs:
           body: |
             Automated archive sync.
 
-            - Brand-new Markdown files are appended to the generated KG.
+            - Brand-new Markdown files are segmented into independent news
+              records, then appended to the generated KG.
             - Existing upstream files that changed, disappeared, or appear to
               have moved are preserved unchanged and listed in
               `data/review/upstream-changes.json`.
             - Facet and event-type coverage is measured in
               `data/review/ontology-candidates.json`.
-            - Ontology or extraction-rule changes require a separately reviewed
-              explicit semantic rebuild; this workflow never rewrites accepted
-              records silently.
+            - Segmentation confidence and unresolved page boundaries are listed
+              in `data/review/news-segmentation.json`.
+            - News-boundary, ontology, or extraction-rule changes require a
+              separately reviewed explicit rebuild; this workflow never
+              rewrites accepted records silently.
 
             Review the reports and the submodule commit before merging.
           add-paths: |
             sources/bedtimenews-archive-contents
             data/archive-state.json
             data/extraction-rules.json
+            data/news-overrides.json
             data/ontology.json
+            data/processed/news.json
             data/generated/kg.json
             data/review/upstream-changes.json
+            data/review/news-segmentation.json
             data/review/ontology-candidates.json

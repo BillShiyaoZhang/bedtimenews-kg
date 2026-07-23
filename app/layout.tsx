@@ -9,18 +9,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "历史经纬｜睡前消息知识图谱",
   description:
-    "搜索睡前消息新闻存档，或按事件、主体、地点、主题、命名对象与时间组合检索。",
+    "搜索按独立新闻拆分的睡前消息存档，或按事件类型、主体、地点、主题、命名对象与时间组合检索。",
   applicationName: "历史经纬",
   keywords: [
     "睡前消息",
     "知识图谱",
     "Ontology",
     "新闻检索",
-    "事件检索",
+    "独立新闻检索",
   ],
   openGraph: {
     title: "历史经纬｜睡前消息知识图谱",
-    description: "关键词搜索，或按事件、主体、地点与主题组合检索。",
+    description: "关键词搜索，或按事件类型、主体、地点与主题组合检索独立新闻。",
     type: "website",
     locale: "zh_CN",
     url: siteUrl,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "历史经纬｜睡前消息知识图谱",
-    description: "关键词搜索，或按事件、主体、地点与主题组合检索。",
+    description: "关键词搜索，或按事件类型、主体、地点与主题组合检索独立新闻。",
     images: [`${siteUrl}/og-v2.png`],
   },
 };

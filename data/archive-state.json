@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "source": {
     "name": "bedtimenews/bedtimenews-archive-contents",
     "url": "https://github.com/bedtimenews/bedtimenews-archive-contents",
@@ -2060,5 +2060,9 @@
     "shorts/test/3.md": "bfae9954dc5e5eeefea10e007e05d341265735b87491c03b02ac5f4360c2a492",
     "shorts/test/4.md": "5a9155d7b009f9d818f2cab2bb2354d48fec01f78c5cfedae525e8def05cbf16"
   },
-  "extractionVersion": "2.0.0"
+  "extractionVersion": "2.0.0",
+  "segmentationVersion": "1.1.0",
+  "newsOverrideVersion": "1.0.0",
+  "ontologyVersion": "2.0.0",
+  "newsDatasetSchemaVersion": "1.1.0"
 }

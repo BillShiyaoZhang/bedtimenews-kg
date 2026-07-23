@@ -10,6 +10,7 @@
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "build:pages": "NEXT_OUTPUT_EXPORT=1 next build",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
+    "news:build": "node scripts/build-news.mjs",
     "kg:build": "node scripts/build-kg.mjs",
     "kg:bootstrap": "node scripts/update-kg.mjs --bootstrap",
     "kg:rebuild": "node scripts/update-kg.mjs --rebuild",

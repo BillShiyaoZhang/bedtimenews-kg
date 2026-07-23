@@ -7,7 +7,7 @@ import type { CSSProperties } from "react";
 
 export const metadata: Metadata = {
   title: "Ontology 浏览器｜历史经纬",
-  description: "浏览睡前消息新闻知识本体的检索维度、实体类型、事件类型、关系约束与覆盖率。",
+  description: "浏览以独立新闻为单位的知识本体、实体类型、事件类型、关系约束与覆盖率。",
 };
 
 const knowledgeBase = knowledgeBaseData as unknown as KnowledgeBase;
@@ -56,14 +56,14 @@ export default function OntologyPage() {
     {
       id: "entity",
       label: "实体",
-      description: "事件至少关联一个语义实体",
+      description: "新闻至少关联一个语义实体",
       matched: knowledgeBase.events.filter((event) => event.entityIds.length)
         .length,
     },
     {
       id: "event",
       label: "具体事件类型",
-      description: "事件已归入“其他事件”之外的类型",
+      description: "新闻已归入“其他事件”之外的类型",
       matched: knowledgeBase.events.filter((event) => event.type !== "other")
         .length,
     },
@@ -108,6 +108,10 @@ export default function OntologyPage() {
         <p>{ontology.description}</p>
         <dl>
           <div>
+            <dt>基本单位</dt>
+            <dd>{ontology.recordUnit.label}</dd>
+          </div>
+          <div>
             <dt>检索维度</dt>
             <dd>{ontology.facets.length}</dd>
           </div>
@@ -134,7 +138,7 @@ export default function OntologyPage() {
           </div>
           <p>
             以 {knowledgeBase.events.length.toLocaleString("zh-CN")}{" "}
-            个事件为分母，由当前抽取规则确定性计算。
+            条独立新闻为分母，由当前抽取规则确定性计算。
           </p>
         </div>
         <div className="coverage-grid">
@@ -240,7 +244,7 @@ export default function OntologyPage() {
             <span className="eyebrow">Event classes</span>
             <h2>事件类型</h2>
           </div>
-          <p>事件类型描述新闻中发生了什么，而非稿件栏目名称。</p>
+          <p>事件类型描述每条独立新闻中发生了什么，而非原页面或稿件栏目名称。</p>
         </div>
         <div className="type-grid event-type-grid">
           {ontology.eventTypes.map((type) => (
@@ -296,9 +300,9 @@ export default function OntologyPage() {
           <h2>可复现，而不是手工维护</h2>
         </div>
         <p>
-          当前 KG 由上游 Markdown、Ontology 与版本化抽取规则生成。实体 ID
-          来自规范化名称与类型，事件 ID 来自来源路径和段落位置；每次构建执行 schema
-          与引用完整性校验。
+          当前 KG 由上游 Markdown、独立新闻数据集、Ontology 与版本化抽取规则生成。
+          每个事件投影必须通过 newsId 对应一条独立新闻，并通过 pageId
+          与片段哈希回到原始页面。每次构建执行 schema、新闻投影与引用完整性校验。
         </p>
         <dl>
           <div>
@@ -306,7 +310,7 @@ export default function OntologyPage() {
             <dd>{knowledgeBase.source.extractionVersion}</dd>
           </div>
           <div>
-            <dt>来源文档</dt>
+            <dt>原始页面</dt>
             <dd>{knowledgeBase.sources.length.toLocaleString("zh-CN")}</dd>
           </div>
           <div>

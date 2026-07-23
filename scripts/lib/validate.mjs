@@ -1,5 +1,8 @@
 export function validate(kg, ontology) {
   const issues = [];
+  if (ontology.recordUnit?.id !== "news") {
+    issues.push(error("ontology.recordUnit.id", "本体基本单位必须是独立新闻"));
+  }
   const entityTypes = new Set(ontology.entityTypes.map((item) => item.id));
   const eventTypes = new Set(ontology.eventTypes.map((item) => item.id));
   const relationTypes = new Set(
@@ -8,6 +11,7 @@ export function validate(kg, ontology) {
   const entityIds = uniqueIds(kg.entities, "entities", issues);
   const eventIds = uniqueIds(kg.events, "events", issues);
   const sourceIds = uniqueIds(kg.sources, "sources", issues);
+  const newsIds = new Set();
   uniqueIds(ontology.entityTypes, "ontology.entityTypes", issues);
   uniqueIds(ontology.eventTypes, "ontology.eventTypes", issues);
   uniqueIds(ontology.relationTypes, "ontology.relationTypes", issues);
@@ -19,6 +23,19 @@ export function validate(kg, ontology) {
   });
 
   kg.events.forEach((event, index) => {
+    if (!event.newsId?.startsWith("news-")) {
+      issues.push(
+        error(
+          `events.${index}.newsId`,
+          "事件必须引用 processed news dataset 中的独立新闻 ID",
+        ),
+      );
+    } else if (newsIds.has(event.newsId)) {
+      issues.push(
+        error(`events.${index}.newsId`, `重复新闻投影：${event.newsId}`),
+      );
+    }
+    newsIds.add(event.newsId);
     if (!eventTypes.has(event.type)) {
       issues.push(error(`events.${index}.type`, `未知事件类型：${event.type}`));
     }
@@ -44,6 +61,14 @@ export function validate(kg, ontology) {
           ),
         );
       }
+    }
+    if (event.sourceIds?.length !== 1) {
+      issues.push(
+        error(
+          `events.${index}.sourceIds`,
+          "一条新闻必须精确引用一个原始页面；跨来源聚合应建立独立事实簇",
+        ),
+      );
     }
   });
 

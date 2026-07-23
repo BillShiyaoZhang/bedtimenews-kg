@@ -28,6 +28,11 @@ export type Ontology = {
   version: string;
   label: string;
   description: string;
+  recordUnit: {
+    id: "news";
+    label: string;
+    description: string;
+  };
   facets: Facet[];
   entityTypes: EntityType[];
   eventTypes: EventType[];
@@ -49,6 +54,7 @@ export type Entity = {
 
 export type Event = {
   id: string;
+  newsId: string;
   title: string;
   date: string;
   datePrecision: "day" | "month" | "year";
@@ -77,7 +83,34 @@ export type Source = {
   repositoryPath: string;
   repositoryUrl: string;
   publishedAt: string;
+  dateProvenance: {
+    observedAt: string;
+    source:
+      | "repository_path"
+      | "episode_preamble"
+      | "page_title"
+      | "frontmatter"
+      | "unknown";
+    resolution:
+      | "observed"
+      | "interpolated"
+      | "corrected_sequence_outlier"
+      | "extrapolated";
+  };
+  episode?: {
+    series: "bedtimenews";
+    number: number;
+  };
   kind: string;
+  contentHash: string;
+  segmentation: {
+    strategy: string;
+    confidence: number;
+    newsCount: number;
+    candidateBoundaryCount: number;
+    needsReview: boolean;
+    reviewReasons: string[];
+  };
 };
 
 export type KnowledgeBase = {
@@ -88,6 +121,9 @@ export type KnowledgeBase = {
     url: string;
     licenseNote: string;
     mode: string;
+    newsDatasetSchemaVersion: string;
+    segmentationVersion: string;
+    newsOverrideVersion: string;
     extractionVersion: string;
   };
   entities: Entity[];
@@ -108,6 +144,13 @@ const hexColor = /^#[0-9a-f]{6}$/i;
 
 export function validateOntology(ontology: Ontology): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
+  if (ontology.recordUnit?.id !== "news") {
+    issues.push({
+      level: "error",
+      path: "recordUnit.id",
+      message: "Ontology 的基本记录单位必须是独立新闻",
+    });
+  }
   const groups = [
     ["entityTypes", ontology.entityTypes],
     ["eventTypes", ontology.eventTypes],
@@ -188,6 +231,7 @@ export function validateKnowledgeBase(
   const issues = validateOntology(ontology);
   const entityIds = new Set<string>();
   const eventIds = new Set<string>();
+  const newsIds = new Set<string>();
   const sourceIds = new Set(kg.sources.map((source) => source.id));
   const entityTypeIds = new Set(ontology.entityTypes.map((type) => type.id));
   const eventTypeIds = new Set(ontology.eventTypes.map((type) => type.id));
@@ -221,6 +265,20 @@ export function validateKnowledgeBase(
   });
 
   kg.events.forEach((event, index) => {
+    if (!event.newsId?.startsWith("news-")) {
+      issues.push({
+        level: "error",
+        path: `events.${index}.newsId`,
+        message: "事件必须引用 processed news dataset 中的独立新闻",
+      });
+    } else if (newsIds.has(event.newsId)) {
+      issues.push({
+        level: "error",
+        path: `events.${index}.newsId`,
+        message: `重复新闻投影：${event.newsId}`,
+      });
+    }
+    newsIds.add(event.newsId);
     if (eventIds.has(event.id)) {
       issues.push({
         level: "error",
@@ -261,6 +319,13 @@ export function validateKnowledgeBase(
         });
       }
     });
+    if (event.sourceIds.length !== 1) {
+      issues.push({
+        level: "error",
+        path: `events.${index}.sourceIds`,
+        message: "一条新闻必须精确引用一个原始页面",
+      });
+    }
   });
 
   const validateRelation = (

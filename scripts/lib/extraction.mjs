@@ -470,15 +470,15 @@ export function shouldKeepCandidate(stat) {
 
 export function materializeEntity(stat) {
   const descriptions = {
-    controlled_vocabulary: `受控主题词；由 ${stat.eventCount} 条存档事件的关键词规则命中。`,
-    gazetteer: `标准地名；在 ${stat.eventCount} 条存档事件中出现。`,
-    administrative_suffix: `由行政区划后缀规则识别的地点；在 ${stat.eventCount} 条存档事件中出现。`,
-    organization_suffix: `由组织名称后缀规则识别的主体；在 ${stat.eventCount} 条存档事件中出现。`,
-    facility_suffix: `由设施名称后缀规则识别的命名对象；在 ${stat.eventCount} 条存档事件中出现。`,
-    document_title: `由书名号与文件类型后缀识别的政策文件；在 ${stat.eventCount} 条存档事件中出现。`,
-    named_document: `由书名号与文献类型后缀识别的报告或文献；在 ${stat.eventCount} 条存档事件中出现。`,
-    role_after: `由职务后的姓名上下文识别的人物；在 ${stat.eventCount} 条存档事件中出现。`,
-    role_before: `由姓名后的职务上下文识别的人物；在 ${stat.eventCount} 条存档事件中出现。`,
+    controlled_vocabulary: `受控主题词；由 ${stat.eventCount} 条独立新闻的关键词规则命中。`,
+    gazetteer: `标准地名；在 ${stat.eventCount} 条独立新闻中出现。`,
+    administrative_suffix: `由行政区划后缀规则识别的地点；在 ${stat.eventCount} 条独立新闻中出现。`,
+    organization_suffix: `由组织名称后缀规则识别的主体；在 ${stat.eventCount} 条独立新闻中出现。`,
+    facility_suffix: `由设施名称后缀规则识别的命名对象；在 ${stat.eventCount} 条独立新闻中出现。`,
+    document_title: `由书名号与文件类型后缀识别的政策文件；在 ${stat.eventCount} 条独立新闻中出现。`,
+    named_document: `由书名号与文献类型后缀识别的报告或文献；在 ${stat.eventCount} 条独立新闻中出现。`,
+    role_after: `由职务后的姓名上下文识别的人物；在 ${stat.eventCount} 条独立新闻中出现。`,
+    role_before: `由姓名后的职务上下文识别的人物；在 ${stat.eventCount} 条独立新闻中出现。`,
   };
   return {
     id: entityId(stat.type, stat.label),

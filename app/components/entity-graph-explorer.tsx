@@ -271,9 +271,9 @@ export function EntityGraphExplorer({
             <div className="section-title">
               <div>
                 <span className="eyebrow">Knowledge graph</span>
-                <h2>实体与事件关系</h2>
+                <h2>实体与新闻关系</h2>
               </div>
-              <p>点击节点可切换实体或查看事件证据。</p>
+              <p>点击节点可切换实体或查看新闻证据。</p>
             </div>
             <KnowledgeGraphCanvas
               kg={knowledgeBase}
@@ -383,8 +383,8 @@ export function EntityGraphExplorer({
               </div>
             ) : (
               <div className="empty-result">
-                <strong>暂无关联事件</strong>
-                <p>这个实体尚未进入任何可发布事件。</p>
+                <strong>暂无关联新闻</strong>
+                <p>这个实体尚未进入任何可发布新闻。</p>
               </div>
             )}
             {relatedEvents.length > NEWS_LIMIT ? (
@@ -397,7 +397,7 @@ export function EntityGraphExplorer({
       ) : null}
 
       <footer>
-        <span>实体、事件与关系均来自可追溯的新闻原文</span>
+        <span>实体、新闻与关系均来自可追溯的原文片段</span>
         <Link href="/">回到首页重新检索</Link>
       </footer>
     </main>

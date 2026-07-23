@@ -1,14 +1,21 @@
 #!/usr/bin/env node
 
 import { createHash } from "node:crypto";
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
-import { basename, dirname, extname, relative, resolve } from "node:path";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   createExtractionEngine,
   materializeEntity,
   shouldKeepCandidate,
 } from "./lib/extraction.mjs";
+import {
+  cleanText,
+  normalizeIdentifier,
+  readNewsFragment,
+  validateKnowledgeBaseNewsProjection,
+  validateNewsDataset,
+} from "./lib/news.mjs";
 import { validate } from "./lib/validate.mjs";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -18,121 +25,84 @@ const sourceRoot = resolve(
     process.env.BEDTIMENEWS_ARCHIVE ??
     "sources/bedtimenews-archive-contents",
 );
+const newsPath = resolve(
+  projectRoot,
+  args.news ?? "data/processed/news.json",
+);
 const outputPath = resolve(
   projectRoot,
   args.output ?? "data/generated/kg.json",
 );
-const limit = Number(args.limit ?? 0);
-const includeRoots = String(
-  args.include ??
-    "main,daily,reference,opinion,business,commercial,livestream,shorts",
-)
-  .split(",")
-  .map((item) => item.trim())
-  .filter(Boolean);
 const generatedAt = String(args["generated-at"] ?? new Date().toISOString());
 
-const [ontology, extractionRules] = await Promise.all([
+const [ontology, extractionRules, newsDataset] = await Promise.all([
   readJson(resolve(projectRoot, "data/ontology.json")),
   readJson(resolve(projectRoot, "data/extraction-rules.json")),
+  readJson(newsPath),
 ]);
-const extractor = createExtractionEngine(extractionRules);
-const markdownFiles = (
-  await Promise.all(
-    includeRoots.map((folder) => walk(resolve(sourceRoot, folder))),
-  )
-)
-  .flat()
-  .filter((path) => extname(path) === ".md")
-  .sort()
-  .slice(0, limit || undefined);
-
-if (!markdownFiles.length) {
+const datasetIssues = validateNewsDataset(newsDataset);
+if (datasetIssues.length) {
   throw new Error(
-    `No Markdown files found under ${sourceRoot}. ` +
-      "Pass --source /path/to/bedtimenews-archive-contents.",
+    `Processed news dataset is invalid:\n${datasetIssues
+      .slice(0, 20)
+      .map((item) => `[${item.level}] ${item.path}: ${item.message}`)
+      .join("\n")}`,
   );
 }
 
-const sources = [];
+const extractor = createExtractionEngine(extractionRules);
+const pageById = new Map(newsDataset.pages.map((page) => [page.id, page]));
+const rawPageCache = new Map();
 const draftEvents = [];
 const candidateStats = new Map();
 
-for (const filePath of markdownFiles) {
-  const repositoryPath = relative(sourceRoot, filePath).replaceAll("\\", "/");
-  const raw = await readFile(filePath, "utf8");
-  const { attributes, body } = parseFrontMatter(raw);
-  if (attributes.published === "false" || isNavigationIndex(body)) continue;
-
-  const sourceId = `source-${shortHash(repositoryPath)}`;
-  const sourceDate = extractDate(repositoryPath, body, attributes);
-  const sourceTitle =
-    attributes.title || firstHeading(body) || basename(filePath, ".md");
-  const sections = splitEventSections(
-    repositoryPath,
-    body,
-    sourceTitle,
-    attributes.description,
+for (const item of newsDataset.news) {
+  const page = pageById.get(item.pageId);
+  if (!page) throw new Error(`${item.id} references missing page ${item.pageId}.`);
+  let raw = rawPageCache.get(page.id);
+  if (raw === undefined) {
+    raw = await readFile(resolve(sourceRoot, page.repositoryPath), "utf8");
+    rawPageCache.set(page.id, raw);
+  }
+  const fragment = readNewsFragment(raw, item.fragment);
+  const eventId = `event-${shortHash(item.id)}`;
+  const candidates = extractor.extractCandidates(
+    `${item.title}\n${item.summary}\n${fragment}`,
+    `${item.title}\n${item.summary}`,
   );
-  if (!sections.length) continue;
-
-  sources.push({
-    id: sourceId,
-    title: sourceTitle,
-    archiveUrl: archiveUrl(repositoryPath),
-    repositoryPath,
-    repositoryUrl:
-      "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/" +
-      repositoryPath,
-    publishedAt: sourceDate,
-    kind: sourceKind(repositoryPath),
-  });
-
-  sections.forEach((section, index) => {
-    const explicitDate = extractExplicitDate(section.raw);
-    const eventDate = explicitDate?.date ?? sourceDate ?? "1900-01-01";
-    const title = cleanText(section.title).slice(0, 160) || sourceTitle;
-    const summary = cleanText(section.text).slice(0, 420);
-    const eventIdValue = `event-${shortHash(
-      `${repositoryPath}:${index}:${title}`,
-    )}`;
-    const candidates = extractor.extractCandidates(
-      `${title}\n${summary}\n${section.raw}`,
-      `${title}\n${summary}`,
-    );
-    const candidateKeys = [];
-    for (const candidate of candidates) {
-      candidateKeys.push(candidate.key);
-      const existing = candidateStats.get(candidate.key) ?? {
-        ...candidate,
-        aliases: new Set(candidate.aliases ?? []),
-        eventIds: new Set(),
-        prominent: false,
-      };
-      for (const alias of candidate.aliases ?? []) existing.aliases.add(alias);
-      existing.eventIds.add(eventIdValue);
-      existing.prominent ||= candidate.prominent;
-      if (candidate.confidence > existing.confidence) {
-        existing.method = candidate.method;
-      }
-      existing.confidence = Math.max(
-        existing.confidence,
-        candidate.confidence,
-      );
-      candidateStats.set(candidate.key, existing);
+  const candidateKeys = [];
+  for (const candidate of candidates) {
+    candidateKeys.push(candidate.key);
+    const existing = candidateStats.get(candidate.key) ?? {
+      ...candidate,
+      aliases: new Set(candidate.aliases ?? []),
+      eventIds: new Set(),
+      prominent: false,
+    };
+    for (const alias of candidate.aliases ?? []) existing.aliases.add(alias);
+    existing.eventIds.add(eventId);
+    existing.prominent ||= candidate.prominent;
+    if (candidate.confidence > existing.confidence) {
+      existing.method = candidate.method;
     }
-    draftEvents.push({
-      id: eventIdValue,
-      title,
-      date: eventDate,
-      datePrecision: explicitDate?.precision ?? datePrecision(eventDate),
-      type: extractor.classifyEvent(`${title}\n${summary}`),
-      summary,
-      candidateKeys,
-      searchText: cleanText(`${title}\n${summary}\n${section.raw}`),
-      sourceIds: [sourceId],
-      significance: "",
-    });
+    existing.confidence = Math.max(
+      existing.confidence,
+      candidate.confidence,
+    );
+    candidateStats.set(candidate.key, existing);
+  }
+  draftEvents.push({
+    id: eventId,
+    newsId: item.id,
+    title: item.title,
+    date: item.date,
+    datePrecision: item.datePrecision,
+    type: extractor.classifyEvent(`${item.title}\n${item.summary}`),
+    summary: item.summary,
+    candidateKeys,
+    searchText: cleanText(`${item.title}\n${item.summary}\n${fragment}`),
+    sourceIds: [item.pageId],
+    significance: "",
   });
 }
 
@@ -191,17 +161,23 @@ const kg = {
     url: "https://github.com/bedtimenews/bedtimenews-archive-contents",
     licenseNote:
       "本文件保存结构化索引、摘要与出处链接；原文版权归原作者与原仓库。",
-    mode: "deterministic-semantic-extraction",
+    mode: "deterministic-semantic-extraction-from-processed-news",
+    newsDatasetSchemaVersion: newsDataset.schemaVersion,
+    segmentationVersion: newsDataset.segmentation.version,
+    newsOverrideVersion: newsDataset.segmentation.overrideVersion,
     extractionVersion: extractor.version,
   },
   entities,
   events,
   eventRelations,
   entityRelations: [],
-  sources,
+  sources: newsDataset.pages,
 };
 
-const issues = validate(kg, ontology);
+const issues = [
+  ...validate(kg, ontology),
+  ...validateKnowledgeBaseNewsProjection(kg, newsDataset),
+];
 if (issues.length) {
   for (const issue of issues.slice(0, 30)) {
     console.error(`[${issue.level}] ${issue.path}: ${issue.message}`);
@@ -215,227 +191,11 @@ await mkdir(dirname(outputPath), { recursive: true });
 await writeFile(outputPath, `${JSON.stringify(kg, null, 2)}\n`, "utf8");
 const coveredEvents = events.filter((event) => event.entityIds.length).length;
 console.log(
-  `Generated ${relative(projectRoot, outputPath)} from ${sources.length} content files: ` +
-    `${events.length} events, ${entities.length} entities, ${eventRelations.length} relations; ` +
-    `${percentage(coveredEvents, events.length)}% of events have semantic entities.`,
+  `Generated ${relative(projectRoot, outputPath)} from ${events.length} independent news ` +
+    `items on ${newsDataset.pages.length} referenced pages: ${entities.length} entities, ` +
+    `${eventRelations.length} relations; ${percentage(coveredEvents, events.length)}% ` +
+    "of news items have semantic entities.",
 );
-
-function splitEventSections(
-  repositoryPath,
-  body,
-  sourceTitle,
-  description,
-) {
-  if (repositoryPath.startsWith("daily/")) return splitDailySections(body);
-
-  const segments = body
-    .split(/^\s*---\s*$/gmu)
-    .map((segment) => segment.trim())
-    .filter((segment) => cleanText(segment).length >= 100);
-  if (segments.length <= 1) {
-    return [
-      {
-        title: sourceTitle,
-        text: description || meaningfulParagraph(body),
-        raw: body,
-      },
-    ];
-  }
-  return segments.map((segment, index) => ({
-    title:
-      index === 0
-        ? sourceTitle
-        : sectionTitle(segment) || `${sourceTitle} · ${index + 1}`,
-    text: meaningfulParagraph(segment),
-    raw: segment,
-  }));
-}
-
-function splitDailySections(body) {
-  const matches = Array.from(
-    body.matchAll(/^##\s+(?:\[?\s*\d+[.、]?\s*\]?[.、]?\s*)?(.+)$/gmu),
-  ).filter((match) => !/^(?:B站|西瓜视频|YouTube)$/iu.test(match[1].trim()));
-  if (!matches.length) {
-    return [
-      {
-        title: firstHeading(body) || "每日新闻",
-        text: meaningfulParagraph(body),
-        raw: body,
-      },
-    ];
-  }
-  return matches
-    .map((match, index) => {
-      const start = match.index ?? 0;
-      const end = matches[index + 1]?.index ?? body.length;
-      const raw = body.slice(start, end);
-      return {
-        title: match[1],
-        text: meaningfulParagraph(raw),
-        raw,
-      };
-    })
-    .filter((section) => cleanText(section.raw).length >= 40);
-}
-
-function sectionTitle(segment) {
-  const fontPrompt = segment.match(
-    /<font[^>]*>([\s\S]{8,220}?)<\/font>/iu,
-  )?.[1];
-  const heading = Array.from(segment.matchAll(/^#{1,3}\s+(.+)$/gmu))
-    .map((match) => cleanText(match[1]))
-    .find((value) => value && !/^(?:Tabs|B站|西瓜视频|YouTube)$/iu.test(value));
-  const candidate = cleanText(fontPrompt || heading || meaningfulParagraph(segment));
-  return firstSentence(candidate).slice(0, 90);
-}
-
-function isNavigationIndex(body) {
-  const linkItems = body.match(/^\s*-\s+\[[^\]]+\]\([^)]+\.md\)/gmu)?.length ?? 0;
-  if (linkItems < 5) return false;
-  const proseLines = body
-    .split(/\r?\n/u)
-    .map((line) => line.trim())
-    .filter(
-      (line) =>
-        line.length >= 80 &&
-        !/^[-#<{[]/u.test(line) &&
-        !/^\[[^\]]+\]\([^)]+\)$/u.test(line),
-    );
-  return proseLines.length === 0;
-}
-
-function parseArgs(values) {
-  const parsed = {};
-  for (let index = 0; index < values.length; index += 1) {
-    const value = values[index];
-    if (!value.startsWith("--")) continue;
-    const [key, inlineValue] = value.slice(2).split("=", 2);
-    if (inlineValue !== undefined) parsed[key] = inlineValue;
-    else if (values[index + 1] && !values[index + 1].startsWith("--")) {
-      parsed[key] = values[++index];
-    } else parsed[key] = true;
-  }
-  return parsed;
-}
-
-async function walk(directory) {
-  let entries;
-  try {
-    entries = await readdir(directory, { withFileTypes: true });
-  } catch (error) {
-    if (error.code === "ENOENT") return [];
-    throw error;
-  }
-  const nested = await Promise.all(
-    entries
-      .filter((entry) => !entry.name.startsWith("."))
-      .map((entry) => {
-        const path = resolve(directory, entry.name);
-        return entry.isDirectory() ? walk(path) : [path];
-      }),
-  );
-  return nested.flat();
-}
-
-function parseFrontMatter(raw) {
-  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/u);
-  if (!match) return { attributes: {}, body: raw };
-  const attributes = {};
-  match[1].split(/\r?\n/u).forEach((line) => {
-    const separator = line.indexOf(":");
-    if (separator === -1) return;
-    attributes[line.slice(0, separator).trim()] = line
-      .slice(separator + 1)
-      .trim()
-      .replace(/^['"]|['"]$/gu, "");
-  });
-  return { attributes, body: raw.slice(match[0].length) };
-}
-
-function firstHeading(body) {
-  return body.match(/^#{1,3}\s+(.+)$/mu)?.[1];
-}
-
-function meaningfulParagraph(body) {
-  return (
-    body
-      .split(/\n\s*\n/u)
-      .map(cleanText)
-      .find(
-        (paragraph) =>
-          paragraph.length >= 30 &&
-          !/^(?:Tabs|B站|西瓜视频|YouTube|以下文本为)/iu.test(paragraph),
-      ) ?? cleanText(body)
-  );
-}
-
-function firstSentence(value) {
-  return value.split(/[。！？!?；;]/u)[0]?.trim() ?? value;
-}
-
-function cleanText(value = "") {
-  return String(value)
-    .replace(/!\[[^\]]*\]\([^)]+\)/gu, " ")
-    .replace(/\[([^\]]+)\]\([^)]+\)/gu, "$1")
-    .replace(/<[^>]+>/gu, " ")
-    .replace(/https?:\/\/\S+/gu, " ")
-    .replace(/[#>*_`~|]/gu, " ")
-    .replace(/\s+/gu, " ")
-    .trim();
-}
-
-function extractDate(repositoryPath, body, attributes) {
-  const pathDate = repositoryPath.match(
-    /(?:^|\/)(\d{4})\/(\d{2})\/(\d{2})\.md$/u,
-  );
-  if (pathDate) return `${pathDate[1]}-${pathDate[2]}-${pathDate[3]}`;
-  return (
-    normalizeIsoDate(attributes.dateCreated || attributes.date) ??
-    extractExplicitDate(body)?.date ??
-    "1900-01-01"
-  );
-}
-
-function sourceKind(repositoryPath) {
-  const root = repositoryPath.split("/", 1)[0];
-  return root === "main" ? "episode" : root;
-}
-
-function extractExplicitDate(value) {
-  const chinese = value.match(
-    /((?:18|19|20)\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/u,
-  );
-  if (chinese) {
-    return {
-      date: `${chinese[1]}-${pad(chinese[2])}-${pad(chinese[3])}`,
-      precision: "day",
-    };
-  }
-  const iso = value.match(/((?:18|19|20)\d{2})-(\d{1,2})-(\d{1,2})/u);
-  if (iso) {
-    return {
-      date: `${iso[1]}-${pad(iso[2])}-${pad(iso[3])}`,
-      precision: "day",
-    };
-  }
-  const year = value.match(/((?:18|19|20)\d{2})\s*年/u);
-  if (year) {
-    return { date: `${year[1]}-01-01`, precision: "year" };
-  }
-  return null;
-}
-
-function normalizeIsoDate(value) {
-  return value?.match(/^(\d{4}-\d{2}-\d{2})/u)?.[1];
-}
-
-function datePrecision(date) {
-  return date.endsWith("-01-01") ? "year" : "day";
-}
-
-function pad(value) {
-  return String(value).padStart(2, "0");
-}
 
 function buildChronologyRelations(events, entities) {
   const relations = [];
@@ -476,7 +236,7 @@ function buildChronologyRelations(events, entities) {
         type: "precedes",
         viaEntityId: entity.id,
         confidence: 1,
-        evidence: `两事件均明确涉及“${entity.label}”，且日期可确认先后；此关系只表达时间顺序，不表达因果。`,
+        evidence: `两条新闻均明确涉及“${entity.label}”，且日期可确认先后；此关系只表达时间顺序，不表达因果。`,
         sourceId: current.sourceIds[0],
       });
     }
@@ -484,15 +244,18 @@ function buildChronologyRelations(events, entities) {
   return relations;
 }
 
-function archiveUrl(repositoryPath) {
-  return `https://archive.bedtime.news/zh/${repositoryPath.replace(/\.md$/u, "")}`;
-}
-
-function normalizeIdentifier(value) {
-  return String(value)
-    .replace(/\s+/gu, "")
-    .replace(/[《》“”"'（）()_-]/gu, "")
-    .toLocaleLowerCase("zh-CN");
+function parseArgs(values) {
+  const parsed = {};
+  for (let index = 0; index < values.length; index += 1) {
+    const value = values[index];
+    if (!value.startsWith("--")) continue;
+    const [key, inlineValue] = value.slice(2).split("=", 2);
+    if (inlineValue !== undefined) parsed[key] = inlineValue;
+    else if (values[index + 1] && !values[index + 1].startsWith("--")) {
+      parsed[key] = values[++index];
+    } else parsed[key] = true;
+  }
+  return parsed;
 }
 
 function percentage(numerator, denominator) {

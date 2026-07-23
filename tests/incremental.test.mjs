@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   appendNewRecords,
+  appendNewsRecords,
   classifyArchiveChanges,
 } from "../scripts/lib/incremental.mjs";
 
@@ -80,6 +81,46 @@ test("incremental merge appends new records without replacing existing records",
     "relation-new",
   ]);
   assert.deepEqual(appended.entities.map((entity) => entity.id), ["entity-new"]);
+});
+
+test("processed news dataset appends items only from new referenced pages", () => {
+  const existing = {
+    schemaVersion: "1.1.0",
+    generatedAt: "2026-01-01T00:00:00Z",
+    pages: [{ id: "page-old", repositoryPath: "main/1.md" }],
+    news: [{ id: "news-old", pageId: "page-old" }],
+  };
+  const candidate = {
+    ...existing,
+    pages: [
+      ...existing.pages,
+      { id: "page-new", repositoryPath: "main/2.md" },
+      { id: "page-ignored", repositoryPath: "main/3.md" },
+    ],
+    news: [
+      ...existing.news,
+      { id: "news-new-1", pageId: "page-new" },
+      { id: "news-new-2", pageId: "page-new" },
+      { id: "news-ignored", pageId: "page-ignored" },
+    ],
+  };
+
+  const { dataset, appended } = appendNewsRecords(
+    existing,
+    candidate,
+    ["main/2.md"],
+    "2026-07-23T00:00:00Z",
+  );
+
+  assert.equal(dataset.news[0], existing.news[0]);
+  assert.deepEqual(
+    dataset.news.map((item) => item.id),
+    ["news-old", "news-new-1", "news-new-2"],
+  );
+  assert.deepEqual(
+    appended.pages.map((page) => page.id),
+    ["page-new"],
+  );
 });
 
 function knowledgeBase(overrides) {

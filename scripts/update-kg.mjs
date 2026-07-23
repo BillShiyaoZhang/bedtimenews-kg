@@ -16,8 +16,14 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import {
   appendNewRecords,
+  appendNewsRecords,
   classifyArchiveChanges,
 } from "./lib/incremental.mjs";
+import {
+  buildSegmentationReport,
+  validateKnowledgeBaseNewsProjection,
+  validateNewsDataset,
+} from "./lib/news.mjs";
 import { validate } from "./lib/validate.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -39,6 +45,7 @@ const includeRoots = String(
   .map((item) => item.trim())
   .filter(Boolean);
 const generatedPath = resolve(projectRoot, "data/generated/kg.json");
+const newsPath = resolve(projectRoot, "data/processed/news.json");
 const statePath = resolve(projectRoot, "data/archive-state.json");
 const upstreamReportPath = resolve(
   projectRoot,
@@ -47,6 +54,10 @@ const upstreamReportPath = resolve(
 const ontologyReportPath = resolve(
   projectRoot,
   "data/review/ontology-candidates.json",
+);
+const segmentationReportPath = resolve(
+  projectRoot,
+  "data/review/news-segmentation.json",
 );
 
 const [upstreamCommit, observedAt, currentFiles, ontology] = await Promise.all([
@@ -58,10 +69,12 @@ const [upstreamCommit, observedAt, currentFiles, ontology] = await Promise.all([
 
 const tempRoot = await mkdtemp(resolve(tmpdir(), "bedtimenews-kg-"));
 const candidatePath = resolve(tempRoot, "candidate.json");
+const candidateNewsPath = resolve(tempRoot, "news.json");
 let candidate;
+let candidateNews;
 try {
   await execFile(process.execPath, [
-    resolve(projectRoot, "scripts/build-kg.mjs"),
+    resolve(projectRoot, "scripts/build-news.mjs"),
     "--source",
     sourceRoot,
     "--include",
@@ -69,9 +82,23 @@ try {
     "--generated-at",
     observedAt,
     "--output",
+    candidateNewsPath,
+  ]);
+  await execFile(process.execPath, [
+    resolve(projectRoot, "scripts/build-kg.mjs"),
+    "--source",
+    sourceRoot,
+    "--news",
+    candidateNewsPath,
+    "--generated-at",
+    observedAt,
+    "--output",
     candidatePath,
   ]);
-  candidate = await readJson(candidatePath);
+  [candidate, candidateNews] = await Promise.all([
+    readJson(candidatePath),
+    readJson(candidateNewsPath),
+  ]);
 } finally {
   await rm(tempRoot, { recursive: true, force: true });
 }
@@ -79,17 +106,23 @@ try {
 if (bootstrap) {
   await assertBootstrapTargetIsEmpty();
   const issues = validate(candidate, ontology);
+  issues.push(...validateKnowledgeBaseNewsProjection(candidate, candidateNews));
   if (issues.length) throwValidationError(issues);
+  throwNewsValidationError(validateNewsDataset(candidateNews));
 
   const state = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     source: {
       name: "bedtimenews/bedtimenews-archive-contents",
       url: "https://github.com/bedtimenews/bedtimenews-archive-contents",
       submodulePath: relative(projectRoot, sourceRoot).replaceAll("\\", "/"),
     },
     includedRoots: includeRoots,
+    ontologyVersion: candidate.schemaVersion,
+    newsDatasetSchemaVersion: candidateNews.schemaVersion,
     extractionVersion: candidate.source.extractionVersion,
+    segmentationVersion: candidate.source.segmentationVersion,
+    newsOverrideVersion: candidate.source.newsOverrideVersion,
     initialImportCommit: upstreamCommit,
     lastObservedCommit: upstreamCommit,
     lastObservedAt: observedAt,
@@ -112,9 +145,14 @@ if (bootstrap) {
   });
 
   await Promise.all([
+    writeJson(newsPath, candidateNews),
     writeJson(generatedPath, candidate),
     writeJson(statePath, state),
     writeJson(upstreamReportPath, report),
+    writeJson(
+      segmentationReportPath,
+      buildSegmentationReport(candidateNews),
+    ),
     writeJson(
       ontologyReportPath,
       buildOntologyReport(candidate, candidate.events, upstreamCommit, observedAt),
@@ -124,7 +162,7 @@ if (bootstrap) {
   process.exit(0);
 }
 
-const [state, existing] = await Promise.all([
+const [state, existing, existingNews] = await Promise.all([
   readRequiredJson(
     statePath,
     "Archive state is missing. Run `npm run kg:bootstrap` once and review the full import.",
@@ -133,6 +171,12 @@ const [state, existing] = await Promise.all([
     generatedPath,
     "Generated KG is missing. Restore it from Git before running an incremental update.",
   ),
+  rebuild
+    ? Promise.resolve(null)
+    : readRequiredJson(
+        newsPath,
+        "Processed news dataset is missing. Run `npm run kg:rebuild` to create it.",
+      ),
 ]);
 if (JSON.stringify(state.includedRoots) !== JSON.stringify(includeRoots)) {
   throw new Error(
@@ -154,11 +198,17 @@ if (rebuild) {
     );
   }
   const issues = validate(candidate, ontology);
+  issues.push(...validateKnowledgeBaseNewsProjection(candidate, candidateNews));
   if (issues.length) throwValidationError(issues);
+  throwNewsValidationError(validateNewsDataset(candidateNews));
   const nextState = {
     ...state,
-    schemaVersion: 2,
+    schemaVersion: 3,
+    ontologyVersion: candidate.schemaVersion,
+    newsDatasetSchemaVersion: candidateNews.schemaVersion,
     extractionVersion: candidate.source.extractionVersion,
+    segmentationVersion: candidate.source.segmentationVersion,
+    newsOverrideVersion: candidate.source.newsOverrideVersion,
     lastObservedCommit: upstreamCommit,
     lastObservedAt: observedAt,
     acceptedFiles: sortObject(currentFiles),
@@ -179,9 +229,14 @@ if (rebuild) {
     },
   });
   await Promise.all([
+    writeJson(newsPath, candidateNews),
     writeJson(generatedPath, candidate),
     writeJson(statePath, nextState),
     writeJson(upstreamReportPath, report),
+    writeJson(
+      segmentationReportPath,
+      buildSegmentationReport(candidateNews),
+    ),
     writeJson(
       ontologyReportPath,
       buildOntologyReport(
@@ -196,21 +251,39 @@ if (rebuild) {
   process.exit(0);
 }
 if (
+  state.ontologyVersion !== candidate.schemaVersion ||
+  existing.schemaVersion !== candidate.schemaVersion ||
+  state.newsDatasetSchemaVersion !== candidateNews.schemaVersion ||
+  existingNews.schemaVersion !== candidateNews.schemaVersion ||
   state.extractionVersion !== candidate.source.extractionVersion ||
-  existing.source?.extractionVersion !== candidate.source.extractionVersion
+  existing.source?.extractionVersion !== candidate.source.extractionVersion ||
+  state.segmentationVersion !== candidate.source.segmentationVersion ||
+  existing.source?.segmentationVersion !==
+    candidate.source.segmentationVersion ||
+  state.newsOverrideVersion !== candidate.source.newsOverrideVersion ||
+  existing.source?.newsOverrideVersion !==
+    candidate.source.newsOverrideVersion
 ) {
   throw new Error(
-    "Ontology extraction rules changed. Run `npm run kg:rebuild` explicitly; " +
-      "incremental update will not silently rewrite accepted semantic records.",
+    "News segmentation or ontology extraction rules changed. Run `npm run kg:rebuild` " +
+      "explicitly; incremental update will not silently rewrite accepted news records.",
   );
 }
+const { dataset: newsDataset, appended: appendedNews } = appendNewsRecords(
+  existingNews,
+  candidateNews,
+  changes.added,
+  observedAt,
+);
 const { kg, appended } = appendNewRecords(
   existing,
   candidate,
   changes.added,
   observedAt,
 );
+throwNewsValidationError(validateNewsDataset(newsDataset));
 const issues = validate(kg, ontology);
+issues.push(...validateKnowledgeBaseNewsProjection(kg, newsDataset));
 if (issues.length) throwValidationError(issues);
 
 const acceptedFiles = { ...state.acceptedFiles };
@@ -231,6 +304,8 @@ const report = buildUpstreamReport({
   appended,
 });
 const generatedChanged =
+  appendedNews.pages.length ||
+  appendedNews.news.length ||
   appended.sources.length ||
   appended.events.length ||
   appended.entities.length ||
@@ -246,7 +321,16 @@ const reportChanged =
   changes.duplicateAdditions.length;
 
 const writes = [];
-if (generatedChanged) writes.push(writeJson(generatedPath, kg));
+if (generatedChanged) {
+  writes.push(
+    writeJson(newsPath, newsDataset),
+    writeJson(generatedPath, kg),
+    writeJson(
+      segmentationReportPath,
+      buildSegmentationReport(newsDataset),
+    ),
+  );
+}
 if (stateChanged) writes.push(writeJson(statePath, nextState));
 if (reportChanged) writes.push(writeJson(upstreamReportPath, report));
 if (generatedChanged) {
@@ -270,7 +354,7 @@ function buildUpstreamReport({
   appended,
 }) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     policy: {
       additions: "append_automatically",
       modifications: "report_only_preserve_existing_records",
@@ -284,10 +368,12 @@ function buildUpstreamReport({
     bootstrap: isBootstrap,
     semanticRebuild: isRebuild,
     extractionVersion: candidate.source.extractionVersion,
+    segmentationVersion: candidate.source.segmentationVersion,
+    newsOverrideVersion: candidate.source.newsOverrideVersion,
     summary: {
       ingestedFiles: ingestedPaths.length,
-      appendedSources: appended.sources.length,
-      appendedEvents: appended.events.length,
+      appendedPages: appended.sources.length,
+      appendedNews: appended.events.length,
       appendedEntities: appended.entities.length,
       appendedRelations:
         appended.eventRelations.length + appended.entityRelations.length,
@@ -340,37 +426,39 @@ function buildOntologyReport(kg, newEvents, commit, timestamp) {
         return [
           facet.id,
           {
-            events: matching,
+            news: matching,
             percent: percentage(matching, kg.events.length),
           },
         ];
       }),
   );
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     upstreamCommit: commit,
     observedAt: timestamp,
     ontologyVersion: ontology.version,
+    newsDatasetSchemaVersion: kg.source.newsDatasetSchemaVersion,
+    segmentationVersion: kg.source.segmentationVersion,
     extractionVersion: kg.source.extractionVersion,
     policy:
-      "Ontology and extraction rules are versioned review artifacts. Incremental updates append only; changing semantics requires an explicit full rebuild with no unresolved upstream edits.",
+      "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
     coverage: {
-      totalEvents: kg.events.length,
+      totalNews: kg.events.length,
       totalKnownEntities: kg.entities.length,
-      eventsWithKnownEntities:
+      newsWithKnownEntities:
         kg.events.length - eventsWithoutKnownEntities.length,
-      eventsWithoutKnownEntities: eventsWithoutKnownEntities.length,
+      newsWithoutKnownEntities: eventsWithoutKnownEntities.length,
       entityCoveragePercent: percentage(
         kg.events.length - eventsWithoutKnownEntities.length,
         kg.events.length,
       ),
-      specificallyClassifiedEvents:
+      specificallyClassifiedNews:
         kg.events.length - eventTypeCounts.other,
       eventTypeCoveragePercent: percentage(
         kg.events.length - eventTypeCounts.other,
         kg.events.length,
       ),
-      averageEntitiesPerEvent: Number(
+      averageEntitiesPerNews: Number(
         (
           kg.events.reduce(
             (total, event) => total + event.entityIds.length,
@@ -383,20 +471,22 @@ function buildOntologyReport(kg, newEvents, commit, timestamp) {
       eventTypeCounts,
     },
     currentIncrement: {
-      newEvents: newEvents.length,
-      newEventsWithoutKnownEntities: newEventsWithoutKnownEntities.length,
-      otherTypeEvents: otherEvents.length,
+      newNews: newEvents.length,
+      newNewsWithoutKnownEntities: newEventsWithoutKnownEntities.length,
+      otherTypeNews: otherEvents.length,
       untypedReviewSample: otherEvents.slice(0, 100).map((event) => ({
         id: event.id,
+        newsId: event.newsId,
         title: event.title,
-        sourceIds: event.sourceIds,
+        pageId: event.sourceIds[0],
       })),
       entityGapReviewSample: newEventsWithoutKnownEntities
         .slice(0, 100)
         .map((event) => ({
           id: event.id,
+          newsId: event.newsId,
           title: event.title,
-          sourceIds: event.sourceIds,
+          pageId: event.sourceIds[0],
         })),
     },
   };
@@ -449,7 +539,7 @@ async function gitOutput(values) {
 }
 
 async function assertBootstrapTargetIsEmpty() {
-  for (const path of [generatedPath, statePath]) {
+  for (const path of [newsPath, generatedPath, statePath]) {
     try {
       await readFile(path);
       throw new Error(
@@ -499,10 +589,11 @@ function printSummary(verb, report, kg) {
   const summary = report.summary;
   console.log(
     `${verb}: ${summary.ingestedFiles} file(s) ingested, ` +
-      `${summary.appendedEvents} event(s) and ${summary.appendedRelations} relation(s) appended.`,
+      `${summary.appendedNews} independent news item(s) and ` +
+      `${summary.appendedRelations} relation(s) appended.`,
   );
   console.log(
-    `KG total: ${kg.sources.length} sources, ${kg.events.length} events, ` +
+    `KG total: ${kg.sources.length} referenced pages, ${kg.events.length} news items, ` +
       `${kg.entities.length} entities.`,
   );
   const pending =
@@ -524,6 +615,17 @@ function throwValidationError(issues) {
     .join("\n");
   throw new Error(
     `Incremental KG failed validation with ${issues.length} issue(s):\n${summary}`,
+  );
+}
+
+function throwNewsValidationError(issues) {
+  if (!issues.length) return;
+  const summary = issues
+    .slice(0, 20)
+    .map((issue) => `[${issue.level}] ${issue.path}: ${issue.message}`)
+    .join("\n");
+  throw new Error(
+    `Processed news dataset failed validation with ${issues.length} issue(s):\n${summary}`,
   );
 }
 

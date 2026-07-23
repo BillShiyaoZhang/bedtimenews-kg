@@ -1,6 +1,6 @@
 # 历史经纬 · Bedtime News Knowledge Atlas
 
-一个面向 [`bedtimenews-archive-contents`](https://github.com/bedtimenews/bedtimenews-archive-contents) 的静态新闻 ontology 与知识图谱。首页提供两种入口：
+一个面向 [`bedtimenews-archive-contents`](https://github.com/bedtimenews/bedtimenews-archive-contents) 的静态新闻 ontology 与知识图谱。原仓库的一个 Markdown 页面可以包含多条互不相关的新闻；本项目先把页面拆成独立新闻数据集，再以每条新闻为单位生成 KG。首页提供两种入口：
 
 - 关键词搜索：同时检索事件标题、摘要、主体、地点、主题与原文标题；
 - 按条件检索：组合事件类型、主体、地点、主题、命名对象和时间范围。
@@ -9,18 +9,22 @@
 
 ## 数据结构
 
-项目只有一个可发布 KG：`data/generated/kg.json`。旧的手工示例层和 seed 词表已经删除，避免少量示例覆盖或混入全量语义数据。
+项目维护两个可发布数据产物：
 
-全量生成分四步：
+- `data/processed/news.json`：新闻级数据集，保存稳定新闻 ID、短摘要、原页面、精确行列范围、片段哈希和拆分方法；
+- `data/generated/kg.json`：以 processed news 为输入的语义 KG。每个 `events[]` 记录通过 `newsId` 一对一投影一条独立新闻。
+
+全量生成分五步：
 
 1. 读取 8 个上游内容栏目，过滤导航页和未发布页面；
-2. 日报按二级标题拆分，长文按新闻分隔符拆成事件；
-3. 使用版本化规则抽取主体、地点、设施、政策、命名文献与受控主题；
-4. 仅为共同涉及同一高置信实体、且日期不同的相邻事件生成 `precedes` 时序关系。
+2. 按编号标题、访谈话题引入语句、新闻分隔符或人工 override 把页面拆成独立新闻；
+3. 固化每条新闻的原页面位置和 SHA-256，并把低置信页面写入拆分审查报告；
+4. KG 逐条校验、读取 processed news，再抽取主体、地点、设施、政策、命名文献与受控主题；
+5. 仅为共同涉及同一高置信实体、且日期不同的相邻新闻生成 `precedes` 时序关系。
 
-`data/ontology.json` 定义稳定的语义类型与首页 facet；`data/extraction-rules.json` 定义可复现的抽取规则。二者分开版本化。
+`data/ontology.json` 定义稳定的语义类型与首页 facet；`data/extraction-rules.json` 定义可复现的语义抽取规则；`data/news-overrides.json` 保存经人工审查的页面拆分修正。三者分开版本化。
 
-当前覆盖质量写入 `data/review/ontology-candidates.json`，包括：
+`data/review/news-segmentation.json` 报告拆分策略、每页新闻数、待审页面，以及正式节目期号时间轴中的日期插值和异常校正。标题中的期号越大，最终发布日期保证不会更早；原始观测日期及其来源仍保留在 processed dataset 中。语义覆盖质量写入 `data/review/ontology-candidates.json`，包括：
 
 - 事件是否具有语义实体；
 - 主体、地点、主题和命名对象的 facet 覆盖率；
@@ -66,15 +70,15 @@ npm run kg:update
 npm run kg:rebuild
 ```
 
-语义重建会先确认不存在未解决的上游修改、删除、改名或重复新增，然后才全量替换生成 KG。规则版本不一致时，`kg:update` 会拒绝继续，避免把语义迁移伪装成普通增量。
+修改拆分逻辑、`data/news-overrides.json`、ontology 或抽取规则后，都必须执行显式重建。重建会先确认不存在未解决的上游修改、删除、改名或重复新增，然后才同时替换 processed news 和 KG。版本不一致时，`kg:update` 会拒绝继续，避免把数据边界或语义迁移伪装成普通增量。
 
 ## 自动同步
 
 `.github/workflows/sync-archive.yml` 每 6 小时检查一次上游，也支持手动触发与 `archive-updated` repository dispatch。检测到安全新增后会：
 
 1. 更新 submodule；
-2. 运行 append-only 更新；
-3. 校验 ontology、KG 与覆盖阈值；
+2. 对 processed news 和 KG 运行 append-only 更新；
+3. 校验 page → news → KG 的一对一投影、ontology 与覆盖阈值；
 4. 构建静态站；
 5. 创建或刷新审查 Pull Request。
 
@@ -89,10 +93,13 @@ app/graph/page.tsx           实体相关新闻与 KG 可视化
 app/ontology/page.tsx        Ontology 类型、约束与覆盖率
 data/ontology.json           类型、关系与检索 facet
 data/extraction-rules.json   版本化确定性抽取规则
-data/generated/kg.json       唯一的全量可发布 KG
+data/news-overrides.json     经审查的页面拆分修正
+data/processed/news.json     页面拆分后的独立新闻数据集
+data/generated/kg.json       独立新闻的语义 KG 投影
 data/archive-state.json      已接受上游文件的哈希基线
 data/review/                 上游风险与覆盖质量报告
-scripts/build-kg.mjs         Markdown → 语义 KG
+scripts/build-news.mjs       Markdown 页面 → 独立新闻
+scripts/build-kg.mjs         独立新闻 → 语义 KG
 scripts/update-kg.mjs        append-only 更新与显式重建
 sources/                     新闻原库 submodule
 tests/                       数据、抽取、增量保护契约
@@ -103,6 +110,7 @@ tests/                       数据、抽取、增量保护契约
 
 - 自动关系只表达可验证时序，不推断因果；
 - 低置信命名模式必须跨事件复现后才进入主体或设施 facet；
-- 全文保留在上游仓库，本项目只保存检索所需的短摘要和出处；
+- 全文保留在上游仓库，本项目只保存短摘要、出处、精确片段位置与哈希；
+- 一条 KG 事件投影必须精确对应一条 processed news；跨来源的同一事实应在未来建立事实簇，而不是把多页直接拼成一条新闻；
 - 任何覆盖率都是分维度报告，不用一个总数代替语义质量。
 - 站点只通过 GitHub Pages 发布；本项目不使用 OpenAI Sites 部署。

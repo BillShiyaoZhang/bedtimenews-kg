@@ -307,9 +307,9 @@ export function KnowledgeGraphCanvas({
         role="img"
         aria-label={`以 ${
           kg.entities.find((entity) => entity.id === selectedEntityId)?.label
-        } 为中心的知识图谱。共关联 ${graph.allEventCount} 个事件，当前抽样展示 ${
+        } 为中心的知识图谱。共关联 ${graph.allEventCount} 条新闻，当前抽样展示 ${
           graph.events.length
-        } 个事件节点和 ${graph.entities.length} 个实体节点。`}
+        } 个新闻节点和 ${graph.entities.length} 个实体节点。`}
         data-testid="knowledge-graph-canvas"
         onPointerMove={(event) => {
           const node = nodeAtPoint(event);
@@ -328,7 +328,7 @@ export function KnowledgeGraphCanvas({
         </span>
         <span>
           <i className="legend-dot event-dot" />
-          事件
+          新闻
         </span>
         <span>
           <i className="legend-line relation-line" />
@@ -338,19 +338,19 @@ export function KnowledgeGraphCanvas({
       {graph.allEventCount > graph.events.length ? (
         <p className="graph-sample-note">
           为保持可读性，按时间均匀抽样展示 {graph.events.length} /{" "}
-          {graph.allEventCount} 个关联事件。
+          {graph.allEventCount} 条关联新闻。
         </p>
       ) : null}
       {hoveredNode ? (
         <div className="graph-tooltip" aria-live="polite">
-          <span>{hoveredNode.kind === "event" ? "事件" : "实体"}</span>
+          <span>{hoveredNode.kind === "event" ? "新闻" : "实体"}</span>
           <strong>{hoveredNode.label}</strong>
         </div>
       ) : null}
       <div className="sr-only">
         {graph.events.map((event) => (
           <button key={event.id} onClick={() => onSelectEvent(event.id)}>
-            查看事件：{event.title}
+            查看新闻：{event.title}
           </button>
         ))}
       </div>

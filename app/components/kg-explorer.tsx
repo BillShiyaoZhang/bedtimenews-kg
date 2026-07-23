@@ -255,10 +255,10 @@ export function KGExplorer({
           <span className="eyebrow">把新闻放回历史坐标</span>
           <h1>
             从一个词出发，
-            <em>找到事件之间的时间线索。</em>
+            <em>找到新闻之间的时间线索。</em>
           </h1>
           <p>
-            全库事件均可回到原始 Markdown。你可以直接搜索，也可以按事件、主体、地点与主题组合条件。
+            每条新闻均可回到原始 Markdown 的精确片段。你可以直接搜索，也可以按事件类型、主体、地点与主题组合条件。
           </p>
         </div>
 
@@ -287,7 +287,7 @@ export function KGExplorer({
           <form onSubmit={submit}>
             {mode === "keyword" ? (
               <div className="keyword-search">
-                <label htmlFor="keyword">搜索事件、主体、地点或主题</label>
+                <label htmlFor="keyword">搜索新闻、主体、地点或主题</label>
                 <div>
                   <span className="search-icon" aria-hidden="true" />
                   <input
@@ -387,7 +387,7 @@ export function KGExplorer({
                   >
                     清空条件
                   </button>
-                  <button type="submit">查找事件</button>
+                  <button type="submit">查找新闻</button>
                 </div>
               </div>
             )}
@@ -395,7 +395,7 @@ export function KGExplorer({
         </div>
         <dl className="data-summary" aria-label="知识库规模">
           <div>
-            <dt>事件</dt>
+            <dt>独立新闻</dt>
             <dd>{initialKG.events.length.toLocaleString("zh-CN")}</dd>
           </div>
           <div>
@@ -530,7 +530,7 @@ function SearchResults({
                     {(entity.extraction?.eventCount ?? 0).toLocaleString(
                       "zh-CN",
                     )}{" "}
-                    个事件
+                    条新闻
                   </small>
                   <i aria-hidden="true">查看新闻与图谱 →</i>
                 </Link>
@@ -539,7 +539,7 @@ function SearchResults({
           </div>
           {totalEntities > ENTITY_RESULT_LIMIT ? (
             <p className="entity-result-more">
-              当前显示关联事件最多的 {ENTITY_RESULT_LIMIT} 个实体。
+              当前显示关联新闻最多的 {ENTITY_RESULT_LIMIT} 个实体。
             </p>
           ) : null}
         </div>
@@ -548,13 +548,13 @@ function SearchResults({
         <div>
           <span className="eyebrow">检索结果</span>
           <h2>
-            找到 <strong>{total.toLocaleString("zh-CN")}</strong> 个事件
+            找到 <strong>{total.toLocaleString("zh-CN")}</strong> 条新闻
           </h2>
         </div>
         {total > RESULT_LIMIT ? (
           <p>按时间显示最近 {RESULT_LIMIT} 条，请增加条件缩小范围。</p>
         ) : (
-          <p>按事件日期从近到远排列。</p>
+          <p>按新闻日期从近到远排列。</p>
         )}
       </div>
       {events.length ? (
@@ -616,7 +616,7 @@ function SearchResults({
         </div>
       ) : (
         <div className="empty-result">
-          <strong>没有找到匹配事件</strong>
+          <strong>没有找到匹配新闻</strong>
           <p>试试更宽泛的关键词，或减少一个筛选条件。</p>
         </div>
       )}

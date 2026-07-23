@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "policy": {
     "additions": "append_automatically",
     "modifications": "report_only_preserve_existing_records",
@@ -12,12 +12,14 @@
   "bootstrap": false,
   "semanticRebuild": true,
   "extractionVersion": "2.0.0",
+  "segmentationVersion": "1.1.0",
+  "newsOverrideVersion": "1.0.0",
   "summary": {
     "ingestedFiles": 2040,
-    "appendedSources": 2016,
-    "appendedEvents": 6458,
-    "appendedEntities": 1668,
-    "appendedRelations": 6854,
+    "appendedPages": 2016,
+    "appendedNews": 9268,
+    "appendedEntities": 1824,
+    "appendedRelations": 8543,
     "modifiedFilesAwaitingReview": 0,
     "deletedFilesAwaitingReview": 0,
     "possibleRenamesAwaitingReview": 0,

@@ -127,3 +127,33 @@ export function appendNewRecords(existing, candidate, addedPaths, generatedAt) {
     },
   };
 }
+
+export function appendNewsRecords(
+  existing,
+  candidate,
+  addedPaths,
+  generatedAt,
+) {
+  const addedPathSet = new Set(addedPaths);
+  const existingPageIds = new Set(existing.pages.map((item) => item.id));
+  const existingNewsIds = new Set(existing.news.map((item) => item.id));
+  const pages = candidate.pages.filter(
+    (page) =>
+      addedPathSet.has(page.repositoryPath) &&
+      !existingPageIds.has(page.id),
+  );
+  const addedPageIds = new Set(pages.map((item) => item.id));
+  const news = candidate.news.filter(
+    (item) =>
+      addedPageIds.has(item.pageId) && !existingNewsIds.has(item.id),
+  );
+  return {
+    dataset: {
+      ...existing,
+      generatedAt,
+      pages: [...existing.pages, ...pages],
+      news: [...existing.news, ...news],
+    },
+    appended: { pages, news },
+  };
+}
