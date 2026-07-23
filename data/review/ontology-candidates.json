@@ -4,30 +4,30 @@
   "observedAt": "2026-07-20T07:38:17Z",
   "ontologyVersion": "2.0.0",
   "newsDatasetSchemaVersion": "1.1.0",
-  "segmentationVersion": "1.1.0",
+  "segmentationVersion": "1.2.0",
   "extractionVersion": "2.0.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
     "totalNews": 9268,
-    "totalKnownEntities": 1824,
-    "newsWithKnownEntities": 9115,
-    "newsWithoutKnownEntities": 153,
-    "entityCoveragePercent": 98.35,
-    "specificallyClassifiedNews": 7793,
-    "eventTypeCoveragePercent": 84.09,
-    "averageEntitiesPerNews": 9.1,
+    "totalKnownEntities": 1827,
+    "newsWithKnownEntities": 9113,
+    "newsWithoutKnownEntities": 155,
+    "entityCoveragePercent": 98.33,
+    "specificallyClassifiedNews": 7813,
+    "eventTypeCoveragePercent": 84.3,
+    "averageEntitiesPerNews": 9.11,
     "facetCoverage": {
       "subject": {
-        "news": 3273,
-        "percent": 35.32
+        "news": 3279,
+        "percent": 35.38
       },
       "place": {
-        "news": 7827,
-        "percent": 84.45
+        "news": 7826,
+        "percent": 84.44
       },
       "topic": {
-        "news": 8769,
-        "percent": 94.62
+        "news": 8766,
+        "percent": 94.58
       },
       "named_object": {
         "news": 1194,
@@ -36,7 +36,7 @@
     },
     "entityTypeCounts": {
       "person": 65,
-      "organization": 285,
+      "organization": 288,
       "place": 266,
       "facility": 34,
       "policy": 987,
@@ -44,174 +44,174 @@
       "topic": 27
     },
     "eventTypeCounts": {
-      "policy_governance": 1072,
-      "economy_business": 2044,
-      "infrastructure_transport": 254,
-      "science_technology": 571,
-      "law_justice": 564,
-      "conflict_security": 420,
-      "disaster_accident": 289,
-      "public_health": 283,
-      "environment_energy": 221,
-      "education_culture": 1051,
-      "society_livelihood": 688,
-      "international_relations": 336,
-      "other": 1475
+      "policy_governance": 1083,
+      "economy_business": 2059,
+      "infrastructure_transport": 253,
+      "science_technology": 575,
+      "law_justice": 566,
+      "conflict_security": 422,
+      "disaster_accident": 292,
+      "public_health": 287,
+      "environment_energy": 222,
+      "education_culture": 1036,
+      "society_livelihood": 679,
+      "international_relations": 339,
+      "other": 1455
     }
   },
   "currentIncrement": {
     "newNews": 9268,
-    "newNewsWithoutKnownEntities": 153,
-    "otherTypeNews": 1475,
+    "newNewsWithoutKnownEntities": 155,
+    "otherTypeNews": 1455,
     "untypedReviewSample": [
       {
         "id": "event-b49fabcd7951",
         "newsId": "news-d749516c2d69",
-        "title": "【产经破壁机-002】吉林市举办世界锅包肉大赛",
+        "title": "吉林市举办世界锅包肉大赛",
         "pageId": "page-7597a53f3ec4"
       },
       {
         "id": "event-5cf67216246e",
         "newsId": "news-0d592ab06676",
-        "title": "【产经破壁机016】孟加拉成衣业暂时安全",
+        "title": "孟加拉成衣业暂时安全",
         "pageId": "page-3efd672d22ae"
       },
       {
         "id": "event-bc3ca3bd48b5",
         "newsId": "news-85f6438be96c",
-        "title": "【产经破壁机027】买马达加斯加羊肉 破南半球联盟",
+        "title": "买马达加斯加羊肉 破南半球联盟",
         "pageId": "page-f44afeb82b9c"
       },
       {
         "id": "event-504dc67c2b1e",
         "newsId": "news-6956c5e9e311",
-        "title": "【产经破壁机029】仿制药最强，“药神”印度为什么这次不灵",
+        "title": "仿制药最强，“药神”印度为什么这次不灵",
         "pageId": "page-b1a4e04d49b1"
       },
       {
         "id": "event-596195101ecd",
         "newsId": "news-df1e80e4e16a",
-        "title": "【产经破壁机039】总是中韩大战，别国不玩英雄联盟？",
+        "title": "总是中韩大战，别国不玩英雄联盟？",
         "pageId": "page-83ef3a947323"
       },
       {
         "id": "event-f0dc21e4fa20",
         "newsId": "news-3d7d73fe534a",
-        "title": "【产经破壁机005】罐车事件，金龙鱼的麻烦是自找的",
+        "title": "罐车事件，金龙鱼的麻烦是自找的",
         "pageId": "page-a0a558a235af"
       },
       {
         "id": "event-0b3d3c5cca61",
         "newsId": "news-28c6dfdd308c",
-        "title": "【产经破壁机052】达美乐指数，中国只有两种城市",
+        "title": "达美乐指数，中国只有两种城市",
         "pageId": "page-0e1b6191e510"
       },
       {
         "id": "event-3d9f9d8d195a",
         "newsId": "news-9ec13636c0b8",
-        "title": "【产经破壁机055】柔性屏独角兽破产，天才创始人负全责",
+        "title": "柔性屏独角兽破产，天才创始人负全责",
         "pageId": "page-f50e9ef7df42"
       },
       {
         "id": "event-c0bddc224cef",
         "newsId": "news-a4a73b043bd5",
-        "title": "【产经破壁机056】盲盒征服东南亚，泡泡玛特如何安抚年轻人？",
+        "title": "盲盒征服东南亚，泡泡玛特如何安抚年轻人？",
         "pageId": "page-b2dd4e2abdd9"
       },
       {
         "id": "event-6454de053272",
         "newsId": "news-3162cd82d379",
-        "title": "【产经破壁机059】比特币上探十万美元，去中心化为何创造共识？",
+        "title": "比特币上探十万美元，去中心化为何创造共识？",
         "pageId": "page-532e2853481c"
       },
       {
         "id": "event-eac023c75ac9",
         "newsId": "news-a61a7eee6f10",
-        "title": "【产经破壁机060】比特币足够没用，所以值十万美元？",
+        "title": "比特币足够没用，所以值十万美元？",
         "pageId": "page-f7c42edf41c0"
       },
       {
         "id": "event-276f37655860",
         "newsId": "news-e9f9ab8b51a9",
-        "title": "【产经破壁机067】日产本田合并，负负就能得正吗？",
+        "title": "日产本田合并，负负就能得正吗？",
         "pageId": "page-f0a3d3ff377d"
       },
       {
         "id": "event-f795a6eb24c7",
         "newsId": "news-76a2e1d1dcf7",
-        "title": "【产经破壁机080】如何让按摩椅征服16亿东亚人？",
+        "title": "如何让按摩椅征服16亿东亚人？",
         "pageId": "page-a9f3fff3692f"
       },
       {
         "id": "event-53196bc280e8",
         "newsId": "news-231ebc18fb6a",
-        "title": "【产经破壁机082】为什么兰州拉面店里，总有个写作业的小孩？",
+        "title": "为什么兰州拉面店里，总有个写作业的小孩？",
         "pageId": "page-4957c5a965c4"
       },
       {
         "id": "event-14864e3b76b7",
         "newsId": "news-e8101ad607d2",
-        "title": "【产经破壁机085】北海道房子免费送了，为什么也无人问津？",
+        "title": "北海道房子免费送了，为什么也无人问津？",
         "pageId": "page-f6bfa3a3ff88"
       },
       {
         "id": "event-3a648eb3a274",
         "newsId": "news-77a3c9d295c7",
-        "title": "【产经破壁机086】让人脸红心跳的云南山歌，是怎么传遍全国的？",
+        "title": "让人脸红心跳的云南山歌，是怎么传遍全国的？",
         "pageId": "page-fc96e4a4f7b0"
       },
       {
         "id": "event-309c7f6f1f10",
         "newsId": "news-16d7df695b9b",
-        "title": "【讲点黑话19】从暴乱黑手到爱跳舞的老爷爷，哪张是印尼新总统真实的脸",
+        "title": "从暴乱黑手到爱跳舞的老爷爷，哪张是印尼新总统真实的脸",
         "pageId": "page-4c04e8ef0919"
       },
       {
         "id": "event-60da6095a6c2",
         "newsId": "news-907cca97d782",
-        "title": "【讲点黑话30】教权与世俗，伊朗的双重架构",
+        "title": "教权与世俗，伊朗的双重架构",
         "pageId": "page-e217a4ce8f4f"
       },
       {
         "id": "event-cf01a9702109",
         "newsId": "news-416ab6904600",
-        "title": "【讲点黑话31】广州水价 要的就是你在乎",
+        "title": "广州水价 要的就是你在乎",
         "pageId": "page-3d3251a67b53"
       },
       {
         "id": "event-5c51680dd2fa",
         "newsId": "news-a00ac77f8a80",
-        "title": "【讲点黑话38】一千零一条生命——朝觐沙特的代价",
+        "title": "一千零一条生命——朝觐沙特的代价",
         "pageId": "page-2351bf54d73e"
       },
       {
         "id": "event-85c1bf65e767",
         "newsId": "news-35d9606ecdb3",
-        "title": "【讲点黑话41】“四驾马车”大更新，新首席是越南的“勃总”吗？",
+        "title": "“四驾马车”大更新，新首席是越南的“勃总”吗？",
         "pageId": "page-84e30c35b87e"
       },
       {
         "id": "event-6b3e4fb00ecb",
         "newsId": "news-19f9de690104",
-        "title": "【讲点黑话66】乌克兰没有五千亿",
+        "title": "乌克兰没有五千亿",
         "pageId": "page-0cbedd8175c4"
       },
       {
         "id": "event-be4d2e2661cb",
         "newsId": "news-384e021a883c",
-        "title": "【讲点黑话67】琉球王国覆灭史（上）",
+        "title": "琉球王国覆灭史（上）",
         "pageId": "page-3a97c47d3ed2"
       },
       {
         "id": "event-678015c4fb84",
         "newsId": "news-3c2b5515874b",
-        "title": "【讲点黑话68】明尼苏达ICE枪击案全网首发爆料，无死角逐帧分析",
+        "title": "明尼苏达ICE枪击案全网首发爆料，无死角逐帧分析",
         "pageId": "page-2ccbc9ddfa06"
       },
       {
         "id": "event-85f65d157fc5",
         "newsId": "news-ef0e2e46648f",
-        "title": "【讲点黑话70】从岛津义久到麦克阿瑟，日本如何吞并琉球？琉球王国覆灭史（下）",
+        "title": "从岛津义久到麦克阿瑟，日本如何吞并琉球？琉球王国覆灭史（下）",
         "pageId": "page-cd00fcd2f127"
       },
       {
@@ -675,7 +675,7 @@
       {
         "id": "event-14864e3b76b7",
         "newsId": "news-e8101ad607d2",
-        "title": "【产经破壁机085】北海道房子免费送了，为什么也无人问津？",
+        "title": "北海道房子免费送了，为什么也无人问津？",
         "pageId": "page-f6bfa3a3ff88"
       },
       {
@@ -1027,16 +1027,22 @@
         "pageId": "page-fae54c19bd18"
       },
       {
-        "id": "event-57264adaad61",
-        "newsId": "news-6ff66ceed471",
-        "title": "【睡前消息1010】2025全年盘点（下 科技与老朋友）",
+        "id": "event-1e4cdea7c74c",
+        "newsId": "news-33f4eeee6aed",
+        "title": "大家好，2026年1月25日星期日，欢迎收看1010期睡前消息",
         "pageId": "page-8570616a9e17"
       },
       {
-        "id": "event-3ee337545d92",
-        "newsId": "news-abfb4fd21c7f",
-        "title": "【睡前消息104】别放过鲍毓明，更别忘了还会有更多“鲍毓明”",
+        "id": "event-cceaf9a71a68",
+        "newsId": "news-ef6d6a690860",
+        "title": "2020/04/20转发动态： 我正在努力，将来争取配得上公共知识分子的称呼//@学习小白QAQ: 督工，能谈谈所谓公知问题吗",
         "pageId": "page-b37ac14d5a8f"
+      },
+      {
+        "id": "event-9e000f28b6d6",
+        "newsId": "news-51e6b27c617f",
+        "title": "2020/04/29转发动态： 本期重要关键词“战狼护照”，如果说一套做一套，当初花多少力气吹嘘，将来就有多大的力量反噬",
+        "pageId": "page-12cbe575339d"
       },
       {
         "id": "event-df67f7854524",
@@ -1045,27 +1051,27 @@
         "pageId": "page-6207a2361d36"
       },
       {
-        "id": "event-e02ade77f7be",
-        "newsId": "news-f676b3083674",
-        "title": "【睡前消息349】2.52亿脱发人群，真的没有出路吗？",
+        "id": "event-e6841dea667e",
+        "newsId": "news-66bead83748a",
+        "title": "感谢大家支持我们的节目，感谢大家收看和我头发相关的内容，接下来是近期资讯",
         "pageId": "page-6f40b8430cef"
       },
       {
         "id": "event-722bbf62170a",
         "newsId": "news-72bf77618dce",
-        "title": "【睡前消息882】地球上最远的朋友",
+        "title": "地球上最远的朋友",
         "pageId": "page-94d48fce282e"
       },
       {
-        "id": "event-b7f3eb57d0e7",
-        "newsId": "news-502977cb2122",
-        "title": "当一个激进的中年男性，试着理解自己和世界的关联",
+        "id": "event-eccef669de09",
+        "newsId": "news-ca6b0e5cce31",
+        "title": "和马督工聊天一共两集，本集为第1集，内容包括： 1、20年前，我，土木工程师 2、20年后，我，公知",
         "pageId": "page-ca9e7ab809ed"
       },
       {
-        "id": "event-145411b65c97",
-        "newsId": "news-b06d32f59485",
-        "title": "一个43岁资深小镇青年，如何消解世界的「残酷」",
+        "id": "event-72c51e442382",
+        "newsId": "news-8e744307ac03",
+        "title": "马督工系列一共2集，第1集已经更新在主页，本集为第2集，内容包括： 1、保卫我们的现代生活 2、你的前半生vs后半生差距会有多大 3、最后一批小镇青年 4、现代生活里的求职，更简单",
         "pageId": "page-6610493f4864"
       },
       {
@@ -1089,13 +1095,13 @@
       {
         "id": "event-4df28940f862",
         "newsId": "news-468926a57f17",
-        "title": "【高见43】查理·柯克遇刺案全程回顾",
+        "title": "查理·柯克遇刺案全程回顾",
         "pageId": "page-3715bdaf62ae"
       },
       {
         "id": "event-14768591efa6",
         "newsId": "news-bc3fa8e52130",
-        "title": "【高见8】马督工的同学，在月球修路",
+        "title": "马督工的同学，在月球修路",
         "pageId": "page-c9f0b793633c"
       },
       {
@@ -1211,12 +1217,6 @@
         "newsId": "news-c97a1dc29b0d",
         "title": "2026国补政策范围和力度调整",
         "pageId": "page-d0ae94853369"
-      },
-      {
-        "id": "event-177b57ace972",
-        "newsId": "news-b53762b13cfa",
-        "title": "中国佛教协会和道教协会首次设立监事会，汉传佛教寺院住持限制连任次数",
-        "pageId": "page-bcda7c7e567a"
       },
       {
         "id": "event-782676c5f0e5",

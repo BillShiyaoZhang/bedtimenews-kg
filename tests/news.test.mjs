@@ -137,6 +137,30 @@ dateCreated: 2023-07-20T00:00:00Z
   assert.equal(result.page.episode, undefined);
 });
 
+test("news titles omit page series and episode prefixes", () => {
+  const raw = `---
+title: 【睡前消息12】第一条具体新闻
+published: true
+dateCreated: 2020-01-01T00:00:00Z
+---
+
+## 第一条具体新闻
+
+第一条新闻的正文内容足够长，用来确认即使分段标题来自页面，新闻名称也不会继续显示节目名称和期号。这里再补充一些正文，确保它能够通过片段长度检查。第一条新闻还包含背景、主体、地点、时间与具体进展，因此能够作为独立记录被检索和展示，而不是继续沿用整个节目页面的名称。
+
+---
+
+## 第二条具体新闻
+
+第二条新闻讨论另一个完全不同的话题，同样提供足够长的正文内容，以便水平分隔线被识别为两条独立新闻。第二条新闻也补充了自己的背景、相关主体和结果，确保拆分器能够确认这是内容完整且主题不同的另一个新闻片段。`;
+  const result = parseSourcePage("main/1-100/12.md", raw);
+
+  assert.equal(result.page.title, "【睡前消息12】第一条具体新闻");
+  assert.equal(result.news.length, 2);
+  assert.equal(result.news[0].title, "第一条具体新闻");
+  assert.equal(result.news[1].title, "第二条具体新闻");
+});
+
 function episodePage(number, publishedAt, source) {
   return {
     id: `page-${number}`,

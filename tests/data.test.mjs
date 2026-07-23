@@ -27,7 +27,7 @@ test("generated semantic knowledge graph passes schema and reference checks", ()
   assert.ok(kg.entities.length > 1_500);
   assert.equal(kg.schemaVersion, ontology.version);
   assert.equal(kg.source.newsDatasetSchemaVersion, "1.1.0");
-  assert.equal(kg.source.segmentationVersion, "1.1.0");
+  assert.equal(kg.source.segmentationVersion, "1.2.0");
   assert.equal(kg.source.extractionVersion, "2.0.0");
 });
 
@@ -80,6 +80,22 @@ test("regular episode title numbers form a nondecreasing publication timeline", 
         page.dateProvenance.observedAt !== page.publishedAt &&
         page.dateProvenance.resolution === "corrected_sequence_outlier",
     ),
+  );
+});
+
+test("multi-news pages do not lend their page title to a news item", () => {
+  const pagesById = new Map(
+    newsDataset.pages.map((page) => [page.id, page]),
+  );
+  const pageNamedNews = newsDataset.news.filter((item) => {
+    const page = pagesById.get(item.pageId);
+    return page?.segmentation.newsCount > 1 && item.title === page.title;
+  });
+
+  assert.deepEqual(pageNamedNews, []);
+  assert.equal(
+    newsDataset.news.some((item) => /^(?:Tabs|B站|西瓜视频|YouTube)$/iu.test(item.title)),
+    false,
   );
 });
 

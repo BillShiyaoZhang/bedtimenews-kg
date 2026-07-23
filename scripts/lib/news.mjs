@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { basename } from "node:path";
 
 export const NEWS_DATASET_SCHEMA_VERSION = "1.1.0";
-export const SEGMENTATION_VERSION = "1.1.0";
+export const SEGMENTATION_VERSION = "1.2.0";
 
 const MEDIA_HEADING = /^(?:Tabs|B站|西瓜视频|YouTube|播客)$/iu;
 const NUMBERED_HEADING =
@@ -101,10 +101,10 @@ export function parseSourcePage(repositoryPath, raw, overrides = {}) {
       ? pageDate
       : explicitDate?.date ?? "1900-01-01";
     const title =
-      cleanText(section.title).slice(0, 160) ||
+      independentNewsTitle(section.title).slice(0, 160) ||
       (segmentation.sections.length === 1
-        ? sourceTitle
-        : `${sourceTitle} · ${ordinal + 1}`);
+        ? independentNewsTitle(sourceTitle)
+        : `${independentNewsTitle(sourceTitle)} · ${ordinal + 1}`);
     const summary =
       cleanText(section.summary || meaningfulParagraph(rawSection)).slice(
         0,
@@ -545,6 +545,15 @@ export function cleanText(value = "") {
     .trim();
 }
 
+function independentNewsTitle(value = "") {
+  const cleaned = cleanText(value);
+  const withoutPageSeries = cleaned.replace(
+    /^【(?:睡前消息|参考信息|产经破壁机|讲点黑话|高见|末条新闻|短视频试验)[^】]*】\s*/u,
+    "",
+  );
+  return withoutPageSeries || cleaned;
+}
+
 export function extractExplicitDate(value) {
   const chinese = value.match(
     /((?:18|19|20)\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/u,
@@ -830,9 +839,8 @@ function horizontalRuleSegments(lines, sourceTitle) {
         start: rangeStart,
         end: rangeEnd,
         title:
-          index === 0
-            ? sourceTitle
-            : sectionTitle(raw) || `${sourceTitle} · ${index + 1}`,
+          sectionTitle(raw) ||
+          `${independentNewsTitle(sourceTitle)} · ${index + 1}`,
         summary: meaningfulParagraph(raw),
         marker: sectionTitle(raw) || firstSentence(cleanText(raw)),
       };
@@ -952,13 +960,35 @@ function promptTitle(text, sourceTitle) {
 
 function sectionTitle(segment) {
   const fontPrompt = segment.match(INTERVIEW_PROMPT)?.[1];
-  const heading = Array.from(segment.matchAll(/^#{1,3}\s+(.+)$/gmu))
-    .map((match) => cleanText(match[1]))
+  const heading = Array.from(segment.matchAll(/^#{1,3}[ \t]+(.+)$/gmu))
+    .map((match) =>
+      cleanText(match[1])
+        .replace(/\s*\{[^}]+\}\s*$/u, "")
+        .trim(),
+    )
     .find((value) => value && !MEDIA_HEADING.test(value));
   const candidate = cleanText(
-    fontPrompt || heading || meaningfulParagraph(segment),
+    fontPrompt || heading || meaningfulTitleParagraph(segment),
   );
   return firstSentence(candidate).slice(0, 90);
+}
+
+function meaningfulTitleParagraph(body) {
+  return (
+    body
+      .split(/\n\s*\n/u)
+      .map(cleanText)
+      .find(
+        (paragraph) =>
+          paragraph.length >= 30 &&
+          !/^(?:Tabs|B站|西瓜视频|YouTube|播客|以下文本为)/iu.test(
+            paragraph,
+          ) &&
+          !/^(?:大家好[，,\s]|(?:19|20)\d{2}年.+欢迎收看).*(?:欢迎收看|睡前消息)/u.test(
+            paragraph,
+          ),
+      ) ?? meaningfulParagraph(body)
+  );
 }
 
 function parseFrontMatter(raw) {
@@ -1032,7 +1062,7 @@ function isMediaBlock(value) {
 }
 
 function firstHeading(body) {
-  return body.match(/^#{1,3}\s+(.+)$/mu)?.[1];
+  return body.match(/^#{1,3}[ \t]+(.+)$/mu)?.[1];
 }
 
 function meaningfulParagraph(body) {
