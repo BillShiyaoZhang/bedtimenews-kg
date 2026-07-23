@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-20T07:38:17Z",
+  "generatedAt": "2026-07-23T12:13:12Z",
   "segmentationVersion": "1.2.0",
   "summary": {
-    "pages": 2016,
-    "news": 9268,
-    "multiNewsPages": 1248,
-    "reviewPages": 519,
+    "pages": 2018,
+    "news": 9279,
+    "multiNewsPages": 1250,
+    "reviewPages": 521,
     "pagesByStrategy": {
       "page_fallback": 768,
       "horizontal_rule": 190,
@@ -14,7 +14,7 @@
       "manual_markers": 1,
       "main_interview_topic": 167,
       "reference_numbered_heading": 537,
-      "reference_description_sentence": 51
+      "reference_description_sentence": 53
     },
     "episodeDateResolutions": {
       "observed": 714,
@@ -6743,6 +6743,26 @@
       "pageId": "page-3264a97caad4",
       "repositoryPath": "reference/601-700/625.md",
       "title": "【参考信息625】摊派压垮网格员；“预告”官员落马",
+      "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-d9fee3fc710b",
+      "repositoryPath": "reference/601-700/626.md",
+      "title": "【参考信息626】锂电池恢复消费税；中考消失在路上",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-b56f03bb5121",
+      "repositoryPath": "reference/601-700/627.md",
+      "title": "【参考信息627】深圳地铁升级安检；永州水稻种在纸上",
       "newsCount": 5,
       "strategy": "reference_description_sentence",
       "reasons": [
