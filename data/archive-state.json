@@ -16,8 +16,8 @@
     "shorts"
   ],
   "initialImportCommit": "cea5d25fbb70635b8badd0c64db3ec91c98c9986",
-  "lastObservedCommit": "ff192c10ad2e987503011ab916b59fd71f1c7f3e",
-  "lastObservedAt": "2026-07-23T12:13:12Z",
+  "lastObservedCommit": "8ffa813d78197d31c481d8b5a51d6518cb09195a",
+  "lastObservedAt": "2026-07-25T13:11:37Z",
   "acceptedFiles": {
     "business/-1.md": "6b80f87781b13594f4f706ed0db3177ba60a6d3485df7be5182812becf3872be",
     "business/-2.md": "1bb613016dbd5b87e681ac58241955a4cf04b67099cf9424679584ee5ba059be",
@@ -2056,6 +2056,7 @@
     "reference/601-700/625.md": "0a6ab306e6893f5c84baae3b21d50cd593df5cf58228b344ec2333f846fe2d9a",
     "reference/601-700/626.md": "530ffb6e4fd917a70dbbfe75900c23521188e99da741628789c51873de6dcb3c",
     "reference/601-700/627.md": "b86db0da2c14e765cdf3590343aa5ecb5bdbcf39c5871e855fc22a1d71abcaf9",
+    "reference/601-700/628.md": "5e6dcbec933d13bcb6e7a9bfe674bb4de20240b5123e860ba1bace10bc3e8591",
     "shorts/test.md": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
     "shorts/test/1.md": "6c3d3450ed5dddf1a776063251b4f42d39f325651e676aff767b00e63f7d1f00",
     "shorts/test/2.md": "0af58a8bf2de464dec2103839a4816b7909612afb4b7c86695e634256d932336",
