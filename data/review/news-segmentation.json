@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-23T12:13:12Z",
+  "generatedAt": "2026-07-25T13:11:37Z",
   "segmentationVersion": "1.2.0",
   "summary": {
-    "pages": 2018,
-    "news": 9279,
-    "multiNewsPages": 1250,
-    "reviewPages": 521,
+    "pages": 2019,
+    "news": 9286,
+    "multiNewsPages": 1251,
+    "reviewPages": 522,
     "pagesByStrategy": {
       "page_fallback": 768,
       "horizontal_rule": 190,
@@ -14,7 +14,7 @@
       "manual_markers": 1,
       "main_interview_topic": 167,
       "reference_numbered_heading": 537,
-      "reference_description_sentence": 53
+      "reference_description_sentence": 54
     },
     "episodeDateResolutions": {
       "observed": 714,
@@ -6764,6 +6764,16 @@
       "repositoryPath": "reference/601-700/627.md",
       "title": "【参考信息627】深圳地铁升级安检；永州水稻种在纸上",
       "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-5032b270e643",
+      "repositoryPath": "reference/601-700/628.md",
+      "title": "【参考信息628】珠宝大王当庭举报；基因编辑死亡事故",
+      "newsCount": 7,
       "strategy": "reference_description_sentence",
       "reasons": [
         "metadata_only_news_segmentation"

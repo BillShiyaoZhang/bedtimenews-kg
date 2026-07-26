@@ -1,37 +1,37 @@
 {
   "schemaVersion": 3,
-  "upstreamCommit": "ff192c10ad2e987503011ab916b59fd71f1c7f3e",
-  "observedAt": "2026-07-23T12:13:12Z",
+  "upstreamCommit": "8ffa813d78197d31c481d8b5a51d6518cb09195a",
+  "observedAt": "2026-07-25T13:11:37Z",
   "ontologyVersion": "2.0.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.2.0",
   "extractionVersion": "2.0.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
-    "totalNews": 9279,
+    "totalNews": 9286,
     "totalKnownEntities": 1827,
-    "newsWithKnownEntities": 9122,
-    "newsWithoutKnownEntities": 157,
-    "entityCoveragePercent": 98.31,
-    "specificallyClassifiedNews": 7821,
-    "eventTypeCoveragePercent": 84.29,
-    "averageEntitiesPerNews": 9.1,
+    "newsWithKnownEntities": 9126,
+    "newsWithoutKnownEntities": 160,
+    "entityCoveragePercent": 98.28,
+    "specificallyClassifiedNews": 7826,
+    "eventTypeCoveragePercent": 84.28,
+    "averageEntitiesPerNews": 9.09,
     "facetCoverage": {
       "subject": {
         "news": 3280,
-        "percent": 35.35
+        "percent": 35.32
       },
       "place": {
-        "news": 7830,
-        "percent": 84.38
+        "news": 7831,
+        "percent": 84.33
       },
       "topic": {
-        "news": 8774,
-        "percent": 94.56
+        "news": 8778,
+        "percent": 94.53
       },
       "named_object": {
         "news": 1195,
-        "percent": 12.88
+        "percent": 12.87
       }
     },
     "entityTypeCounts": {
@@ -45,56 +45,56 @@
     },
     "eventTypeCounts": {
       "policy_governance": 1084,
-      "economy_business": 2060,
+      "economy_business": 2061,
       "infrastructure_transport": 254,
       "science_technology": 575,
-      "law_justice": 566,
+      "law_justice": 567,
       "conflict_security": 422,
       "disaster_accident": 292,
-      "public_health": 287,
+      "public_health": 288,
       "environment_energy": 223,
       "education_culture": 1038,
-      "society_livelihood": 681,
+      "society_livelihood": 683,
       "international_relations": 339,
-      "other": 1458
+      "other": 1460
     }
   },
   "currentIncrement": {
-    "newNews": 11,
-    "newNewsWithoutKnownEntities": 2,
-    "otherTypeNews": 3,
+    "newNews": 7,
+    "newNewsWithoutKnownEntities": 3,
+    "otherTypeNews": 2,
     "untypedReviewSample": [
       {
-        "id": "event-c334047d9262",
-        "newsId": "news-e897d155a833",
-        "title": "长沙一位父亲每月砸6000元给12岁女儿打生长激素，只为女儿高挑有气质",
-        "pageId": "page-d9fee3fc710b"
+        "id": "event-a153f67de5a5",
+        "newsId": "news-5aac12b4f2a0",
+        "title": "两名中国籍数学家获菲尔兹奖，再度引发讨论：如果他们留在国内会做出同样的成就吗",
+        "pageId": "page-5032b270e643"
       },
       {
-        "id": "event-4a7d65f8a83f",
-        "newsId": "news-349a5a6c61de",
-        "title": "军警、公费师范等铁饭碗院校个别投档分数线反超部分985提前批",
-        "pageId": "page-d9fee3fc710b"
-      },
-      {
-        "id": "event-fa0a0b01598a",
-        "newsId": "news-9ea62efacb75",
-        "title": "深铁今年已向万科输血五次，累计45.28亿，万科已经展期的债务年底又要到期了",
-        "pageId": "page-b56f03bb5121"
+        "id": "event-d931125ab3ab",
+        "newsId": "news-274934f9c02f",
+        "title": "中国6岁女童接受基因编辑试验后死亡",
+        "pageId": "page-5032b270e643"
       }
     ],
     "entityGapReviewSample": [
       {
-        "id": "event-4a7d65f8a83f",
-        "newsId": "news-349a5a6c61de",
-        "title": "军警、公费师范等铁饭碗院校个别投档分数线反超部分985提前批",
-        "pageId": "page-d9fee3fc710b"
+        "id": "event-62fd3514bdae",
+        "newsId": "news-c9e02e281d80",
+        "title": "撂荒根本原因是经济账算不过来",
+        "pageId": "page-5032b270e643"
       },
       {
-        "id": "event-fa0a0b01598a",
-        "newsId": "news-9ea62efacb75",
-        "title": "深铁今年已向万科输血五次，累计45.28亿，万科已经展期的债务年底又要到期了",
-        "pageId": "page-b56f03bb5121"
+        "id": "event-a153f67de5a5",
+        "newsId": "news-5aac12b4f2a0",
+        "title": "两名中国籍数学家获菲尔兹奖，再度引发讨论：如果他们留在国内会做出同样的成就吗",
+        "pageId": "page-5032b270e643"
+      },
+      {
+        "id": "event-d931125ab3ab",
+        "newsId": "news-274934f9c02f",
+        "title": "中国6岁女童接受基因编辑试验后死亡",
+        "pageId": "page-5032b270e643"
       }
     ]
   }
