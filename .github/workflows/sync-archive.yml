@@ -8,8 +8,8 @@ on:
     types: [archive-updated]
 
 permissions:
+  actions: write
   contents: write
-  pull-requests: write
 
 concurrency:
   group: archive-sync
@@ -22,6 +22,7 @@ jobs:
       - name: Checkout with archive
         uses: actions/checkout@v4
         with:
+          ref: main
           submodules: recursive
 
       - name: Setup Node
@@ -49,38 +50,37 @@ jobs:
       - name: Build GitHub Pages artifact
         run: npm run build:pages
 
-      - name: Open or refresh review pull request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          branch: automation/archive-sync
-          delete-branch: true
-          commit-message: "data: sync Bedtime News archive"
-          title: "data: sync Bedtime News archive"
-          body: |
-            Automated archive sync.
-
-            - Brand-new Markdown files are segmented into independent news
-              records, then appended to the generated KG.
-            - Existing upstream files that changed, disappeared, or appear to
-              have moved are preserved unchanged and listed in
-              `data/review/upstream-changes.json`.
-            - Facet and event-type coverage is measured in
-              `data/review/ontology-candidates.json`.
-            - Segmentation confidence and unresolved page boundaries are listed
-              in `data/review/news-segmentation.json`.
-            - News-boundary, ontology, or extraction-rule changes require a
-              separately reviewed explicit rebuild; this workflow never
-              rewrites accepted records silently.
-
-            Review the reports and the submodule commit before merging.
-          add-paths: |
-            sources/bedtimenews-archive-contents
-            data/archive-state.json
-            data/extraction-rules.json
-            data/news-overrides.json
-            data/ontology.json
-            data/processed/news.json
-            data/generated/kg.json
-            data/review/upstream-changes.json
-            data/review/news-segmentation.json
+      - name: Commit and push validated archive sync
+        id: commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            sources/bedtimenews-archive-contents \
+            data/archive-state.json \
+            data/extraction-rules.json \
+            data/news-overrides.json \
+            data/ontology.json \
+            data/processed/news.json \
+            data/generated/kg.json \
+            data/review/upstream-changes.json \
+            data/review/news-segmentation.json \
             data/review/ontology-candidates.json
+
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "data: sync Bedtime News archive"
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # Pushes made by GITHUB_TOKEN do not start workflows triggered by `push`,
+      # so explicitly dispatch the Pages workflow after a successful sync.
+      - name: Deploy updated GitHub Pages
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main
