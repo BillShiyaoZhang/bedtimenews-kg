@@ -1,20 +1,21 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-07-25T13:11:37Z",
-  "segmentationVersion": "1.2.0",
+  "segmentationVersion": "1.3.0",
   "summary": {
-    "pages": 2019,
-    "news": 9286,
-    "multiNewsPages": 1251,
-    "reviewPages": 522,
+    "pages": 2013,
+    "news": 9263,
+    "multiNewsPages": 1245,
+    "reviewPages": 521,
     "pagesByStrategy": {
-      "page_fallback": 768,
-      "horizontal_rule": 190,
+      "page_fallback": 763,
+      "manual_single": 1,
+      "horizontal_rule": 189,
       "daily_numbered_heading": 302,
       "manual_markers": 1,
       "main_interview_topic": 167,
       "reference_numbered_heading": 537,
-      "reference_description_sentence": 54
+      "reference_description_sentence": 53
     },
     "episodeDateResolutions": {
       "observed": 714,
@@ -6240,20 +6241,10 @@
       ]
     },
     {
-      "pageId": "page-9425fead3031",
-      "repositoryPath": "reference/101-200/174.md",
-      "title": "【参考信息174】2023年新闻回顾（序章）",
-      "newsCount": 2,
-      "strategy": "reference_description_sentence",
-      "reasons": [
-        "metadata_only_news_segmentation"
-      ]
-    },
-    {
       "pageId": "page-2e83026cd1a3",
       "repositoryPath": "reference/101-200/176.md",
       "title": "【参考信息176】2023年回顾（二）",
-      "newsCount": 3,
+      "newsCount": 1,
       "strategy": "reference_description_sentence",
       "reasons": [
         "metadata_only_news_segmentation"
@@ -6543,7 +6534,7 @@
       "pageId": "page-a1ed1330179c",
       "repositoryPath": "reference/501-600/566.md",
       "title": "【参考信息566】分段旅游过年；大事正在发生",
-      "newsCount": 7,
+      "newsCount": 6,
       "strategy": "reference_description_sentence",
       "reasons": [
         "metadata_only_news_segmentation"
@@ -6553,7 +6544,7 @@
       "pageId": "page-139d57342c1c",
       "repositoryPath": "reference/501-600/567.md",
       "title": "【参考信息567】春晚扎堆机器人；师范转型新工科",
-      "newsCount": 7,
+      "newsCount": 6,
       "strategy": "reference_description_sentence",
       "reasons": [
         "metadata_only_news_segmentation"
@@ -6703,7 +6694,7 @@
       "pageId": "page-d79e9e8f8287",
       "repositoryPath": "reference/501-600/583.md",
       "title": "【参考信息583】湖北湖南东北化；摒弃不休假等于敬业",
-      "newsCount": 7,
+      "newsCount": 6,
       "strategy": "reference_description_sentence",
       "reasons": [
         "metadata_only_news_segmentation"

@@ -4,98 +4,667 @@
   "observedAt": "2026-07-25T13:11:37Z",
   "ontologyVersion": "2.0.0",
   "newsDatasetSchemaVersion": "1.1.0",
-  "segmentationVersion": "1.2.0",
-  "extractionVersion": "2.0.0",
+  "segmentationVersion": "1.3.0",
+  "extractionVersion": "2.1.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
-    "totalNews": 9286,
-    "totalKnownEntities": 1827,
-    "newsWithKnownEntities": 9126,
-    "newsWithoutKnownEntities": 160,
-    "entityCoveragePercent": 98.28,
-    "specificallyClassifiedNews": 7826,
-    "eventTypeCoveragePercent": 84.28,
-    "averageEntitiesPerNews": 9.09,
+    "totalNews": 9263,
+    "totalKnownEntities": 1831,
+    "newsWithKnownEntities": 9263,
+    "newsWithoutKnownEntities": 0,
+    "entityCoveragePercent": 100,
+    "specificallyClassifiedNews": 8352,
+    "eventTypeCoveragePercent": 90.17,
+    "averageEntitiesPerNews": 9.8,
     "facetCoverage": {
       "subject": {
         "news": 3280,
-        "percent": 35.32
+        "percent": 35.41
       },
       "place": {
-        "news": 7831,
-        "percent": 84.33
+        "news": 7837,
+        "percent": 84.61
       },
       "topic": {
-        "news": 8778,
-        "percent": 94.53
+        "news": 9052,
+        "percent": 97.72
       },
       "named_object": {
         "news": 1195,
-        "percent": 12.87
+        "percent": 12.9
       }
     },
     "entityTypeCounts": {
       "person": 65,
       "organization": 288,
-      "place": 266,
+      "place": 270,
       "facility": 34,
       "policy": 987,
       "document": 160,
       "topic": 27
     },
     "eventTypeCounts": {
-      "policy_governance": 1084,
-      "economy_business": 2061,
-      "infrastructure_transport": 254,
-      "science_technology": 575,
-      "law_justice": 567,
-      "conflict_security": 422,
+      "policy_governance": 1206,
+      "economy_business": 2161,
+      "infrastructure_transport": 267,
+      "science_technology": 586,
+      "law_justice": 628,
+      "conflict_security": 426,
       "disaster_accident": 292,
       "public_health": 288,
-      "environment_energy": 223,
-      "education_culture": 1038,
-      "society_livelihood": 683,
-      "international_relations": 339,
-      "other": 1460
+      "environment_energy": 227,
+      "education_culture": 1148,
+      "society_livelihood": 732,
+      "international_relations": 391,
+      "other": 911
     }
   },
   "currentIncrement": {
-    "newNews": 7,
-    "newNewsWithoutKnownEntities": 3,
-    "otherTypeNews": 2,
+    "newNews": 9263,
+    "newNewsWithoutKnownEntities": 0,
+    "otherTypeNews": 911,
     "untypedReviewSample": [
       {
-        "id": "event-a153f67de5a5",
-        "newsId": "news-5aac12b4f2a0",
-        "title": "两名中国籍数学家获菲尔兹奖，再度引发讨论：如果他们留在国内会做出同样的成就吗",
-        "pageId": "page-5032b270e643"
+        "id": "event-b49fabcd7951",
+        "newsId": "news-d749516c2d69",
+        "title": "吉林市举办世界锅包肉大赛",
+        "pageId": "page-7597a53f3ec4"
       },
       {
-        "id": "event-d931125ab3ab",
-        "newsId": "news-274934f9c02f",
-        "title": "中国6岁女童接受基因编辑试验后死亡",
-        "pageId": "page-5032b270e643"
+        "id": "event-5cf67216246e",
+        "newsId": "news-0d592ab06676",
+        "title": "孟加拉成衣业暂时安全",
+        "pageId": "page-3efd672d22ae"
+      },
+      {
+        "id": "event-bc3ca3bd48b5",
+        "newsId": "news-85f6438be96c",
+        "title": "买马达加斯加羊肉 破南半球联盟",
+        "pageId": "page-f44afeb82b9c"
+      },
+      {
+        "id": "event-504dc67c2b1e",
+        "newsId": "news-6956c5e9e311",
+        "title": "仿制药最强，“药神”印度为什么这次不灵",
+        "pageId": "page-b1a4e04d49b1"
+      },
+      {
+        "id": "event-596195101ecd",
+        "newsId": "news-df1e80e4e16a",
+        "title": "总是中韩大战，别国不玩英雄联盟？",
+        "pageId": "page-83ef3a947323"
+      },
+      {
+        "id": "event-f0dc21e4fa20",
+        "newsId": "news-3d7d73fe534a",
+        "title": "罐车事件，金龙鱼的麻烦是自找的",
+        "pageId": "page-a0a558a235af"
+      },
+      {
+        "id": "event-3d9f9d8d195a",
+        "newsId": "news-9ec13636c0b8",
+        "title": "柔性屏独角兽破产，天才创始人负全责",
+        "pageId": "page-f50e9ef7df42"
+      },
+      {
+        "id": "event-276f37655860",
+        "newsId": "news-e9f9ab8b51a9",
+        "title": "日产本田合并，负负就能得正吗？",
+        "pageId": "page-f0a3d3ff377d"
+      },
+      {
+        "id": "event-f795a6eb24c7",
+        "newsId": "news-76a2e1d1dcf7",
+        "title": "如何让按摩椅征服16亿东亚人？",
+        "pageId": "page-a9f3fff3692f"
+      },
+      {
+        "id": "event-53196bc280e8",
+        "newsId": "news-231ebc18fb6a",
+        "title": "为什么兰州拉面店里，总有个写作业的小孩？",
+        "pageId": "page-4957c5a965c4"
+      },
+      {
+        "id": "event-3a648eb3a274",
+        "newsId": "news-77a3c9d295c7",
+        "title": "让人脸红心跳的云南山歌，是怎么传遍全国的？",
+        "pageId": "page-fc96e4a4f7b0"
+      },
+      {
+        "id": "event-309c7f6f1f10",
+        "newsId": "news-16d7df695b9b",
+        "title": "从暴乱黑手到爱跳舞的老爷爷，哪张是印尼新总统真实的脸",
+        "pageId": "page-4c04e8ef0919"
+      },
+      {
+        "id": "event-60da6095a6c2",
+        "newsId": "news-907cca97d782",
+        "title": "教权与世俗，伊朗的双重架构",
+        "pageId": "page-e217a4ce8f4f"
+      },
+      {
+        "id": "event-cf01a9702109",
+        "newsId": "news-416ab6904600",
+        "title": "广州水价 要的就是你在乎",
+        "pageId": "page-3d3251a67b53"
+      },
+      {
+        "id": "event-5c51680dd2fa",
+        "newsId": "news-a00ac77f8a80",
+        "title": "一千零一条生命——朝觐沙特的代价",
+        "pageId": "page-2351bf54d73e"
+      },
+      {
+        "id": "event-85c1bf65e767",
+        "newsId": "news-35d9606ecdb3",
+        "title": "“四驾马车”大更新，新首席是越南的“勃总”吗？",
+        "pageId": "page-84e30c35b87e"
+      },
+      {
+        "id": "event-be4d2e2661cb",
+        "newsId": "news-384e021a883c",
+        "title": "琉球王国覆灭史（上）",
+        "pageId": "page-3a97c47d3ed2"
+      },
+      {
+        "id": "event-678015c4fb84",
+        "newsId": "news-3c2b5515874b",
+        "title": "明尼苏达ICE枪击案全网首发爆料，无死角逐帧分析",
+        "pageId": "page-2ccbc9ddfa06"
+      },
+      {
+        "id": "event-85f65d157fc5",
+        "newsId": "news-ef0e2e46648f",
+        "title": "从岛津义久到麦克阿瑟，日本如何吞并琉球？琉球王国覆灭史（下）",
+        "pageId": "page-cd00fcd2f127"
+      },
+      {
+        "id": "event-02332accd30e",
+        "newsId": "news-2f49bf9d21a6",
+        "title": "英国新首相苏纳克突访基辅，承诺增加军援",
+        "pageId": "page-482afba7fc4c"
+      },
+      {
+        "id": "event-dd4b18f3154b",
+        "newsId": "news-7f566c458994",
+        "title": "北京朝阳一小区半地下室供暖水泄漏，两名刚工作的女生死亡",
+        "pageId": "page-e2d175631355"
+      },
+      {
+        "id": "event-e66e74035d3c",
+        "newsId": "news-ab4cf3160c28",
+        "title": "哈萨克斯坦修宪限制总统连任后 托卡耶夫得票81.31%当选新总统",
+        "pageId": "page-e2d175631355"
+      },
+      {
+        "id": "event-35ece84f8dbf",
+        "newsId": "news-fe050c315e4c",
+        "title": "浙江永康女子上公厕被男子殴打，警方：会给嫌疑人做精神鉴定",
+        "pageId": "page-e2d175631355"
+      },
+      {
+        "id": "event-dd276cb2d473",
+        "newsId": "news-0d5dd6f19b2f",
+        "title": "四名中国公民在美国大麻农场内被枪杀",
+        "pageId": "page-9458f184afc3"
+      },
+      {
+        "id": "event-bc5713d6b63c",
+        "newsId": "news-4ee8f5b5edb9",
+        "title": "郑州主城区25日起进行5天流动性管理 市民非必要不外出",
+        "pageId": "page-06289586d9e9"
+      },
+      {
+        "id": "event-233fb537a708",
+        "newsId": "news-c4766e241e62",
+        "title": "埃尔多安称将在叙利亚对库尔德武装发动地面进攻，俄反对",
+        "pageId": "page-06289586d9e9"
+      },
+      {
+        "id": "event-f85d15576d88",
+        "newsId": "news-ccf2758abf15",
+        "title": "36岁成都女生出任Meta CFO 打破华裔、女性两大天花板",
+        "pageId": "page-c64bf39b6c5a"
+      },
+      {
+        "id": "event-87a9b97b635e",
+        "newsId": "news-afd861b1e6bb",
+        "title": "欧洲再投3.6亿欧元挽救火星探测计划，此前因与俄断联而暂停",
+        "pageId": "page-c64bf39b6c5a"
+      },
+      {
+        "id": "event-b39d5547b68b",
+        "newsId": "news-a8126f5bc416",
+        "title": "中国首列齿轨列车在四川资阳正式下线",
+        "pageId": "page-26f97cab7b5d"
+      },
+      {
+        "id": "event-73ca7aa7231d",
+        "newsId": "news-3ad74858b3b2",
+        "title": "“长江口二号”古船出水，31个舱室装满货物",
+        "pageId": "page-087f3e277742"
+      },
+      {
+        "id": "event-adcc2a065d14",
+        "newsId": "news-298f38df4e2a",
+        "title": "11月29日将停止A4纸销售？晨光文具回应：该文件系伪造，已报警",
+        "pageId": "page-5d121bbafea3"
+      },
+      {
+        "id": "event-1abc9831399d",
+        "newsId": "news-babcf5ffa4c9",
+        "title": "国开行河南分行原行长傅小东被双开：视组织多次挽救于不顾",
+        "pageId": "page-5d121bbafea3"
+      },
+      {
+        "id": "event-2d2191f0b22d",
+        "newsId": "news-3cc2c2aff7f8",
+        "title": "德外长称中国是“富有的七十七国集团成员国”，中方纠正：不是",
+        "pageId": "page-5d121bbafea3"
+      },
+      {
+        "id": "event-5117e671ec92",
+        "newsId": "news-82598c680f0a",
+        "title": "英国王后卡米拉废宫廷侍女制度，换贴身助理以示王室“与时俱进”",
+        "pageId": "page-5d121bbafea3"
+      },
+      {
+        "id": "event-d76cfa2c735d",
+        "newsId": "news-529ad9d2f214",
+        "title": "马斯克杠上苹果",
+        "pageId": "page-77834d8d850e"
+      },
+      {
+        "id": "event-6e5273a0417c",
+        "newsId": "news-b4872fe39fdc",
+        "title": "世界上最大的活火山时隔近40年再次喷发",
+        "pageId": "page-77834d8d850e"
+      },
+      {
+        "id": "event-8a8e1f332a89",
+        "newsId": "news-c82c6604caf1",
+        "title": "辽宁锦州：继续坚守实现“动态清零”，能清零而不清零实在太可惜",
+        "pageId": "page-1fd2c68fb185"
+      },
+      {
+        "id": "event-4fc62d6bd0b4",
+        "newsId": "news-75b575121e7d",
+        "title": "美国众议院民主党领导层近20年首次大换血，非洲裔成为领袖",
+        "pageId": "page-1fd2c68fb185"
+      },
+      {
+        "id": "event-5eac17b0a05a",
+        "newsId": "news-9d69eb5bfe11",
+        "title": "贝爷现身乌克兰",
+        "pageId": "page-1fd2c68fb185"
+      },
+      {
+        "id": "event-1ecc8ca3b8ae",
+        "newsId": "news-68191c467f2c",
+        "title": "冠脉支架接续集采结果出炉：平均涨价10% 最高涨76%",
+        "pageId": "page-971de4af2dd2"
+      },
+      {
+        "id": "event-eb6bf46a330c",
+        "newsId": "news-e6eae611d12a",
+        "title": "三名偷渡者挤坐邮轮船舵航行11天，从尼日利亚抵西班牙后获救",
+        "pageId": "page-971de4af2dd2"
+      },
+      {
+        "id": "event-5a92d7748b79",
+        "newsId": "news-9daf2763ae04",
+        "title": "格力地产与珠免重启资产重组 此前因涉内幕交易案暂停两年半",
+        "pageId": "page-3da1d7c2a5ab"
+      },
+      {
+        "id": "event-a19a2cfe0bd1",
+        "newsId": "news-74a8134729d5",
+        "title": "湖南浏阳通报“街道人员入户打人”：廖勇被开除党籍 其他3人被辞退",
+        "pageId": "page-3da1d7c2a5ab"
+      },
+      {
+        "id": "event-addb81d746af",
+        "newsId": "news-aad7b56bbab4",
+        "title": "亚马孙地区近40年失去10%植被，其损失面积相当于美得克萨斯州大小",
+        "pageId": "page-a731122d6791"
+      },
+      {
+        "id": "event-1bbd2a5c36db",
+        "newsId": "news-b79c582509d9",
+        "title": "海南多地不在对省外来（返）人员分类管理，1小时内三亚酒店预订骤增3倍",
+        "pageId": "page-f90b86ee0322"
+      },
+      {
+        "id": "event-4339a8dfadf4",
+        "newsId": "news-4c0cba05aa98",
+        "title": "攀附“孙力军政治团伙” 大连原公安局长刘乐国被开除党籍",
+        "pageId": "page-f90b86ee0322"
+      },
+      {
+        "id": "event-d759ecc5ef92",
+        "newsId": "news-fe381a3b751a",
+        "title": "爱立信与苹果签署全球专利许可协议，结束双方所有专利纠纷",
+        "pageId": "page-c7951a9c7f52"
+      },
+      {
+        "id": "event-3faae8572e21",
+        "newsId": "news-74d65ea3ac22",
+        "title": "江泽民骨灰撒在长江入海口",
+        "pageId": "page-622bd15975bd"
+      },
+      {
+        "id": "event-e2d347c8c974",
+        "newsId": "news-1c82cbbac14a",
+        "title": "绕开匈牙利 欧洲议会同意明年向乌克兰提供180亿欧元贷款",
+        "pageId": "page-622bd15975bd"
+      },
+      {
+        "id": "event-8f28cdf2a635",
+        "newsId": "news-b512a52c6f3c",
+        "title": "科索沃警察与塞族人交火致局势升级",
+        "pageId": "page-622bd15975bd"
+      },
+      {
+        "id": "event-b858536cfbeb",
+        "newsId": "news-ec9e0ebbb8af",
+        "title": "美高级代表团来华“打前站”：探索潜在合作领域，不忘强化对华竞争",
+        "pageId": "page-fbfa80d3fb40"
+      },
+      {
+        "id": "event-d248edfb79d8",
+        "newsId": "news-5c8d6f1e4935",
+        "title": "欧洲议会被曝有史以来最大的腐败丑闻：16处私宅搜出60万欧元，已有4人被捕",
+        "pageId": "page-fbfa80d3fb40"
+      },
+      {
+        "id": "event-d4610430275d",
+        "newsId": "news-bbd68d00bd9f",
+        "title": "为避免被列入实体清单 中国允许美国商务部对长江存储进行核查",
+        "pageId": "page-fbfa80d3fb40"
+      },
+      {
+        "id": "event-96373ea51695",
+        "newsId": "news-6516ebd24cfb",
+        "title": "“猎户座”飞船结束25.5天绕月之旅返回地球，下个任务将载人",
+        "pageId": "page-fbfa80d3fb40"
+      },
+      {
+        "id": "event-a0c00957f7f9",
+        "newsId": "news-a5670f59e3a8",
+        "title": "阿富汗一住有中国旅客酒店遭袭致3死18伤，5名中国公民受伤",
+        "pageId": "page-ca1cd21724e1"
+      },
+      {
+        "id": "event-1ccca592ff0c",
+        "newsId": "news-e6bc16a44554",
+        "title": "国家邮政局：加紧调派京外力量驰援北京，化解现存积压问题",
+        "pageId": "page-45819f3e76c3"
+      },
+      {
+        "id": "event-b64f57207d1f",
+        "newsId": "news-7ab17b949671",
+        "title": "瑞士哲学家称著作遭中国得意门生侵权 浙大倪梁康教授回应",
+        "pageId": "page-5166dc22b6f7"
+      },
+      {
+        "id": "event-cc3cf5d7ba10",
+        "newsId": "news-c245ac5f502b",
+        "title": "泰国海军一艘护卫舰遇强浪沉没 106名船员中31人仍失踪",
+        "pageId": "page-e426f20b02bf"
+      },
+      {
+        "id": "event-3ea9e26727e4",
+        "newsId": "news-ea2484dfd929",
+        "title": "墨西哥保护秘鲁左翼前总统家庭 秘鲁驱赶墨西哥驻秘鲁大使",
+        "pageId": "page-736ddf4b1a35"
+      },
+      {
+        "id": "event-7a5f06104f95",
+        "newsId": "news-e4aeb5efc5d9",
+        "title": "上海警方侦破全国首例侵犯剧本杀著作权案，查获剧本8万余盒",
+        "pageId": "page-736ddf4b1a35"
+      },
+      {
+        "id": "event-fb9dcd5dc1eb",
+        "newsId": "news-1b5189fbd462",
+        "title": "NASA 洞察号火星探测器任务终结，此前发回最后一张照片",
+        "pageId": "page-abde1b891b80"
+      },
+      {
+        "id": "event-3f8ab84aedd1",
+        "newsId": "news-379ac36e7e68",
+        "title": "山东5人非访索要工程款被行拘，官方：警情通报有不妥，会再通报",
+        "pageId": "page-e374b2d2da5f"
+      },
+      {
+        "id": "event-d90ed449661c",
+        "newsId": "news-b6b9d91dc106",
+        "title": "中企承建的西非首条电气化轻轨尼日利亚拉各斯轻轨蓝线一期竣工",
+        "pageId": "page-9f4d2168014f"
+      },
+      {
+        "id": "event-f88d82c4f191",
+        "newsId": "news-b8bc7b747047",
+        "title": "马斯克接手推特后，特斯拉累跌44% 本周蒸发850亿美元",
+        "pageId": "page-9f4d2168014f"
+      },
+      {
+        "id": "event-3c258a6fca91",
+        "newsId": "news-cead423a0f91",
+        "title": "卡德罗夫：普京授予我亚历山大·涅夫斯基勋章",
+        "pageId": "page-69dba56adfa4"
+      },
+      {
+        "id": "event-f9e44a82e563",
+        "newsId": "news-a67033808d30",
+        "title": "韩国指责朝鲜多架无人机侵犯领空，韩一战机拦截时坠机",
+        "pageId": "page-0c857515d985"
+      },
+      {
+        "id": "event-7568e1605477",
+        "newsId": "news-6bb140a663d8",
+        "title": "工信部：布洛芬和对乙酰氨基酚日产量1.9亿片，较月初翻超4倍",
+        "pageId": "page-579aa5c60087"
+      },
+      {
+        "id": "event-c40a44d4f987",
+        "newsId": "news-ee453b5537b6",
+        "title": "普京向独联体各国元首赠送8枚金戒指，自己留下了第9枚",
+        "pageId": "page-579aa5c60087"
+      },
+      {
+        "id": "event-944142480358",
+        "newsId": "news-570047e8350f",
+        "title": "美RC135侦察机在南海被解放军拦截，称中国战机“不安全”",
+        "pageId": "page-f9cbaf437a83"
+      },
+      {
+        "id": "event-2d4c27d5cf05",
+        "newsId": "news-e0c87dea82cb",
+        "title": "全球集装箱溢出流入中国：有码头空箱堆存量占比超90%",
+        "pageId": "page-8dbbc06d5826"
+      },
+      {
+        "id": "event-c479bdf44be5",
+        "newsId": "news-dff197cad8bd",
+        "title": "37岁C罗正式加盟沙特球队：签约至2025年，年薪超2亿美元",
+        "pageId": "page-8dbbc06d5826"
+      },
+      {
+        "id": "event-e6b23d0324ff",
+        "newsId": "news-558688392710",
+        "title": "巴西总统博索纳罗离开巴西飞往美国 不出席新总统卢拉就职仪式",
+        "pageId": "page-24f441cb2ea0"
+      },
+      {
+        "id": "event-eb10bd2d38e6",
+        "newsId": "news-89dd4540f567",
+        "title": "郑州跨年出现大量自发燃放烟花活动",
+        "pageId": "page-4282574b3842"
+      },
+      {
+        "id": "event-ac8477fe22dc",
+        "newsId": "news-428a56e35ace",
+        "title": "菲律宾新年因停电被迫关闭领空，有飞机飞了3小时掉头回家",
+        "pageId": "page-4282574b3842"
+      },
+      {
+        "id": "event-1e39fbbe4690",
+        "newsId": "news-1a14e49ac0e3",
+        "title": "河南鹿邑警方通报“多人故意破坏警车引起围观”：8人被立案侦查",
+        "pageId": "page-b00c0b580472"
+      },
+      {
+        "id": "event-ba7d6cf9bfe4",
+        "newsId": "news-c3a5e7598b5d",
+        "title": "以色列新任国家安全部部长进入耶路撒冷圣殿山 中国要求安理会讨论",
+        "pageId": "page-2352cf92367c"
+      },
+      {
+        "id": "event-435489697de7",
+        "newsId": "news-6a91ce156573",
+        "title": "人大常委会合宪性审查：有省级公检法就办理袭警罪案超权限发文，经督促已停止执行",
+        "pageId": "page-66adad475790"
+      },
+      {
+        "id": "event-3f6de9ceba0b",
+        "newsId": "news-b4caed60ad60",
+        "title": "武契奇：九国撤回承认科索沃“独立”",
+        "pageId": "page-ba9c13a46562"
+      },
+      {
+        "id": "event-ee73e406c1a4",
+        "newsId": "news-c989be1ef79f",
+        "title": "15岁江西男孩校内失踪80余天 警方通报证据指向其自行离校",
+        "pageId": "page-1216cfaa1deb"
+      },
+      {
+        "id": "event-e9a1deef45ac",
+        "newsId": "news-a30ad37f630d",
+        "title": "日本60岁宅男因看动漫被打断勒死父母 被判30年",
+        "pageId": "page-1216cfaa1deb"
+      },
+      {
+        "id": "event-f12c76de0af2",
+        "newsId": "news-1a63a29310fe",
+        "title": "瑞丽口岸恢复通关：滞留中国3年的缅甸籍务工者，凌晨4时排队回家",
+        "pageId": "page-a50352b91c50"
+      },
+      {
+        "id": "event-169e4018fd13",
+        "newsId": "news-b4fd17872300",
+        "title": "成都商报评论：傅政华被政治骗子拿捏20年：一个沉重的黑色幽默",
+        "pageId": "page-a50352b91c50"
+      },
+      {
+        "id": "event-e7100a67606e",
+        "newsId": "news-edca7916981b",
+        "title": "一货船在苏伊士运河搁浅，外媒：其正将玉米从乌克兰运往中国",
+        "pageId": "page-6de505e12558"
+      },
+      {
+        "id": "event-fe0ea0e110d2",
+        "newsId": "news-88b5bca4c5f2",
+        "title": "受贿2.34亿余元 国家安全部原党委委员刘彦平一审被判死缓",
+        "pageId": "page-5769bb9dec5f"
+      },
+      {
+        "id": "event-f3c01e228bd1",
+        "newsId": "news-63402b96bd37",
+        "title": "兰州城投担保的险资债权计划展期后违约：本息累计规模近1亿",
+        "pageId": "page-15150c3ff5b4"
+      },
+      {
+        "id": "event-ae0baa74c10f",
+        "newsId": "news-7d041a862538",
+        "title": "中钢协：预计2022年粗钢产量10.1亿吨 同比降2.2%",
+        "pageId": "page-15150c3ff5b4"
+      },
+      {
+        "id": "event-1d6cb8059797",
+        "newsId": "news-88e34e411104",
+        "title": "“当你深陷恋爱时，你会身不由己”，马克龙罕见回答“为何娶老师”",
+        "pageId": "page-15150c3ff5b4"
+      },
+      {
+        "id": "event-1b9435452513",
+        "newsId": "news-4786ba30df48",
+        "title": "波兰：将向乌克兰提供14辆“豹2”主战坦克，可装备整支装甲连",
+        "pageId": "page-4e81cd851872"
+      },
+      {
+        "id": "event-e97e24e142e4",
+        "newsId": "news-4a328f646112",
+        "title": "00后当选共青团市委常委 当地回应：无级别无报酬，15岁参加工作指在母亲奶茶店帮忙",
+        "pageId": "page-eec44ad675d5"
+      },
+      {
+        "id": "event-2dd7801ef73b",
+        "newsId": "news-07fa8799f74d",
+        "title": "赌王之子何猷君任湖北省政协委员，称关注“电子竞技”领域",
+        "pageId": "page-eec44ad675d5"
+      },
+      {
+        "id": "event-a73a70b6d0f6",
+        "newsId": "news-a02653e6932e",
+        "title": "佐科承认印尼历史上曾发生多起侵犯人权事件，但未表明将追责",
+        "pageId": "page-582b169786d7"
+      },
+      {
+        "id": "event-f9b22c9faf06",
+        "newsId": "news-7cbb211174d1",
+        "title": "新华社抗疫大总结：打有把握之仗，三年艰苦卓绝赢得三个宝贵“窗口期”",
+        "pageId": "page-8eb2a338e1fc"
+      },
+      {
+        "id": "event-0c50b3803d69",
+        "newsId": "news-e016f7eb6d2f",
+        "title": "超过7岁不报销，台湾罕见病儿童到大陆使用特效药",
+        "pageId": "page-8eb2a338e1fc"
+      },
+      {
+        "id": "event-c5a71ec3741b",
+        "newsId": "news-e9d705f10350",
+        "title": "贵州毕节3名幼童失踪一夜 在山上获救",
+        "pageId": "page-7d4ae7ec9edc"
+      },
+      {
+        "id": "event-4e8dd421e47e",
+        "newsId": "news-d1fbf5e6d1f6",
+        "title": "越共中央：批准阮春福辞去越南国家主席、越共政治局委员等职务",
+        "pageId": "page-acf6ecfb1dbd"
+      },
+      {
+        "id": "event-56270f282f2f",
+        "newsId": "news-3b234ca8990b",
+        "title": "FF中国总部落户湖北黄冈？黄冈回应“正接洽合作事宜”",
+        "pageId": "page-32563ed72293"
+      },
+      {
+        "id": "event-d814b1d8495f",
+        "newsId": "news-6cd07555166f",
+        "title": "去年中国大豆播种面积1958年来最高 自给率约18.5%",
+        "pageId": "page-2644d58428d7"
+      },
+      {
+        "id": "event-36138f8f9478",
+        "newsId": "news-3529d2f7900d",
+        "title": "陆军副司令员黄铭已任中部战区司令员，晋升为上将",
+        "pageId": "page-2644d58428d7"
+      },
+      {
+        "id": "event-ab827c2bc3f7",
+        "newsId": "news-2781dc40ddfa",
+        "title": "中央广播电视总台：未经授权，任何人不准使用历年春晚素材",
+        "pageId": "page-2644d58428d7"
+      },
+      {
+        "id": "event-2c737e08a41d",
+        "newsId": "news-b73a6ccf4a80",
+        "title": "全球船舶脱碳减排措施生效，船厂、船东和运营商们应对新规则",
+        "pageId": "page-3be86bd1be7c"
       }
     ],
-    "entityGapReviewSample": [
-      {
-        "id": "event-62fd3514bdae",
-        "newsId": "news-c9e02e281d80",
-        "title": "撂荒根本原因是经济账算不过来",
-        "pageId": "page-5032b270e643"
-      },
-      {
-        "id": "event-a153f67de5a5",
-        "newsId": "news-5aac12b4f2a0",
-        "title": "两名中国籍数学家获菲尔兹奖，再度引发讨论：如果他们留在国内会做出同样的成就吗",
-        "pageId": "page-5032b270e643"
-      },
-      {
-        "id": "event-d931125ab3ab",
-        "newsId": "news-274934f9c02f",
-        "title": "中国6岁女童接受基因编辑试验后死亡",
-        "pageId": "page-5032b270e643"
-      }
-    ]
+    "entityGapReviewSample": []
   }
 }

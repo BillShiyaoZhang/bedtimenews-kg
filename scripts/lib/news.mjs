@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { basename } from "node:path";
 
 export const NEWS_DATASET_SCHEMA_VERSION = "1.1.0";
-export const SEGMENTATION_VERSION = "1.2.0";
+export const SEGMENTATION_VERSION = "1.3.0";
 
 const MEDIA_HEADING = /^(?:Tabs|B站|西瓜视频|YouTube|播客)$/iu;
 const NUMBERED_HEADING =
@@ -52,13 +52,17 @@ export function parseSourcePage(repositoryPath, raw, overrides = {}) {
   );
   const episode = extractEpisode(sourceTitle);
   const pageDate = dateObservation.date;
-  const segmentation = segmentNews(
+  const segmentation = applyManualExclusions(
+    segmentNews(
+      repositoryPath,
+      parsed.bodyLines,
+      sourceTitle,
+      parsed.attributes.description,
+      overrides,
+      parsed.attributeLocations,
+    ),
     repositoryPath,
-    parsed.bodyLines,
-    sourceTitle,
-    parsed.attributes.description,
     overrides,
-    parsed.attributeLocations,
   );
   if (!segmentation.sections.length) return null;
 
@@ -670,6 +674,25 @@ function segmentNews(
     0.8,
     [],
   );
+}
+
+function applyManualExclusions(segmentation, repositoryPath, override) {
+  if (!Array.isArray(override?.excludeTitles)) return segmentation;
+  const requested = new Set(override.excludeTitles.map((title) => cleanText(title)));
+  const matched = new Set();
+  const sections = segmentation.sections.filter((section) => {
+    const title = cleanText(section.title);
+    if (!requested.has(title)) return true;
+    matched.add(title);
+    return false;
+  });
+  const missing = [...requested].filter((title) => !matched.has(title));
+  if (missing.length) {
+    throw new Error(
+      `Manual excluded news title not found in ${repositoryPath}: ${missing.join(", ")}`,
+    );
+  }
+  return { ...segmentation, sections };
 }
 
 function markerSegments(lines, markers, sourceTitle) {

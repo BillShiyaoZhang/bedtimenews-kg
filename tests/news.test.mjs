@@ -63,6 +63,47 @@ published: true
   );
 });
 
+test("manual title exclusions remove non-news sections without changing boundaries", () => {
+  const raw = `---
+title: 测试日报
+published: true
+---
+
+## 1、欢迎收看今天的节目
+
+这是节目串场，不是独立新闻，因此应该通过人工审查配置从最终数据集中移除。
+
+## 2、第二条新闻
+
+第二条新闻讨论一项具体事件，包含足够长的事实描述，应该继续保留并维持原有边界。`;
+  const result = parseSourcePage("daily/2026/07/23.md", raw, {
+    excludeTitles: ["欢迎收看今天的节目"],
+  });
+
+  assert.equal(result.news.length, 1);
+  assert.equal(result.news[0].title, "第二条新闻");
+  assert.equal(result.page.segmentation.strategy, "daily_numbered_heading");
+});
+
+test("manual title exclusions fail when a reviewed title disappears", () => {
+  const raw = `---
+title: 测试日报
+published: true
+---
+
+## 1、第一条新闻
+
+第一条新闻的正文。`;
+
+  assert.throws(
+    () =>
+      parseSourcePage("daily/2026/07/23.md", raw, {
+        excludeTitles: ["已经消失的标题"],
+      }),
+    /Manual excluded news title not found/u,
+  );
+});
+
 test("metadata-only reference pages split description sentences with column provenance", () => {
   const raw = `---
 title: 参考信息

@@ -1,6 +1,9 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "pages": {
+    "business/25.md": {
+      "singleNews": true
+    },
     "main/1-100/1.md": {
       "boundaryMarkers": [
         "昨天的消息，银川市紧急修改了4所民办初中的录取规则",
@@ -8,6 +11,73 @@
         "接下来我们看看国际新闻",
         "最后这个新闻，我有点想不通"
       ]
+    },
+    "main/101-200/104.md": {
+      "excludeTitles": [
+        "2020/04/20转发动态： 我正在努力，将来争取配得上公共知识分子的称呼//@学习小白QAQ: 督工，能谈谈所谓公知问题吗"
+      ]
+    },
+    "main/101-200/108.md": {
+      "excludeTitles": [
+        "2020/04/29转发动态： 本期重要关键词“战狼护照”，如果说一套做一套，当初花多少力气吹嘘，将来就有多大的力量反噬"
+      ]
+    },
+    "main/301-400/349.md": {
+      "excludeTitles": [
+        "感谢大家支持我们的节目，感谢大家收看和我头发相关的内容，接下来是近期资讯"
+      ]
+    },
+    "main/901-1000/987.md": {
+      "excludeTitles": [
+        "非常感谢您到现场"
+      ]
+    },
+    "main/1001-1100/1010.md": {
+      "excludeTitles": [
+        "大家好，2026年1月25日星期日，欢迎收看1010期睡前消息"
+      ]
+    },
+    "main/summerbreak.md": {
+      "exclude": true
+    },
+    "reference/101-200/174.md": {
+      "excludeTitles": [
+        "上个周日才是2023年的最后一天，所以，严谨一点的年终盘点从这个周开始发",
+        "给大家准备了好几期，先从老朋友说起吧"
+      ]
+    },
+    "reference/101-200/176.md": {
+      "excludeTitles": [
+        "今天继续回顾2023年大事件",
+        "年度大盘点实在太累，接下来几个主题，下两周陆续发布，明天我们回到参考信息的日常话题"
+      ]
+    },
+    "reference/501-600/566.md": {
+      "excludeTitles": [
+        "今天是蛇年最后一个工作日啦"
+      ]
+    },
+    "reference/501-600/567.md": {
+      "excludeTitles": [
+        "大年初三，送给大家朴素的祝福：马年马上有马逆，不对，是money"
+      ]
+    },
+    "reference/501-600/583.md": {
+      "excludeTitles": [
+        "》，四组案例有三个现在着急要孩子"
+      ]
+    },
+    "shorts/test/1.md": {
+      "exclude": true
+    },
+    "shorts/test/2.md": {
+      "exclude": true
+    },
+    "shorts/test/3.md": {
+      "exclude": true
+    },
+    "shorts/test/4.md": {
+      "exclude": true
     }
   }
 }

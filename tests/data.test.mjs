@@ -27,8 +27,8 @@ test("generated semantic knowledge graph passes schema and reference checks", ()
   assert.ok(kg.entities.length > 1_500);
   assert.equal(kg.schemaVersion, ontology.version);
   assert.equal(kg.source.newsDatasetSchemaVersion, "1.1.0");
-  assert.equal(kg.source.segmentationVersion, "1.2.0");
-  assert.equal(kg.source.extractionVersion, "2.0.0");
+  assert.equal(kg.source.segmentationVersion, "1.3.0");
+  assert.equal(kg.source.extractionVersion, "2.1.0");
 });
 
 test("processed dataset splits multi-news pages before KG extraction", () => {
@@ -113,11 +113,19 @@ test("ontology exposes the homepage search facets", () => {
 });
 
 test("semantic coverage remains above reviewed thresholds", () => {
-  assert.ok(coverageReport.coverage.entityCoveragePercent >= 98);
-  assert.ok(coverageReport.coverage.eventTypeCoveragePercent >= 80);
-  assert.ok(coverageReport.coverage.facetCoverage.place.percent >= 80);
-  assert.ok(coverageReport.coverage.facetCoverage.topic.percent >= 90);
-  assert.ok(coverageReport.coverage.facetCoverage.subject.percent >= 30);
+  const thresholds = [
+    ["entity coverage", coverageReport.coverage.entityCoveragePercent, 100],
+    ["event type coverage", coverageReport.coverage.eventTypeCoveragePercent, 80],
+    ["place facet coverage", coverageReport.coverage.facetCoverage.place.percent, 80],
+    ["topic facet coverage", coverageReport.coverage.facetCoverage.topic.percent, 90],
+    ["subject facet coverage", coverageReport.coverage.facetCoverage.subject.percent, 30],
+  ];
+  for (const [label, actual, minimum] of thresholds) {
+    assert.ok(
+      actual >= minimum,
+      `${label} is ${actual}%, below the reviewed ${minimum}% minimum`,
+    );
+  }
 });
 
 test("every event is traceable to a repository source", () => {

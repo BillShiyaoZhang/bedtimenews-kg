@@ -39,3 +39,17 @@ test("event classification uses reviewed universal categories", () => {
     "public_health",
   );
 });
+
+test("reviewed vocabulary gives long-tail news a semantic entity", () => {
+  for (const title of [
+    "巴菲特再卖比亚迪并继续减持",
+    "C919大型客机获颁生产许可证",
+    "超级大乐透和双色球调整规则",
+    "中国6岁女童接受基因编辑试验后死亡",
+  ]) {
+    assert.ok(
+      extractor.extractCandidates(title, title).length > 0,
+      `expected a semantic entity for: ${title}`,
+    );
+  }
+});
