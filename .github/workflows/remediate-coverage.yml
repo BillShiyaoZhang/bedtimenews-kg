@@ -1,0 +1,285 @@
+name: Remediate semantic coverage
+
+on:
+  issues:
+    types: [opened, labeled, reopened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Open coverage-advisory issue to remediate
+        required: true
+        type: string
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+
+concurrency:
+  group: kg-main-writer
+  cancel-in-progress: false
+
+jobs:
+  remediate:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.issue.labels.*.name, 'coverage-advisory')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main with archive
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Verify advisory issue
+        id: gate
+        uses: actions/github-script@v7
+        env:
+          REQUESTED_ISSUE: ${{ github.event.issue.number || inputs.issue_number }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const issueNumber = Number(process.env.REQUESTED_ISSUE);
+            if (!Number.isSafeInteger(issueNumber) || issueNumber <= 0) {
+              core.setFailed("issue_number must be a positive integer");
+              return;
+            }
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+            });
+            const labels = issue.labels.map((label) =>
+              typeof label === "string" ? label : label.name
+            );
+            const runnable =
+              issue.state === "open" && labels.includes("coverage-advisory");
+            core.setOutput("issue_number", String(issueNumber));
+            core.setOutput("run", String(runnable));
+            if (!runnable) {
+              core.notice(
+                `Issue #${issueNumber} is not an open coverage-advisory; nothing to do.`
+              );
+            }
+
+      - name: Setup Node
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        if: steps.gate.outputs.run == 'true'
+        run: npm ci
+
+      - name: Confirm the advisory still reproduces
+        if: steps.gate.outputs.run == 'true'
+        id: baseline
+        continue-on-error: true
+        run: npm run test:coverage
+
+      - name: Run Codex ontology and KG remediation
+        if: >-
+          steps.gate.outputs.run == 'true' &&
+          steps.baseline.outcome == 'failure'
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          safety-strategy: drop-sudo
+          allow-bots: true
+          prompt-file: .github/codex/prompts/remediate-coverage.md
+          codex-args: '["--ephemeral"]'
+          effort: high
+
+      - name: Reject out-of-scope changes
+        if: >-
+          steps.gate.outputs.run == 'true' &&
+          steps.baseline.outcome == 'failure'
+        shell: bash
+        run: |
+          invalid=false
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              README.md|package.json|package-lock.json|app/*|data/*|docs/*|scripts/*|tests/*)
+                ;;
+              *)
+                echo "::error file=$path::Codex changed a path outside the remediation allowlist."
+                invalid=true
+                ;;
+            esac
+          done < <(git diff --name-only --diff-filter=ACMRTUXB -z)
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              README.md|package.json|package-lock.json|app/*|data/*|docs/*|scripts/*|tests/*)
+                ;;
+              *)
+                echo "::error file=$path::Codex created a path outside the remediation allowlist."
+                invalid=true
+                ;;
+            esac
+          done < <(git ls-files --others --exclude-standard -z)
+          if [[ "$invalid" == "true" ]]; then
+            exit 1
+          fi
+          git diff --check
+
+      - name: Validate remediated ontology and KG
+        if: steps.gate.outputs.run == 'true'
+        run: npm test
+
+      - name: Enforce immutable 100% semantic floor
+        if: steps.gate.outputs.run == 'true'
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const report = JSON.parse(
+            fs.readFileSync("data/review/ontology-candidates.json", "utf8")
+          );
+          const kg = JSON.parse(
+            fs.readFileSync("data/generated/kg.json", "utf8")
+          );
+          const required = report.coverage?.requiredCoverage ?? {};
+          const expectedMetrics = [
+            "semanticEntity",
+            "specificEventType",
+            "sourceTraceability",
+            "searchability",
+          ];
+          for (const name of expectedMetrics) {
+            const metric = required[name];
+            if (
+              !metric ||
+              metric.total <= 0 ||
+              metric.covered !== metric.total ||
+              metric.percent !== 100
+            ) {
+              throw new Error(`${name} is not exactly 100%`);
+            }
+          }
+          if (report.coverage?.eventTypeCounts?.other !== 0) {
+            throw new Error("The coverage report still contains other events");
+          }
+          const entityIds = new Set(kg.entities.map((entity) => entity.id));
+          const sourceIds = new Set(kg.sources.map((source) => source.id));
+          if (kg.events.length !== required.semanticEntity.total) {
+            throw new Error("Coverage total does not equal the published KG");
+          }
+          for (const event of kg.events) {
+            if (event.type === "other") {
+              throw new Error(`${event.id} still uses the other event type`);
+            }
+            if (
+              !event.entityIds?.length ||
+              event.entityIds.some((id) => !entityIds.has(id))
+            ) {
+              throw new Error(`${event.id} lacks a valid semantic entity`);
+            }
+            if (
+              !event.sourceIds?.length ||
+              event.sourceIds.some((id) => !sourceIds.has(id))
+            ) {
+              throw new Error(`${event.id} lacks a valid source`);
+            }
+          }
+          console.log(
+            `Immutable semantic floor passed for ${kg.events.length} events.`
+          );
+          NODE
+
+      - name: Lint remediated repository
+        if: steps.gate.outputs.run == 'true'
+        run: npm run lint
+
+      - name: Commit and push validated remediation to main
+        if: steps.gate.outputs.run == 'true'
+        id: commit
+        env:
+          ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- \
+            README.md \
+            app \
+            data \
+            docs \
+            package.json \
+            package-lock.json \
+            scripts \
+            tests
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "data: remediate semantic coverage (#$ISSUE_NUMBER)"
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy updated GitHub Pages
+        if: >-
+          steps.gate.outputs.run == 'true' &&
+          steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main
+
+      - name: Resolve advisory issue
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/github-script@v7
+        env:
+          ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+          COMMIT_SHA: ${{ steps.commit.outputs.sha }}
+          CHANGED: ${{ steps.commit.outputs.changed }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const shortSha = process.env.COMMIT_SHA.slice(0, 7);
+            const result =
+              process.env.CHANGED === "true"
+                ? `Codex remediated the ontology and KG in ${shortSha}.`
+                : `Coverage already passes on ${shortSha}; no repository change was needed.`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body:
+                `${result}\n\n` +
+                "All required semantic coverage, KG validation, tests, lint, " +
+                "and production builds passed before this advisory was closed.",
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              state: "closed",
+              state_reason: "completed",
+            });
+
+      - name: Report remediation failure
+        if: failure() && steps.gate.outputs.issue_number != ''
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.ISSUE_NUMBER),
+              body:
+                "Automated remediation did not pass every safety or validation " +
+                `gate. The issue remains open for review: ${context.serverUrl}/` +
+                `${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });

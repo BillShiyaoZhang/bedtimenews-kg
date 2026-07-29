@@ -81,9 +81,20 @@ npm run kg:rebuild
 2. 对 processed news 和 KG 运行 append-only 更新；
 3. 校验原文片段哈希、page → news → KG 的一对一投影、ontology 与 100% 必填语义覆盖；
 4. 构建静态站；
-5. 创建或刷新审查 Pull Request。
+5. 将通过完整验证的同步直接提交到 `main`，并显式触发 GitHub Pages 部署。
 
-自动化不会直接写入 `main`，也不会自动执行语义重建。
+语义覆盖失败仍然是 advisory：同步任务会创建或复用带
+`coverage-advisory` 标签的 issue，并显式派发
+`.github/workflows/remediate-coverage.yml`。该任务通过官方 Codex GitHub
+Action 系统审查 ontology、KG、抽取规则和搜索召回；仅允许修改受控的数据、
+应用、脚本、测试和文档路径。只有完整 KG 校验、测试、lint 和两套生产构建
+全部通过后，修复才会直接提交到 `main` 并关闭 issue。失败时 issue 保持打开，
+主分支不变。
+
+自动语义修复需要在仓库 Actions secrets 中配置 `OPENAI_API_KEY`。由
+`GITHUB_TOKEN` 创建 issue 不会再次触发普通 `issues` 事件，因此通知脚本会用
+`workflow_dispatch` 显式启动修复任务；人工创建、重新打开或添加该标签仍会
+通过 `issues` 事件启动相同流程。
 
 ## 目录
 

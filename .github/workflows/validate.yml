@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   validate:
@@ -34,10 +33,4 @@ jobs:
           echo "::warning title=Semantic coverage below threshold::Coverage is advisory and did not block validation. Review the coverage test output above."
           echo "### ⚠️ Semantic coverage is below the reviewed threshold" >> "$GITHUB_STEP_SUMMARY"
           echo "Validation will continue because coverage is an advisory quality signal." >> "$GITHUB_STEP_SUMMARY"
-      - name: Notify repository owner through GitHub
-        if: steps.coverage.outcome == 'failure'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: bash scripts/notify-coverage.sh
       - run: npm run build:pages
