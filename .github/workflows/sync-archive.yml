@@ -10,6 +10,7 @@ on:
 permissions:
   actions: write
   contents: write
+  issues: write
 
 concurrency:
   group: archive-sync
@@ -20,13 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout with archive
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
           submodules: recursive
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -45,7 +46,26 @@ jobs:
       - name: Validate ontology and generated knowledge graph
         run: |
           npm run kg:validate
-          node --test tests/*.test.mjs
+          npm run test:required
+
+      - name: Check semantic coverage (advisory)
+        id: coverage
+        continue-on-error: true
+        run: npm run test:coverage
+
+      - name: Report semantic coverage warning
+        if: steps.coverage.outcome == 'failure'
+        run: |
+          echo "::warning title=Semantic coverage below threshold::Coverage is advisory and did not block the archive sync. Review the coverage test output above."
+          echo "### ⚠️ Semantic coverage is below the reviewed threshold" >> "$GITHUB_STEP_SUMMARY"
+          echo "The archive sync will continue because coverage is an advisory quality signal." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify repository owner through GitHub
+        if: steps.coverage.outcome == 'failure'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/notify-coverage.sh
 
       - name: Build GitHub Pages artifact
         run: npm run build:pages

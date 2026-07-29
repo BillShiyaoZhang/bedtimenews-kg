@@ -7,19 +7,37 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run kg:validate
-      - run: node --test tests/*.test.mjs
+      - name: Run required tests
+        run: npm run test:required
+      - name: Check semantic coverage (advisory)
+        id: coverage
+        continue-on-error: true
+        run: npm run test:coverage
+      - name: Report semantic coverage warning
+        if: steps.coverage.outcome == 'failure'
+        run: |
+          echo "::warning title=Semantic coverage below threshold::Coverage is advisory and did not block validation. Review the coverage test output above."
+          echo "### ⚠️ Semantic coverage is below the reviewed threshold" >> "$GITHUB_STEP_SUMMARY"
+          echo "Validation will continue because coverage is an advisory quality signal." >> "$GITHUB_STEP_SUMMARY"
+      - name: Notify repository owner through GitHub
+        if: steps.coverage.outcome == 'failure'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/notify-coverage.sh
       - run: npm run build:pages
