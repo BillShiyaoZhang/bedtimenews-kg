@@ -67,7 +67,30 @@ export default function OntologyPage() {
       matched: knowledgeBase.events.filter((event) => event.type !== "other")
         .length,
     },
-    ...Object.entries(FACET_ENTITY_TYPES).map(([id, types]) => ({
+    {
+      id: "source",
+      label: "来源追溯",
+      description: "事件精确引用一个仍存在的原始页面",
+      matched: knowledgeBase.events.filter(
+        (event) =>
+          event.sourceIds.length === 1 &&
+          knowledgeBase.sources.some(
+            (source) => source.id === event.sourceIds[0],
+          ),
+      ).length,
+    },
+    {
+      id: "search",
+      label: "可检索",
+      description: "新闻具有标题、摘要或语义实体可进入检索索引",
+      matched: knowledgeBase.events.filter(
+        (event) =>
+          event.title.trim() || event.summary.trim() || event.entityIds.length,
+      ).length,
+    },
+  ];
+  const facetPresence = Object.entries(FACET_ENTITY_TYPES).map(
+    ([id, types]) => ({
       id,
       label: ontology.facets.find((facet) => facet.id === id)?.label ?? id,
       description:
@@ -79,8 +102,8 @@ export default function OntologyPage() {
           ),
         ),
       ).length,
-    })),
-  ];
+    }),
+  );
 
   return (
     <main className="ontology-page">
@@ -138,7 +161,7 @@ export default function OntologyPage() {
           </div>
           <p>
             以 {knowledgeBase.events.length.toLocaleString("zh-CN")}{" "}
-            条独立新闻为分母，由当前抽取规则确定性计算。
+            条独立新闻为分母；必填语义、类型、来源与检索字段均必须完整。
           </p>
         </div>
         <div className="coverage-grid">
@@ -154,6 +177,50 @@ export default function OntologyPage() {
                   className="coverage-bar"
                   role="meter"
                   aria-label={`${item.label}覆盖率`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Number(value.toFixed(2))}
+                >
+                  <i
+                    style={
+                      { "--coverage": `${value}%` } as CSSProperties
+                    }
+                  />
+                </div>
+                <p>
+                  {item.matched.toLocaleString("zh-CN")} /{" "}
+                  {knowledgeBase.events.length.toLocaleString("zh-CN")} ·{" "}
+                  {item.description}
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="ontology-section coverage-section">
+        <div className="ontology-section-heading">
+          <div>
+            <span className="eyebrow">Facet presence</span>
+            <h2>可选维度出现率</h2>
+          </div>
+          <p>
+            Facet 只在原文具有相应语义时出现；这里描述数据分布，不把“不适用”误报为覆盖缺口。
+          </p>
+        </div>
+        <div className="coverage-grid">
+          {facetPresence.map((item) => {
+            const value = percentage(item.matched, knowledgeBase.events.length);
+            return (
+              <article key={item.id}>
+                <div>
+                  <strong>{item.label}</strong>
+                  <span>{value.toFixed(2)}%</span>
+                </div>
+                <div
+                  className="coverage-bar"
+                  role="meter"
+                  aria-label={`${item.label}出现率`}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={Number(value.toFixed(2))}

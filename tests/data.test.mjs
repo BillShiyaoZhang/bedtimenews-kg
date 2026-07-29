@@ -28,7 +28,7 @@ test("generated semantic knowledge graph passes schema and reference checks", ()
   assert.equal(kg.schemaVersion, ontology.version);
   assert.equal(kg.source.newsDatasetSchemaVersion, "1.1.0");
   assert.equal(kg.source.segmentationVersion, "1.3.0");
-  assert.equal(kg.source.extractionVersion, "2.1.0");
+  assert.equal(kg.source.extractionVersion, "3.0.0");
 });
 
 test("processed dataset splits multi-news pages before KG extraction", () => {
@@ -110,21 +110,39 @@ test("ontology exposes the homepage search facets", () => {
     "organization",
   ]);
   assert.deepEqual(facets.get("place").entityTypes, ["place"]);
+  const roles = new Map(
+    ontology.eventEntityRoles.map((role) => [role.id, role]),
+  );
+  for (const [id, facet] of facets) {
+    if (!facet.entityTypes) continue;
+    assert.deepEqual(
+      roles.get(id)?.entityTypes,
+      facet.entityTypes,
+      `${id} facet and semantic role diverged`,
+    );
+  }
 });
 
-test("semantic coverage remains above reviewed thresholds", () => {
-  const thresholds = [
-    ["entity coverage", coverageReport.coverage.entityCoveragePercent, 100],
-    ["event type coverage", coverageReport.coverage.eventTypeCoveragePercent, 80],
-    ["place facet coverage", coverageReport.coverage.facetCoverage.place.percent, 80],
-    ["topic facet coverage", coverageReport.coverage.facetCoverage.topic.percent, 90],
-    ["subject facet coverage", coverageReport.coverage.facetCoverage.subject.percent, 30],
-  ];
-  for (const [label, actual, minimum] of thresholds) {
-    assert.ok(
-      actual >= minimum,
-      `${label} is ${actual}%, below the reviewed ${minimum}% minimum`,
-    );
+test("required semantic coverage is 100%", () => {
+  for (const [label, metric] of Object.entries(
+    coverageReport.coverage.requiredCoverage,
+  )) {
+    assert.equal(metric.percent, 100, `${label} coverage is ${metric.percent}%`);
+    assert.equal(metric.covered, metric.total, `${label} has uncovered news`);
+  }
+  assert.equal(coverageReport.coverage.entityCoveragePercent, 100);
+  assert.equal(coverageReport.coverage.eventTypeCoveragePercent, 100);
+  assert.equal(coverageReport.coverage.eventTypeCounts.other, 0);
+  assert.equal(coverageReport.currentIncrement.newNewsWithoutKnownEntities, 0);
+  assert.equal(coverageReport.currentIncrement.otherTypeNews, 0);
+});
+
+test("facet presence is observational rather than a completeness requirement", () => {
+  for (const [id, metric] of Object.entries(
+    coverageReport.coverage.facetPresence,
+  )) {
+    assert.ok(metric.news > 0, `${id} facet is unused`);
+    assert.ok(metric.percent > 0 && metric.percent <= 100);
   }
 });
 
@@ -164,6 +182,42 @@ test("ontology relation types document their domain and range", () => {
     assert.ok(relation.from.length > 0);
     assert.ok(relation.to.length > 0);
     assert.equal(typeof relation.directed, "boolean");
+  }
+});
+
+test("published KG excludes reviewed false-positive entity labels", () => {
+  const forbidden = new Set([
+    "采访",
+    "大选",
+    "调查",
+    "会见",
+    "近日",
+    "首次",
+    "最近",
+    "这条铁路",
+    "代表政府",
+    "省级政府",
+    "时间银行",
+  ]);
+  assert.deepEqual(
+    kg.entities.filter((entity) => forbidden.has(entity.label)),
+    [],
+  );
+});
+
+test("entity event counts equal final KG references", () => {
+  const counts = new Map(kg.entities.map((entity) => [entity.id, 0]));
+  for (const event of kg.events) {
+    for (const id of event.entityIds) {
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+  }
+  for (const entity of kg.entities) {
+    assert.equal(
+      entity.extraction.eventCount,
+      counts.get(entity.id),
+      `${entity.label} has a stale eventCount`,
+    );
   }
 });
 

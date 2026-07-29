@@ -10,52 +10,24 @@
   "upstreamCommit": "4aebed82016e9439e862d427781aebf248abb27a",
   "observedAt": "2026-07-28T08:54:01Z",
   "bootstrap": false,
-  "semanticRebuild": false,
-  "extractionVersion": "2.1.0",
+  "semanticRebuild": true,
+  "extractionVersion": "3.0.0",
   "segmentationVersion": "1.3.0",
   "newsOverrideVersion": "1.1.0",
   "summary": {
-    "ingestedFiles": 1,
-    "appendedPages": 1,
-    "appendedNews": 6,
-    "appendedEntities": 0,
-    "appendedRelations": 1,
-    "modifiedFilesAwaitingReview": 5,
+    "ingestedFiles": 2083,
+    "appendedPages": 2053,
+    "appendedNews": 9492,
+    "appendedEntities": 1754,
+    "appendedRelations": 7920,
+    "modifiedFilesAwaitingReview": 0,
     "deletedFilesAwaitingReview": 0,
     "possibleRenamesAwaitingReview": 0,
     "duplicateAdditionsAwaitingReview": 0
   },
-  "ingestedPaths": [
-    "reference/601-700/629.md"
-  ],
+  "ingestedPaths": [],
   "pendingReview": {
-    "modified": [
-      {
-        "path": "reference/501-600/565.md",
-        "acceptedHash": "6eb2eb40f8e8a3b84778d7d48a4da74e7869cbe0de2b18b46b65b0a17125e911",
-        "currentHash": "00aec8605aa29c3bb1329dc46b3ed202c94fd67ccdbd84d6e83ef52a0fef9e66"
-      },
-      {
-        "path": "reference/501-600/573.md",
-        "acceptedHash": "94270262a4aa8c4a25ed61d8761a58fce330bf25c925b888c7b3f1e9124be104",
-        "currentHash": "cce9739698d47dec239d1abc508139f2c89806f5541d3446e0e0697020349d63"
-      },
-      {
-        "path": "reference/501-600/582.md",
-        "acceptedHash": "ec2ec6c291f184efc823b3375cce0fc2e4a59891f9724a1ba2be75a9f3369348",
-        "currentHash": "2814ec36dd77db2b02b8cb05ea4746d1a6cc71c456a56cd2cf833286addc53c8"
-      },
-      {
-        "path": "reference/601-700.md",
-        "acceptedHash": "8b1aa43eaa529c7fa8057dce99cdbb0a133ad592cae6801a79ae64552e995d1e",
-        "currentHash": "3be8733c6e34c5e753b3ba77632ee577af7b4dfc15f39aa141121d9df4daad5b"
-      },
-      {
-        "path": "reference/601-700/627.md",
-        "acceptedHash": "b86db0da2c14e765cdf3590343aa5ecb5bdbcf39c5871e855fc22a1d71abcaf9",
-        "currentHash": "b8a5d2559c55b07b5e63b90b6ff0daa50ad3624562c1f3638c15b620a1a0392c"
-      }
-    ],
+    "modified": [],
     "deleted": [],
     "possibleRenames": [],
     "duplicateAdditions": []

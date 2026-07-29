@@ -24,6 +24,13 @@ export type Facet = {
   eventTypes?: string[];
 };
 
+export type EventEntityRole = {
+  id: string;
+  label: string;
+  description: string;
+  entityTypes: string[];
+};
+
 export type Ontology = {
   version: string;
   label: string;
@@ -34,6 +41,11 @@ export type Ontology = {
     description: string;
   };
   facets: Facet[];
+  eventEntityConstraint: {
+    minimumEntities: number;
+    description: string;
+  };
+  eventEntityRoles: EventEntityRole[];
   entityTypes: EntityType[];
   eventTypes: EventType[];
   relationTypes: RelationType[];
@@ -152,6 +164,8 @@ export function validateOntology(ontology: Ontology): ValidationIssue[] {
     });
   }
   const groups = [
+    ["facets", ontology.facets],
+    ["eventEntityRoles", ontology.eventEntityRoles],
     ["entityTypes", ontology.entityTypes],
     ["eventTypes", ontology.eventTypes],
     ["relationTypes", ontology.relationTypes],
@@ -221,6 +235,76 @@ export function validateOntology(ontology: Ontology): ValidationIssue[] {
     }
   });
 
+  const entityTypeIds = new Set(ontology.entityTypes.map((type) => type.id));
+  const validRelationNodeTypes = new Set(["event", ...entityTypeIds]);
+  const rolesById = new Map(
+    ontology.eventEntityRoles.map((role) => [role.id, role]),
+  );
+  if (ontology.eventEntityConstraint?.minimumEntities !== 1) {
+    issues.push({
+      level: "error",
+      path: "eventEntityConstraint.minimumEntities",
+      message: "每条事件必须至少关联一个语义实体",
+    });
+  }
+  ontology.facets.forEach((facet, index) => {
+    for (const type of facet.entityTypes ?? []) {
+      if (!entityTypeIds.has(type)) {
+        issues.push({
+          level: "error",
+          path: `facets.${index}.entityTypes`,
+          message: `Facet 引用了未知实体类型：${type}`,
+        });
+      }
+    }
+    if (facet.entityTypes) {
+      const role = rolesById.get(facet.id);
+      if (
+        !role ||
+        JSON.stringify(role.entityTypes) !== JSON.stringify(facet.entityTypes)
+      ) {
+        issues.push({
+          level: "error",
+          path: `facets.${index}`,
+          message: "实体 Facet 必须具有类型完全一致的事件语义角色",
+        });
+      }
+    }
+  });
+  const roleMembership = new Map<string, number>();
+  ontology.eventEntityRoles.forEach((role, index) => {
+    for (const type of role.entityTypes) {
+      if (!entityTypeIds.has(type)) {
+        issues.push({
+          level: "error",
+          path: `eventEntityRoles.${index}.entityTypes`,
+          message: `语义角色引用了未知实体类型：${type}`,
+        });
+      }
+      roleMembership.set(type, (roleMembership.get(type) ?? 0) + 1);
+    }
+  });
+  for (const type of entityTypeIds) {
+    if (roleMembership.get(type) !== 1) {
+      issues.push({
+        level: "error",
+        path: "eventEntityRoles",
+        message: `实体类型 ${type} 必须恰好属于一个事件语义角色`,
+      });
+    }
+  }
+  ontology.relationTypes.forEach((relation, index) => {
+    for (const type of [...relation.from, ...relation.to]) {
+      if (!validRelationNodeTypes.has(type)) {
+        issues.push({
+          level: "error",
+          path: `relationTypes.${index}`,
+          message: `关系引用了未知端点类型：${type}`,
+        });
+      }
+    }
+  });
+
   return issues;
 }
 
@@ -237,6 +321,9 @@ export function validateKnowledgeBase(
   const eventTypeIds = new Set(ontology.eventTypes.map((type) => type.id));
   const relationTypes = new Map(
     ontology.relationTypes.map((type) => [type.id, type]),
+  );
+  const entityTypeById = new Map(
+    kg.entities.map((entity) => [entity.id, entity.type]),
   );
 
   kg.entities.forEach((entity, index) => {
@@ -301,6 +388,13 @@ export function validateKnowledgeBase(
         message: `日期不是 YYYY-MM-DD：${event.date}`,
       });
     }
+    if (event.entityIds.length < ontology.eventEntityConstraint.minimumEntities) {
+      issues.push({
+        level: "error",
+        path: `events.${index}.entityIds`,
+        message: "事件未满足最小语义实体约束",
+      });
+    }
     event.entityIds.forEach((id) => {
       if (!entityIds.has(id) && !kg.entities.some((entity) => entity.id === id)) {
         issues.push({
@@ -363,6 +457,28 @@ export function validateKnowledgeBase(
         path: `${collection}.${index}.sourceId`,
         message: `关系来源不存在：${relation.sourceId}`,
       });
+    }
+    if (definition) {
+      const fromType =
+        collection === "eventRelations"
+          ? "event"
+          : entityTypeById.get(relation.from);
+      const toType =
+        collection === "eventRelations"
+          ? "event"
+          : entityTypeById.get(relation.to);
+      if (
+        !fromType ||
+        !toType ||
+        !definition.from.includes(fromType) ||
+        !definition.to.includes(toType)
+      ) {
+        issues.push({
+          level: "error",
+          path: `${collection}.${index}`,
+          message: "关系实例不满足 ontology 声明的 domain/range",
+        });
+      }
     }
   };
 

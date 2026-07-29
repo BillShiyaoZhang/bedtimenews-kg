@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { basename } from "node:path";
+import { readFile } from "node:fs/promises";
+import { basename, resolve } from "node:path";
 
 export const NEWS_DATASET_SCHEMA_VERSION = "1.1.0";
 export const SEGMENTATION_VERSION = "1.3.0";
@@ -470,6 +471,54 @@ export function validateKnowledgeBaseNewsProjection(kg, dataset) {
         issue(
           `sources.${source.id}`,
           `does not match processed page ${page.id}`,
+        ),
+      );
+    }
+  }
+  return issues;
+}
+
+export async function validateNewsFragments(dataset, sourceRoot) {
+  const issues = [];
+  const pagesById = new Map(
+    (dataset.pages ?? []).map((page) => [page.id, page]),
+  );
+  const rawByPageId = new Map();
+  for (const [index, page] of (dataset.pages ?? []).entries()) {
+    try {
+      const raw = await readFile(
+        resolve(sourceRoot, page.repositoryPath),
+        "utf8",
+      );
+      rawByPageId.set(page.id, raw);
+      if (sha256(raw) !== page.contentHash) {
+        issues.push(
+          issue(
+            `pages.${index}.contentHash`,
+            `source content changed for ${page.repositoryPath}`,
+          ),
+        );
+      }
+    } catch (error) {
+      issues.push(
+        issue(
+          `pages.${index}.repositoryPath`,
+          `cannot read ${page.repositoryPath}: ${error.message}`,
+        ),
+      );
+    }
+  }
+  for (const [index, item] of (dataset.news ?? []).entries()) {
+    const page = pagesById.get(item.pageId);
+    const raw = rawByPageId.get(item.pageId);
+    if (!page || raw === undefined) continue;
+    try {
+      readNewsFragment(raw, item.fragment);
+    } catch (error) {
+      issues.push(
+        issue(
+          `news.${index}.fragment`,
+          `${page.repositoryPath}: ${error.message}`,
         ),
       );
     }

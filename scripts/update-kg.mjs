@@ -415,7 +415,7 @@ function buildOntologyReport(kg, newEvents, commit, timestamp) {
     (event) => !event.entityIds?.length,
   );
   const otherEvents = newEvents.filter((event) => event.type === "other");
-  const facetCoverage = Object.fromEntries(
+  const facetPresence = Object.fromEntries(
     ontology.facets
       .filter((facet) => facet.entityTypes)
       .map((facet) => {
@@ -433,7 +433,7 @@ function buildOntologyReport(kg, newEvents, commit, timestamp) {
       }),
   );
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     upstreamCommit: commit,
     observedAt: timestamp,
     ontologyVersion: ontology.version,
@@ -466,7 +466,34 @@ function buildOntologyReport(kg, newEvents, commit, timestamp) {
           ) / (kg.events.length || 1)
         ).toFixed(2),
       ),
-      facetCoverage,
+      requiredCoverage: {
+        semanticEntity: coverageMetric(
+          kg.events.length - eventsWithoutKnownEntities.length,
+          kg.events.length,
+        ),
+        specificEventType: coverageMetric(
+          kg.events.length - eventTypeCounts.other,
+          kg.events.length,
+        ),
+        sourceTraceability: coverageMetric(
+          kg.events.filter(
+            (event) =>
+              event.sourceIds.length === 1 &&
+              kg.sources.some((source) => source.id === event.sourceIds[0]),
+          ).length,
+          kg.events.length,
+        ),
+        searchability: coverageMetric(
+          kg.events.filter(
+            (event) =>
+              event.title?.trim() ||
+              event.summary?.trim() ||
+              event.entityIds.length,
+          ).length,
+          kg.events.length,
+        ),
+      },
+      facetPresence,
       entityTypeCounts,
       eventTypeCounts,
     },
@@ -583,6 +610,14 @@ function sortObject(value) {
 
 function percentage(numerator, denominator) {
   return denominator ? Number(((numerator / denominator) * 100).toFixed(2)) : 0;
+}
+
+function coverageMetric(covered, total) {
+  return {
+    covered,
+    total,
+    percent: percentage(covered, total),
+  };
 }
 
 function printSummary(verb, report, kg) {

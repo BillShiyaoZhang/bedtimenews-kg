@@ -16,8 +16,8 @@
     "kg:rebuild": "node scripts/update-kg.mjs --rebuild",
     "kg:update": "node scripts/update-kg.mjs",
     "kg:validate": "node scripts/validate-kg.mjs",
-    "test:required": "node --test --test-skip-pattern='^semantic coverage remains above reviewed thresholds$' tests/*.test.mjs",
-    "test:coverage": "node --test --test-name-pattern='^semantic coverage remains above reviewed thresholds$' tests/data.test.mjs",
+    "test:required": "node --test --test-skip-pattern='^required semantic coverage is 100%$' tests/*.test.mjs",
+    "test:coverage": "node --test --test-name-pattern='^required semantic coverage is 100%$' tests/data.test.mjs",
     "test": "npm run kg:validate && node --test tests/*.test.mjs && npm run build && npm run build:pages",
     "test:pages": "npm run build:pages && node --test tests/data.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"

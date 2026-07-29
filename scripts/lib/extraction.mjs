@@ -59,6 +59,50 @@ const GENERIC_LABELS = new Set([
   "中国国家铁路",
   "中国铁路",
   "重载铁路",
+  "此基础上授权基层政府",
+  "代表政府",
+  "国际非政府",
+  "近年来政府",
+  "审议国务院关于政府",
+  "省级政府",
+  "团队去了瑞金医院",
+  "未得到政府",
+  "我国政府",
+  "一些大学",
+  "县人民医院",
+  "上市银行",
+  "控股集团",
+  "数据中心",
+  "研发中心",
+  "月子中心",
+  "执行法院",
+  "农村委员会",
+  "发展委员会",
+  "顾问委员会",
+  "联合政府",
+  "联邦政府",
+  "方舱医院",
+  "疾控中心",
+  "标准轨铁路",
+  "广州撞大桥",
+  "上游水电站",
+  "这条铁路",
+  "中远海运港口",
+  "阿临时政府",
+  "野党共同民主党",
+  "中国作协会",
+  "中美商务部",
+  "湖北全省各大医院",
+  "美国大学",
+  "市大数据中心",
+  "宪法法院",
+  "最高法院",
+  "自治区政府",
+  "中央政府",
+  "特区政府",
+  "美国法院",
+  "国内首所空天信息大学",
+  "时间银行",
 ]);
 
 const PERSON_STOP_LABELS = new Set([
@@ -112,6 +156,23 @@ const PERSON_STOP_LABELS = new Set([
   "级会议",
   "日前",
   "提出",
+  "采访",
+  "大选",
+  "调查",
+  "国务委员",
+  "会见",
+  "级官员",
+  "近日",
+  "跨栏进北大",
+  "区长",
+  "上月初",
+  "时期",
+  "首次",
+  "受审",
+  "投诉",
+  "团队",
+  "性骚扰",
+  "最近",
 ]);
 
 const TOPIC_EVENT_TYPES = {
@@ -254,6 +315,12 @@ export function createExtractionEngine(rules) {
     "gu",
   );
   const knownPlaceNames = new Set(placeAliases);
+  const organizationAliases = new Map();
+  for (const organization of rules.organizationAliases ?? []) {
+    for (const alias of [organization.label, ...(organization.aliases ?? [])]) {
+      organizationAliases.set(alias, organization);
+    }
+  }
 
   const organizationSuffixPattern = alternativesPattern(
     rules.organizationSuffixes,
@@ -334,13 +401,22 @@ export function createExtractionEngine(rules) {
 
     organizationPattern.lastIndex = 0;
     for (const match of normalizedNamedText.matchAll(organizationPattern)) {
-      const label = cleanNamedLabel(match[1], 24);
-      if (!isUsefulOrganizationLabel(label, rules.organizationSuffixes)) continue;
+      const extractedLabel = cleanNamedLabel(match[1], 24);
+      if (
+        !isUsefulOrganizationLabel(
+          extractedLabel,
+          rules.organizationSuffixes,
+        )
+      ) {
+        continue;
+      }
+      const canonical = organizationAliases.get(extractedLabel);
+      const label = canonical?.label ?? extractedLabel;
       add({
         key: entityKey("organization", label),
         type: "organization",
         label,
-        aliases: [],
+        aliases: canonical?.aliases ?? [],
         method: "organization_suffix",
         confidence: 0.84,
       });
@@ -363,7 +439,7 @@ export function createExtractionEngine(rules) {
     policyPattern.lastIndex = 0;
     for (const match of normalizedText.matchAll(policyPattern)) {
       const label = `《${normalizeText(match[1])}》`;
-      if (label.length > 52) continue;
+      if (!isUsefulBracketedTitle(label)) continue;
       add({
         key: entityKey("policy", label),
         type: "policy",
@@ -377,7 +453,7 @@ export function createExtractionEngine(rules) {
     documentPattern.lastIndex = 0;
     for (const match of normalizedText.matchAll(documentPattern)) {
       const label = `《${normalizeText(match[1])}》`;
-      if (label.length > 52) continue;
+      if (!isUsefulBracketedTitle(label)) continue;
       add({
         key: entityKey("document", label),
         type: "document",
@@ -425,13 +501,20 @@ export function createExtractionEngine(rules) {
     return [...candidates.values()];
   }
 
-  function classifyEvent(text) {
+  function classifyEvent(text, contextText = "") {
+    const primaryType = classifyEventText(text);
+    if (primaryType !== "other" || !contextText) return primaryType;
+    return classifyEventText(contextText);
+  }
+
+  function classifyEventText(text) {
     const normalized = normalizeText(text);
     const scores = rules.eventClassification.map((definition, index) => ({
       id: definition.id,
       index,
       score: definition.keywords.reduce(
-        (total, keyword) => total + countOccurrences(normalized, keyword),
+        (total, keyword) =>
+          total + countOccurrences(normalized, keyword) * keyword.length,
         0,
       ),
     }));
@@ -588,6 +671,14 @@ function isUsefulNamedLabel(label) {
     !/(?:表示|宣布|认为|指出|接受|负责|成为|已经|目前|希望|可能|应该)/u.test(
       label,
     )
+  );
+}
+
+function isUsefulBracketedTitle(label) {
+  return (
+    label.length <= 52 &&
+    !/[[\]#<>]|(?:^|[^a-z])https?:\/\//iu.test(label) &&
+    !/\s{2,}/u.test(label)
   );
 }
 

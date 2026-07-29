@@ -6711,66 +6711,6 @@
       ]
     },
     {
-      "pageId": "page-5bb89782b40c",
-      "repositoryPath": "reference/601-700/623.md",
-      "title": "【参考信息623】消费十五五规划；经济运行淤堵点",
-      "newsCount": 5,
-      "strategy": "reference_description_sentence",
-      "reasons": [
-        "metadata_only_news_segmentation"
-      ]
-    },
-    {
-      "pageId": "page-2945777976b9",
-      "repositoryPath": "reference/601-700/624.md",
-      "title": "【参考信息624】纠治统计造假；法院说公安趋利执法",
-      "newsCount": 6,
-      "strategy": "reference_description_sentence",
-      "reasons": [
-        "metadata_only_news_segmentation"
-      ]
-    },
-    {
-      "pageId": "page-3264a97caad4",
-      "repositoryPath": "reference/601-700/625.md",
-      "title": "【参考信息625】摊派压垮网格员；“预告”官员落马",
-      "newsCount": 5,
-      "strategy": "reference_description_sentence",
-      "reasons": [
-        "metadata_only_news_segmentation"
-      ]
-    },
-    {
-      "pageId": "page-d9fee3fc710b",
-      "repositoryPath": "reference/601-700/626.md",
-      "title": "【参考信息626】锂电池恢复消费税；中考消失在路上",
-      "newsCount": 6,
-      "strategy": "reference_description_sentence",
-      "reasons": [
-        "metadata_only_news_segmentation"
-      ]
-    },
-    {
-      "pageId": "page-b56f03bb5121",
-      "repositoryPath": "reference/601-700/627.md",
-      "title": "【参考信息627】深圳地铁升级安检；永州水稻种在纸上",
-      "newsCount": 5,
-      "strategy": "reference_description_sentence",
-      "reasons": [
-        "metadata_only_news_segmentation"
-      ]
-    },
-    {
-      "pageId": "page-5032b270e643",
-      "repositoryPath": "reference/601-700/628.md",
-      "title": "【参考信息628】珠宝大王当庭举报；基因编辑死亡事故",
-      "newsCount": 7,
-      "strategy": "reference_description_sentence",
-      "reasons": [
-        "metadata_only_news_segmentation"
-      ]
-    },
-    {
       "pageId": "page-011d50e1d1f4",
       "repositoryPath": "reference/501-600/585.md",
       "title": "【参考信息585】给“地偶”应援；同事被炼化",
@@ -7155,6 +7095,66 @@
       "repositoryPath": "reference/601-700/622.md",
       "title": "【参考信息622】大学生献血减半；中融信托破产",
       "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-5bb89782b40c",
+      "repositoryPath": "reference/601-700/623.md",
+      "title": "【参考信息623】消费十五五规划；经济运行淤堵点",
+      "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-2945777976b9",
+      "repositoryPath": "reference/601-700/624.md",
+      "title": "【参考信息624】纠治统计造假；法院说公安趋利执法",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-3264a97caad4",
+      "repositoryPath": "reference/601-700/625.md",
+      "title": "【参考信息625】摊派压垮网格员；“预告”官员落马",
+      "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-d9fee3fc710b",
+      "repositoryPath": "reference/601-700/626.md",
+      "title": "【参考信息626】锂电池恢复消费税；中考消失在路上",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-b56f03bb5121",
+      "repositoryPath": "reference/601-700/627.md",
+      "title": "【参考信息627】深圳地铁升级安检；永州水稻种在纸上",
+      "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-5032b270e643",
+      "repositoryPath": "reference/601-700/628.md",
+      "title": "【参考信息628】珠宝大王当庭举报；基因编辑死亡事故",
+      "newsCount": 7,
       "strategy": "reference_description_sentence",
       "reasons": [
         "metadata_only_news_segmentation"

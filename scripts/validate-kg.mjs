@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   validateKnowledgeBaseNewsProjection,
+  validateNewsFragments,
   validateNewsDataset,
 } from "./lib/news.mjs";
 import { validate } from "./lib/validate.mjs";
@@ -13,6 +14,10 @@ const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const kgPath = resolve(root, process.argv[2] ?? "data/generated/kg.json");
 const ontologyPath = resolve(root, process.argv[3] ?? "data/ontology.json");
 const newsPath = resolve(root, process.argv[4] ?? "data/processed/news.json");
+const sourceRoot = resolve(
+  root,
+  process.argv[5] ?? "sources/bedtimenews-archive-contents",
+);
 const [kg, ontology, newsDataset] = await Promise.all([
   readJson(kgPath),
   readJson(ontologyPath),
@@ -22,6 +27,7 @@ const issues = [
   ...validateNewsDataset(newsDataset),
   ...validate(kg, ontology),
   ...validateKnowledgeBaseNewsProjection(kg, newsDataset),
+  ...(await validateNewsFragments(newsDataset, sourceRoot)),
 ];
 
 if (issues.length) {
@@ -34,7 +40,8 @@ if (issues.length) {
   console.log(
     `KG valid: ${kg.entities.length} entities, ${kg.events.length} events, ` +
       `${kg.eventRelations.length + kg.entityRelations.length} relations, ` +
-      `${kg.sources.length} referenced pages; every event projects exactly one processed news item.`,
+      `${kg.sources.length} referenced pages; every event projects exactly one processed news item ` +
+      "and every source fragment matches the archive.",
   );
 }
 

@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "label": "睡前消息新闻知识本体",
   "description": "以独立新闻而非原始页面为基本单位，描述主要事件类型、参与主体、地点、命名对象、主题与时间关系。",
   "recordUnit": {
@@ -36,6 +36,36 @@
       "id": "named_object",
       "label": "对象",
       "description": "事件涉及的设施、政策文件与命名报告",
+      "entityTypes": ["facility", "policy", "document"]
+    }
+  ],
+  "eventEntityConstraint": {
+    "minimumEntities": 1,
+    "description": "每条事件至少通过一个语义角色关联一个实体；并非要求每个可选 facet 都必须出现。"
+  },
+  "eventEntityRoles": [
+    {
+      "id": "subject",
+      "label": "主体",
+      "description": "参与事件、受事件影响或作为报道核心的人物与组织。",
+      "entityTypes": ["person", "organization"]
+    },
+    {
+      "id": "place",
+      "label": "地点",
+      "description": "事件明确涉及的国家、地区、城市或其他地理区域。",
+      "entityTypes": ["place"]
+    },
+    {
+      "id": "topic",
+      "label": "主题",
+      "description": "用于跨时期聚合事件的受控议题。",
+      "entityTypes": ["topic"]
+    },
+    {
+      "id": "named_object",
+      "label": "命名对象",
+      "description": "事件明确涉及的设施、政策文件、报告或文献。",
       "entityTypes": ["facility", "policy", "document"]
     }
   ],

@@ -9,6 +9,14 @@ import {
   type KnowledgeBase,
   type Ontology,
 } from "../lib/kg";
+import {
+  createEntitySearchDocument,
+  createEventSearchDocument,
+  matchesSearchDocument,
+  parseSearchQuery,
+  rankEntitySearchDocument,
+  rankEventSearchDocument,
+} from "../lib/search.mjs";
 
 type SearchMode = "keyword" | "filters";
 type Filters = {
@@ -105,27 +113,34 @@ export function KGExplorer({
         const entities = event.entityIds
           .map((id) => entityById.get(id))
           .filter(Boolean) as Entity[];
-        const sources = event.sourceIds
-          .map((id) => sourceById.get(id))
-          .filter(Boolean);
-        return {
+        const source = sourceById.get(event.sourceIds[0]);
+        return createEventSearchDocument({
           event,
-          text: [
-            event.title,
-            event.summary,
-            event.significance,
-            ...entities.flatMap((entity) => [
-              entity.label,
-              ...entity.aliases,
-              entity.description,
-            ]),
-            ...sources.map((source) => source?.title ?? ""),
-          ]
-            .join(" ")
-            .toLocaleLowerCase("zh-CN"),
-        };
+          entities,
+          source,
+          eventType: eventTypeById.get(event.type),
+          entityTypes: entities
+            .map((entity) => entityTypeById.get(entity.type))
+            .filter(Boolean),
+        });
       }),
-    [entityById, initialKG.events, sourceById],
+    [
+      entityById,
+      entityTypeById,
+      eventTypeById,
+      initialKG.events,
+      sourceById,
+    ],
+  );
+  const searchableEntities = useMemo(
+    () =>
+      initialKG.entities.map((entity) =>
+        createEntitySearchDocument(
+          entity,
+          entityTypeById.get(entity.type),
+        ),
+      ),
+    [entityTypeById, initialKG.entities],
   );
 
   const result = useMemo(() => {
@@ -140,24 +155,21 @@ export function KGExplorer({
     let matching = searchableEvents;
     let matchingEntities: Entity[] = [];
     if (search.mode === "keyword") {
-      const terms = search.query
-        .trim()
-        .toLocaleLowerCase("zh-CN")
-        .split(/\s+/u)
-        .filter(Boolean);
-      matching = matching.filter(({ text }) =>
-        terms.every((term) => text.includes(term)),
+      const terms = parseSearchQuery(search.query);
+      matching = matching.filter((document) =>
+        matchesSearchDocument(document, terms),
       );
-      matchingEntities = initialKG.entities.filter((entity) => {
-        const text = [
-          entity.label,
-          ...entity.aliases,
-          entity.description,
-        ]
-          .join(" ")
-          .toLocaleLowerCase("zh-CN");
-        return terms.every((term) => text.includes(term));
-      });
+      matchingEntities = searchableEntities
+        .filter((document) => matchesSearchDocument(document, terms))
+        .sort(
+          (left, right) =>
+            rankEntitySearchDocument(right, search.query) -
+              rankEntitySearchDocument(left, search.query) ||
+            (right.entity.extraction?.eventCount ?? 0) -
+              (left.entity.extraction?.eventCount ?? 0) ||
+            left.entity.label.localeCompare(right.entity.label, "zh-CN"),
+        )
+        .map(({ entity }) => entity);
     } else {
       const selected = search.filters;
       matching = matching.filter(({ event }) => {
@@ -188,25 +200,31 @@ export function KGExplorer({
         .filter(Boolean) as Entity[];
     }
     const ordered = matching
-      .map(({ event }) => event)
       .sort(
         (left, right) =>
-          right.date.localeCompare(left.date) ||
-          left.title.localeCompare(right.title, "zh-CN"),
+          (search.mode === "keyword"
+            ? rankEventSearchDocument(right, search.query) -
+              rankEventSearchDocument(left, search.query)
+            : 0) ||
+          right.event.date.localeCompare(left.event.date) ||
+          left.event.title.localeCompare(right.event.title, "zh-CN"),
+      )
+      .map(({ event }) => event)
+    if (search.mode !== "keyword") {
+      matchingEntities.sort(
+        (left, right) =>
+          (right.extraction?.eventCount ?? 0) -
+            (left.extraction?.eventCount ?? 0) ||
+          left.label.localeCompare(right.label, "zh-CN"),
       );
-    matchingEntities.sort(
-      (left, right) =>
-        (right.extraction?.eventCount ?? 0) -
-          (left.extraction?.eventCount ?? 0) ||
-        left.label.localeCompare(right.label, "zh-CN"),
-    );
+    }
     return {
       total: ordered.length,
       events: ordered.slice(0, RESULT_LIMIT),
       totalEntities: matchingEntities.length,
       entities: matchingEntities.slice(0, ENTITY_RESULT_LIMIT),
     };
-  }, [entityById, initialKG.entities, search, searchableEvents]);
+  }, [entityById, search, searchableEntities, searchableEvents]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -300,7 +318,9 @@ export function KGExplorer({
                   />
                   <button type="submit">搜索</button>
                 </div>
-                <small>多个关键词用空格分隔，结果需同时包含全部关键词。</small>
+                <small>
+                  支持中英文缩写、行政区简称和标点差异；多个关键词需同时匹配。
+                </small>
               </div>
             ) : (
               <div className="filter-search">

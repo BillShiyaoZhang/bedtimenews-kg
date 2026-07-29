@@ -97,7 +97,10 @@ for (const item of newsDataset.news) {
     title: item.title,
     date: item.date,
     datePrecision: item.datePrecision,
-    type: extractor.classifyEvent(`${item.title}\n${item.summary}`),
+    type: extractor.classifyEvent(
+      `${item.title}\n${item.summary}`,
+      `${item.title}\n${item.summary}\n${fragment}`,
+    ),
     summary: item.summary,
     candidateKeys,
     searchText: cleanText(`${item.title}\n${item.summary}\n${fragment}`),
@@ -106,13 +109,14 @@ for (const item of newsDataset.news) {
   });
 }
 
-const entities = [...candidateStats.values()]
+const retainedStats = [...candidateStats.values()]
   .map((stat) => ({
     ...stat,
     aliases: [...stat.aliases],
     eventCount: stat.eventIds.size,
   }))
-  .filter(shouldKeepCandidate)
+  .filter(shouldKeepCandidate);
+const provisionalEntities = retainedStats
   .map(materializeEntity)
   .sort(
     (left, right) =>
@@ -120,12 +124,12 @@ const entities = [...candidateStats.values()]
       left.label.localeCompare(right.label, "zh-CN"),
   );
 const retainedEntityIds = new Map(
-  entities.map((entity) => [
+  provisionalEntities.map((entity) => [
     `${entity.type}:${normalizeIdentifier(entity.label)}`,
     entity.id,
   ]),
 );
-const matchableEntities = entities
+const matchableEntities = provisionalEntities
   .filter((entity) =>
     ["person", "organization", "facility"].includes(entity.type),
   )
@@ -152,6 +156,27 @@ const events = draftEvents.map(
     ],
   }),
 );
+const finalEntityEventCounts = new Map(
+  provisionalEntities.map((entity) => [entity.id, 0]),
+);
+for (const event of events) {
+  for (const id of event.entityIds) {
+    finalEntityEventCounts.set(id, (finalEntityEventCounts.get(id) ?? 0) + 1);
+  }
+}
+const entities = retainedStats
+  .map((stat) => {
+    const provisional = materializeEntity(stat);
+    return materializeEntity({
+      ...stat,
+      eventCount: finalEntityEventCounts.get(provisional.id) ?? 0,
+    });
+  })
+  .sort(
+    (left, right) =>
+      left.type.localeCompare(right.type) ||
+      left.label.localeCompare(right.label, "zh-CN"),
+  );
 const eventRelations = buildChronologyRelations(events, entities);
 const kg = {
   schemaVersion: ontology.version,
