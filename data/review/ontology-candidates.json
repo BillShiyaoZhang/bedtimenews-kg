@@ -1,37 +1,37 @@
 {
   "schemaVersion": 3,
-  "upstreamCommit": "c9821fd761ef6e08cd516f80139554a7ce2e8f1e",
-  "observedAt": "2026-07-26T08:15:17Z",
+  "upstreamCommit": "4aebed82016e9439e862d427781aebf248abb27a",
+  "observedAt": "2026-07-28T08:54:01Z",
   "ontologyVersion": "2.0.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.3.0",
   "extractionVersion": "2.1.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
-    "totalNews": 9486,
+    "totalNews": 9492,
     "totalKnownEntities": 1833,
-    "newsWithKnownEntities": 9486,
-    "newsWithoutKnownEntities": 0,
-    "entityCoveragePercent": 100,
-    "specificallyClassifiedNews": 8565,
-    "eventTypeCoveragePercent": 90.29,
-    "averageEntitiesPerNews": 9.62,
+    "newsWithKnownEntities": 9491,
+    "newsWithoutKnownEntities": 1,
+    "entityCoveragePercent": 99.99,
+    "specificallyClassifiedNews": 8569,
+    "eventTypeCoveragePercent": 90.28,
+    "averageEntitiesPerNews": 9.61,
     "facetCoverage": {
       "subject": {
         "news": 3288,
-        "percent": 34.66
+        "percent": 34.64
       },
       "place": {
-        "news": 7929,
-        "percent": 83.59
+        "news": 7931,
+        "percent": 83.55
       },
       "topic": {
-        "news": 9259,
-        "percent": 97.61
+        "news": 9263,
+        "percent": 97.59
       },
       "named_object": {
         "news": 1197,
-        "percent": 12.62
+        "percent": 12.61
       }
     },
     "entityTypeCounts": {
@@ -45,86 +45,45 @@
     },
     "eventTypeCounts": {
       "policy_governance": 1234,
-      "economy_business": 2213,
+      "economy_business": 2214,
       "infrastructure_transport": 271,
       "science_technology": 607,
       "law_justice": 644,
       "conflict_security": 429,
-      "disaster_accident": 299,
+      "disaster_accident": 301,
       "public_health": 288,
       "environment_energy": 234,
-      "education_culture": 1177,
+      "education_culture": 1178,
       "society_livelihood": 776,
       "international_relations": 393,
-      "other": 921
+      "other": 923
     }
   },
   "currentIncrement": {
-    "newNews": 223,
-    "newNewsWithoutKnownEntities": 0,
-    "otherTypeNews": 10,
+    "newNews": 6,
+    "newNewsWithoutKnownEntities": 1,
+    "otherTypeNews": 2,
     "untypedReviewSample": [
       {
-        "id": "event-54434f4feac2",
-        "newsId": "news-122a9fa0c24d",
-        "title": "四川大英县复刻泰坦尼克号烂尾多年，民众问是否有复工可能",
-        "pageId": "page-68c5bd97699b"
+        "id": "event-b0a63c313da0",
+        "newsId": "news-9b2a9eab07d1",
+        "title": "第一大钢城唐山再度硬性停限产",
+        "pageId": "page-fb8e35148590"
       },
       {
-        "id": "event-ba1ebf25a8c8",
-        "newsId": "news-b9cd7186c6f2",
-        "title": "江苏老人买假身份证，“降低”年龄找工作",
-        "pageId": "page-b20c72e93439"
-      },
-      {
-        "id": "event-5d9a21f12e22",
-        "newsId": "news-d06d307ce5db",
-        "title": "新疆设立草湖市、岑岭县，解决管理半径过大问题",
-        "pageId": "page-8d06e8ebb87d"
-      },
-      {
-        "id": "event-d375088ac2cc",
-        "newsId": "news-cf7a4f1d1e02",
-        "title": "全国多地学习义乌发展经验",
-        "pageId": "page-582af13c351f"
-      },
-      {
-        "id": "event-42a4dd51c9e1",
-        "newsId": "news-fd9d1e6f4107",
-        "title": "印度成为全球Z世代抗议浪潮的最新一波",
-        "pageId": "page-3f110db49c82"
-      },
-      {
-        "id": "event-b8600636047b",
-        "newsId": "news-e65e2788cf6c",
-        "title": "重庆理工副教授刺死副校长",
-        "pageId": "page-69ed5b2976a6"
-      },
-      {
-        "id": "event-ec52511ae615",
-        "newsId": "news-e03bd25a345b",
-        "title": "四川稻城亚丁景区截断省道收费持续引发热议",
-        "pageId": "page-c60abb0f272b"
-      },
-      {
-        "id": "event-12042980d0f0",
-        "newsId": "news-c1811a6b9233",
-        "title": "今年本科生继续扩招，广东多所医学院校中医放宽文科生报考",
-        "pageId": "page-2498d7796dd3"
-      },
-      {
-        "id": "event-361bfe21e6fd",
-        "newsId": "news-d103a0ce1423",
-        "title": "韩红喊话北京观众“走个面儿”被群嘲",
-        "pageId": "page-a515e9aeaacf"
-      },
-      {
-        "id": "event-0f6fc395cfa6",
-        "newsId": "news-6be986f7613b",
-        "title": "冻货偏航不止泌阳，还有南阳，但南阳的回应很淡定，甚至可以说是强硬",
-        "pageId": "page-0e8af158b358"
+        "id": "event-adbfcb93287f",
+        "newsId": "news-6820595e291f",
+        "title": "苏州在全国首创：骑手等红灯，不计入配送时间",
+        "pageId": "page-fb8e35148590"
       }
     ],
-    "entityGapReviewSample": []
+    "entityGapReviewSample": [
+      {
+        "id": "event-b0a63c313da0",
+        "newsId": "news-9b2a9eab07d1",
+        "title": "第一大钢城唐山再度硬性停限产",
+        "pageId": "page-fb8e35148590"
+      }
+    ]
   }
 }
