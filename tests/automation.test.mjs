@@ -1,46 +1,54 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 
 const root = new URL("../", import.meta.url);
-const [remediation, sync, validate, notification, prompt] = await Promise.all([
-  readText(".github/workflows/remediate-coverage.yml"),
+const [sync, validate, notification, prompt, commandRules] = await Promise.all([
   readText(".github/workflows/sync-archive.yml"),
   readText(".github/workflows/validate.yml"),
   readText("scripts/notify-coverage.sh"),
   readText(".github/codex/prompts/remediate-coverage.md"),
+  readText(".codex/rules/coverage-remediation.rules"),
 ]);
+const workflowNames = await readdir(new URL("../.github/workflows/", import.meta.url));
+const allWorkflows = (
+  await Promise.all(
+    workflowNames.map((name) => readText(`.github/workflows/${name}`)),
+  )
+).join("\n");
 
-test("coverage advisory workflow triages without an API-backed model", () => {
-  for (const expected of [
-    "types: [opened, labeled, reopened]",
-    "workflow_dispatch:",
-    "coverage-advisory",
-    "Queue semantic remediation",
-    "daily ChatGPT scheduled",
-    "npm run kg:validate",
-    "npm run test:coverage",
-    "npm run lint",
-    "Close recovered advisory",
-  ]) {
-    assert.ok(remediation.includes(expected), `missing workflow guard: ${expected}`);
-  }
-  assert.doesNotMatch(remediation, /openai-api-key|codex-action|git push/u);
+test("GitHub workflows keep deterministic validation without model remediation", () => {
+  assert.ok(!workflowNames.includes("remediate-coverage.yml"));
   assert.match(sync, /group: kg-main-writer/u);
   assert.doesNotMatch(validate, /notify-coverage\.sh/u);
+  assert.doesNotMatch(
+    allWorkflows,
+    /openai-api-key|OPENAI_API_KEY|codex-action|gpt-5/u,
+  );
 });
 
-test("coverage notification explicitly dispatches bot-created advisories", () => {
-  assert.match(notification, /gh workflow run remediate-coverage\.yml/u);
-  assert.match(notification, /issue_number=\$coverage_issue_number/u);
+test("coverage notification creates an advisory without dispatching a workflow", () => {
+  assert.match(notification, /daily Codex scheduled task/u);
+  assert.doesNotMatch(notification, /gh workflow run|remediate-coverage\.yml/u);
   const syntax = spawnSync("bash", ["-n", "scripts/notify-coverage.sh"], {
     cwd: new URL("..", import.meta.url),
     encoding: "utf8",
   });
   assert.equal(syntax.status, 0, syntax.stderr);
+});
+
+test("daily remediation command rules scope synchronization to origin/main", () => {
+  for (const expected of [
+    'pattern = ["git", "fetch", "origin", "main"]',
+    'pattern = ["git", "push", "origin", "HEAD:main"]',
+    'decision = "allow"',
+  ]) {
+    assert.ok(commandRules.includes(expected), `missing command rule: ${expected}`);
+  }
+  assert.doesNotMatch(commandRules, /pattern = \["git", "(?:fetch|push)"\]/u);
 });
 
 test("remediation prompt preserves semantic quality instead of gaming coverage", () => {
@@ -55,7 +63,7 @@ test("remediation prompt preserves semantic quality instead of gaming coverage",
   }
 });
 
-test("notification creates and dispatches a new advisory issue", async (context) => {
+test("notification creates a new advisory issue without dispatch", async (context) => {
   const fixture = await createMockGh("");
   context.after(() => rm(fixture.directory, { recursive: true, force: true }));
 
@@ -64,13 +72,10 @@ test("notification creates and dispatches a new advisory issue", async (context)
   const calls = await readFile(fixture.log, "utf8");
   assert.match(calls, /^label create coverage-advisory /mu);
   assert.match(calls, /^issue create /mu);
-  assert.match(
-    calls,
-    /^workflow run remediate-coverage\.yml .*issue_number=42$/mu,
-  );
+  assert.doesNotMatch(calls, /^workflow run /mu);
 });
 
-test("notification reuses and dispatches an existing advisory issue", async (context) => {
+test("notification reuses an existing advisory issue without dispatch", async (context) => {
   const fixture = await createMockGh("17");
   context.after(() => rm(fixture.directory, { recursive: true, force: true }));
 
@@ -79,10 +84,7 @@ test("notification reuses and dispatches an existing advisory issue", async (con
   const calls = await readFile(fixture.log, "utf8");
   assert.doesNotMatch(calls, /^label create /mu);
   assert.doesNotMatch(calls, /^issue create /mu);
-  assert.match(
-    calls,
-    /^workflow run remediate-coverage\.yml .*issue_number=17$/mu,
-  );
+  assert.doesNotMatch(calls, /^workflow run /mu);
 });
 
 async function readText(path) {

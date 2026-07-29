@@ -1,0 +1,25 @@
+# Minimal network-capable Git commands used by the local daily remediation task.
+# Its prompt separately requires a clean, non-diverged main checkout, complete
+# validation, and a reviewed file allowlist before either command is used.
+prefix_rule(
+    pattern = ["git", "fetch", "origin", "main"],
+    decision = "allow",
+    justification = "Allow the daily ontology/KG task to inspect the latest origin/main",
+    match = ["git fetch origin main"],
+    not_match = [
+        "git fetch origin",
+        "git fetch upstream main",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "origin", "HEAD:main"],
+    decision = "allow",
+    justification = "Allow fully validated daily ontology/KG remediation to update main",
+    match = ["git push origin HEAD:main"],
+    not_match = [
+        "git push origin",
+        "git push origin main",
+        "git push upstream HEAD:main",
+    ],
+)

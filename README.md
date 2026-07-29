@@ -83,22 +83,20 @@ npm run kg:rebuild
 4. 构建静态站；
 5. 将通过完整验证的同步直接提交到 `main`，并显式触发 GitHub Pages 部署。
 
-语义覆盖失败仍然是 advisory：同步任务会创建或复用带
-`coverage-advisory` 标签的 issue，并显式派发
-`.github/workflows/remediate-coverage.yml` 做即时分诊。该 workflow 不调用模型，
-也不需要 API key：若覆盖已经恢复，它会验证并关闭 issue；若仍然失败，就保持
-issue 打开，交给 Codex App 中每天运行的 `Daily ontology and KG remediation`
-scheduled task。
+语义覆盖失败仍然是 advisory：同步任务只创建或复用带
+`coverage-advisory` 标签的 issue，不派发额外 workflow，也不在 GitHub Actions
+中调用大模型。Codex App 中每天运行的
+`Daily ontology and KG remediation` scheduled task 是唯一的语义修复执行者。
 
 每日任务使用 ChatGPT/Codex 订阅下的 `gpt-5.6-sol` 与 `xhigh`（Extra High）
 推理强度，系统审查 ontology、KG、抽取规则和搜索召回。它先确认本地 `main`
 工作区干净，再读取固定审查提示词，仅允许修改受控的数据、应用、脚本、测试
 和文档路径。只有完整 KG 校验、测试、lint 和两套生产构建全部通过后，修复才
 会直接提交到 `main` 并关闭 issue；否则不提交、不推送并保留 issue。
-
-由 `GITHUB_TOKEN` 创建 issue 不会再次触发普通 `issues` 事件，因此通知脚本会
-用 `workflow_dispatch` 显式启动无模型分诊；人工创建、重新打开或添加该标签
-仍会通过 `issues` 事件启动相同流程。
+项目级 `.codex/rules/coverage-remediation.rules` 只为该本地任务放行读取最新
+`origin/main` 和推送已验证 `HEAD:main` 所需的两个 Git 前缀；issue 的读取、
+评论和关闭使用已连接的 GitHub 插件。首次配置或规则变化后需重启一次
+ChatGPT/Codex App，且每日执行时电脑需开机、App 需保持运行。
 
 ## 目录
 

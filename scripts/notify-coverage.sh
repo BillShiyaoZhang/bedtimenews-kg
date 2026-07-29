@@ -19,17 +19,10 @@ if [[ -z "$coverage_issue_number" ]]; then
   coverage_issue_url="$(gh issue create \
     --repo "$GITHUB_REPOSITORY" \
     --title "$coverage_issue_title" \
-    --body "The non-blocking semantic coverage check failed in [$GITHUB_WORKFLOW #$GITHUB_RUN_NUMBER]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID). Required validation still gates sync and merging. A guarded Codex remediation will run against main and push only after the complete validation suite passes." \
+    --body "The non-blocking semantic coverage check failed in [$GITHUB_WORKFLOW #$GITHUB_RUN_NUMBER]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID). Required validation still gates sync and merging. The daily Codex scheduled task will inspect this advisory and will push to main only after the complete validation suite passes." \
     --label coverage-advisory \
     --assignee "$GITHUB_REPOSITORY_OWNER")"
-  coverage_issue_number="${coverage_issue_url##*/}"
   echo "Opened coverage advisory issue: $coverage_issue_url"
 else
   echo "Coverage advisory issue #$coverage_issue_number is already open."
 fi
-
-gh workflow run remediate-coverage.yml \
-  --repo "$GITHUB_REPOSITORY" \
-  --ref main \
-  -f "issue_number=$coverage_issue_number"
-echo "Dispatched semantic coverage remediation for issue #$coverage_issue_number."
