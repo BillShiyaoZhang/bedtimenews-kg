@@ -94,7 +94,8 @@ jobs:
           allow-bots: true
           prompt-file: .github/codex/prompts/remediate-coverage.md
           codex-args: '["--ephemeral"]'
-          effort: high
+          model: gpt-5.6-sol
+          effort: xhigh
 
       - name: Reject out-of-scope changes
         if: >-

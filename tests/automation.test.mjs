@@ -23,6 +23,8 @@ test("coverage advisory workflow has guarded Codex-to-main remediation", () => {
     'permission-profile: ":workspace"',
     "openai-api-key: ${{ secrets.OPENAI_API_KEY }}",
     "allow-bots: true",
+    "model: gpt-5.6-sol",
+    "effort: xhigh",
     "npm test",
     "npm run lint",
     "git diff --check",
