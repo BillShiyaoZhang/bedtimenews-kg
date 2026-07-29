@@ -14,28 +14,21 @@ const [remediation, sync, validate, notification, prompt] = await Promise.all([
   readText(".github/codex/prompts/remediate-coverage.md"),
 ]);
 
-test("coverage advisory workflow has guarded Codex-to-main remediation", () => {
+test("coverage advisory workflow triages without an API-backed model", () => {
   for (const expected of [
     "types: [opened, labeled, reopened]",
     "workflow_dispatch:",
     "coverage-advisory",
-    "uses: openai/codex-action@v1",
-    'permission-profile: ":workspace"',
-    "openai-api-key: ${{ secrets.OPENAI_API_KEY }}",
-    "allow-bots: true",
-    "model: gpt-5.6-sol",
-    "effort: xhigh",
-    "npm test",
+    "Queue semantic remediation",
+    "daily ChatGPT scheduled",
+    "npm run kg:validate",
+    "npm run test:coverage",
     "npm run lint",
-    "git diff --check",
-    "git push origin HEAD:main",
-    "Enforce immutable 100% semantic floor",
-    'metric.percent !== 100',
-    'event.type === "other"',
+    "Close recovered advisory",
   ]) {
     assert.ok(remediation.includes(expected), `missing workflow guard: ${expected}`);
   }
-  assert.match(remediation, /group: kg-main-writer/u);
+  assert.doesNotMatch(remediation, /openai-api-key|codex-action|git push/u);
   assert.match(sync, /group: kg-main-writer/u);
   assert.doesNotMatch(validate, /notify-coverage\.sh/u);
 });
