@@ -83,6 +83,71 @@ test("incremental merge appends new records without replacing existing records",
   assert.deepEqual(appended.entities.map((entity) => entity.id), ["entity-new"]);
 });
 
+test("incremental merge refreshes derived counts for existing entities", () => {
+  const entity = {
+    id: "entity-shared",
+    label: "共享实体",
+    type: "organization",
+    aliases: [],
+    description: "由组织名称后缀规则识别的主体；在 1 条独立新闻中出现。",
+    extraction: {
+      method: "organization_suffix",
+      confidence: 0.84,
+      eventCount: 1,
+    },
+  };
+  const existing = knowledgeBase({
+    entities: [entity],
+    events: [
+      {
+        id: "event-old",
+        entityIds: [entity.id],
+        sourceIds: ["source-old"],
+      },
+    ],
+    sources: [{ id: "source-old", repositoryPath: "main/1.md" }],
+  });
+  const candidate = knowledgeBase({
+    entities: [
+      {
+        ...entity,
+        description: "由组织名称后缀规则识别的主体；在 2 条独立新闻中出现。",
+        extraction: { ...entity.extraction, eventCount: 2 },
+      },
+    ],
+    events: [
+      {
+        id: "event-old",
+        entityIds: [entity.id],
+        sourceIds: ["source-old"],
+      },
+      {
+        id: "event-new",
+        entityIds: [entity.id],
+        sourceIds: ["source-new"],
+      },
+    ],
+    sources: [
+      { id: "source-old", repositoryPath: "main/1.md" },
+      { id: "source-new", repositoryPath: "main/2.md" },
+    ],
+  });
+
+  const { kg, appended } = appendNewRecords(
+    existing,
+    candidate,
+    ["main/2.md"],
+    "2026-07-23T00:00:00Z",
+  );
+
+  assert.equal(kg.entities[0].extraction.eventCount, 2);
+  assert.equal(
+    kg.entities[0].description,
+    "由组织名称后缀规则识别的主体；在 2 条独立新闻中出现。",
+  );
+  assert.deepEqual(appended.entities, []);
+});
+
 test("processed news dataset appends items only from new referenced pages", () => {
   const existing = {
     schemaVersion: "1.1.0",

@@ -1,3 +1,5 @@
+import { materializeEntity } from "./extraction.mjs";
+
 export function classifyArchiveChanges(acceptedFiles, currentFiles) {
   const addedCandidates = Object.keys(currentFiles)
     .filter((path) => !(path in acceptedFiles))
@@ -106,24 +108,63 @@ export function appendNewRecords(existing, candidate, addedPaths, generatedAt) {
       (referencedEntityIds.has(relation.from) ||
         referencedEntityIds.has(relation.to)),
   );
+  const mergedEvents = [...existing.events, ...events];
+  const mergedEntities = [...existing.entities, ...entities];
+  const eventCounts = new Map(mergedEntities.map((entity) => [entity.id, 0]));
+  for (const event of mergedEvents) {
+    for (const entityId of event.entityIds ?? []) {
+      eventCounts.set(entityId, (eventCounts.get(entityId) ?? 0) + 1);
+    }
+  }
+  const synchronizedEntities = mergedEntities.map((entity) =>
+    synchronizeEntityEventCount(entity, eventCounts.get(entity.id) ?? 0),
+  );
+  const appendedEntities = synchronizedEntities.filter(
+    (entity) => !existingEntityIds.has(entity.id),
+  );
 
   return {
     kg: {
       ...existing,
       schemaVersion: candidate.schemaVersion,
       generatedAt,
-      entities: [...existing.entities, ...entities],
-      events: [...existing.events, ...events],
+      entities: synchronizedEntities,
+      events: mergedEvents,
       eventRelations: [...existing.eventRelations, ...eventRelations],
       entityRelations: [...existing.entityRelations, ...entityRelations],
       sources: [...existing.sources, ...sources],
     },
     appended: {
-      entities,
+      entities: appendedEntities,
       events,
       eventRelations,
       entityRelations,
       sources,
+    },
+  };
+}
+
+function synchronizeEntityEventCount(entity, eventCount) {
+  if (
+    !entity.extraction ||
+    entity.extraction.eventCount === eventCount
+  ) {
+    return entity;
+  }
+  const materialized = materializeEntity({
+    type: entity.type,
+    label: entity.label,
+    aliases: entity.aliases,
+    method: entity.extraction.method,
+    confidence: entity.extraction.confidence,
+    eventCount,
+  });
+  return {
+    ...entity,
+    description: materialized.description,
+    extraction: {
+      ...entity.extraction,
+      eventCount,
     },
   };
 }
