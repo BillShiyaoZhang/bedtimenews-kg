@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-28T08:54:01Z",
+  "generatedAt": "2026-07-30T14:10:04Z",
   "segmentationVersion": "1.3.0",
   "summary": {
-    "pages": 2053,
-    "news": 9492,
-    "multiNewsPages": 1285,
-    "reviewPages": 561,
+    "pages": 2054,
+    "news": 9498,
+    "multiNewsPages": 1286,
+    "reviewPages": 562,
     "pagesByStrategy": {
       "page_fallback": 763,
       "manual_single": 1,
@@ -15,7 +15,7 @@
       "manual_markers": 1,
       "main_interview_topic": 167,
       "reference_numbered_heading": 537,
-      "reference_description_sentence": 93
+      "reference_description_sentence": 94
     },
     "episodeDateResolutions": {
       "observed": 714,
@@ -7164,6 +7164,16 @@
       "pageId": "page-fb8e35148590",
       "repositoryPath": "reference/601-700/629.md",
       "title": "【参考信息629】长春贴脸开大一汽；临床降分、兽医逆袭",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-6560f9a1a5ad",
+      "repositoryPath": "reference/601-700/630.md",
+      "title": "【参考信息630】不让瓜农发求助；六种不良舆论观",
       "newsCount": 6,
       "strategy": "reference_description_sentence",
       "reasons": [
