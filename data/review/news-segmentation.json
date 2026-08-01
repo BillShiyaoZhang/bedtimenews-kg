@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-30T14:10:04Z",
+  "generatedAt": "2026-08-01T13:05:41Z",
   "segmentationVersion": "1.3.0",
   "summary": {
-    "pages": 2054,
-    "news": 9498,
-    "multiNewsPages": 1286,
-    "reviewPages": 562,
+    "pages": 2055,
+    "news": 9503,
+    "multiNewsPages": 1287,
+    "reviewPages": 563,
     "pagesByStrategy": {
       "page_fallback": 763,
       "manual_single": 1,
@@ -15,7 +15,7 @@
       "manual_markers": 1,
       "main_interview_topic": 167,
       "reference_numbered_heading": 537,
-      "reference_description_sentence": 94
+      "reference_description_sentence": 95
     },
     "episodeDateResolutions": {
       "observed": 714,
@@ -7175,6 +7175,16 @@
       "repositoryPath": "reference/601-700/630.md",
       "title": "【参考信息630】不让瓜农发求助；六种不良舆论观",
       "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-6335c34edd18",
+      "repositoryPath": "reference/601-700/631.md",
+      "title": "【参考信息631】青岛暂超天津；中韩美职校热",
+      "newsCount": 5,
       "strategy": "reference_description_sentence",
       "reasons": [
         "metadata_only_news_segmentation"

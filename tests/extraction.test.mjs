@@ -79,6 +79,18 @@ test("reviewed vocabulary gives long-tail news a semantic entity", () => {
   }
 });
 
+test("incremental policy phrase maps to the reviewed macroeconomic topic", () => {
+  const title = "最高层会议提出及时谋划出台务实管用的增量政策";
+  const candidates = extractor.extractCandidates(title, title);
+
+  assert.ok(
+    candidates.some(
+      (candidate) =>
+        candidate.type === "topic" && candidate.label === "宏观经济",
+    ),
+  );
+});
+
 test("reviewed entity filters reject recurring grammatical false positives", () => {
   const text =
     "记者采访后表示，省级政府会见有关团队，这条铁路仍在讨论中。";

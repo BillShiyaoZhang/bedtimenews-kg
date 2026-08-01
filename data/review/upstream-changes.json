@@ -7,33 +7,27 @@
     "renames": "report_only_preserve_existing_records",
     "ontology": "versioned_extraction_rules_require_explicit_reviewed_semantic_rebuild"
   },
-  "upstreamCommit": "8785ff597b7aea9aaa1f0e58157dedc448271f2f",
-  "observedAt": "2026-07-30T14:10:04Z",
+  "upstreamCommit": "7e846c95a9e7d28cd4edbcfaffd47a564a80d5d0",
+  "observedAt": "2026-08-01T13:05:41Z",
   "bootstrap": false,
-  "semanticRebuild": false,
-  "extractionVersion": "3.0.0",
+  "semanticRebuild": true,
+  "extractionVersion": "3.1.0",
   "segmentationVersion": "1.3.0",
   "newsOverrideVersion": "1.1.0",
   "summary": {
-    "ingestedFiles": 0,
-    "appendedPages": 0,
-    "appendedNews": 0,
-    "appendedEntities": 0,
-    "appendedRelations": 0,
-    "modifiedFilesAwaitingReview": 1,
+    "ingestedFiles": 2085,
+    "appendedPages": 2055,
+    "appendedNews": 9503,
+    "appendedEntities": 1754,
+    "appendedRelations": 7921,
+    "modifiedFilesAwaitingReview": 0,
     "deletedFilesAwaitingReview": 0,
     "possibleRenamesAwaitingReview": 0,
     "duplicateAdditionsAwaitingReview": 0
   },
   "ingestedPaths": [],
   "pendingReview": {
-    "modified": [
-      {
-        "path": "reference/601-700.md",
-        "acceptedHash": "3be8733c6e34c5e753b3ba77632ee577af7b4dfc15f39aa141121d9df4daad5b",
-        "currentHash": "df7ff8e2bb09ca7e9310daac617ccd06f3d72f840ffbdcb783519024773092b7"
-      }
-    ],
+    "modified": [],
     "deleted": [],
     "possibleRenames": [],
     "duplicateAdditions": []
