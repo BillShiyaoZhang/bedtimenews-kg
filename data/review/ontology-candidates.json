@@ -1,59 +1,59 @@
 {
   "schemaVersion": 4,
-  "upstreamCommit": "7e846c95a9e7d28cd4edbcfaffd47a564a80d5d0",
-  "observedAt": "2026-08-01T13:05:41Z",
+  "upstreamCommit": "de4cf20bcd0a9b4acbfb1967c80f2c7bd3b92b39",
+  "observedAt": "2026-08-03T12:57:06Z",
   "ontologyVersion": "2.1.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.3.0",
   "extractionVersion": "3.1.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
-    "totalNews": 9503,
+    "totalNews": 9510,
     "totalKnownEntities": 1754,
-    "newsWithKnownEntities": 9503,
+    "newsWithKnownEntities": 9510,
     "newsWithoutKnownEntities": 0,
     "entityCoveragePercent": 100,
-    "specificallyClassifiedNews": 9503,
-    "eventTypeCoveragePercent": 100,
-    "averageEntitiesPerNews": 9.51,
+    "specificallyClassifiedNews": 9509,
+    "eventTypeCoveragePercent": 99.99,
+    "averageEntitiesPerNews": 9.5,
     "requiredCoverage": {
       "semanticEntity": {
-        "covered": 9503,
-        "total": 9503,
+        "covered": 9510,
+        "total": 9510,
         "percent": 100
       },
       "specificEventType": {
-        "covered": 9503,
-        "total": 9503,
-        "percent": 100
+        "covered": 9509,
+        "total": 9510,
+        "percent": 99.99
       },
       "sourceTraceability": {
-        "covered": 9503,
-        "total": 9503,
+        "covered": 9510,
+        "total": 9510,
         "percent": 100
       },
       "searchability": {
-        "covered": 9503,
-        "total": 9503,
+        "covered": 9510,
+        "total": 9510,
         "percent": 100
       }
     },
     "facetPresence": {
       "subject": {
-        "news": 2995,
-        "percent": 31.52
+        "news": 2997,
+        "percent": 31.51
       },
       "place": {
-        "news": 7935,
-        "percent": 83.5
+        "news": 7937,
+        "percent": 83.46
       },
       "topic": {
-        "news": 9279,
-        "percent": 97.64
+        "news": 9285,
+        "percent": 97.63
       },
       "named_object": {
         "news": 1168,
-        "percent": 12.29
+        "percent": 12.28
       }
     },
     "entityTypeCounts": {
@@ -66,26 +66,33 @@
       "topic": 27
     },
     "eventTypeCounts": {
-      "policy_governance": 1217,
+      "policy_governance": 1218,
       "economy_business": 2448,
-      "infrastructure_transport": 301,
+      "infrastructure_transport": 302,
       "science_technology": 593,
       "law_justice": 845,
       "conflict_security": 553,
-      "disaster_accident": 387,
+      "disaster_accident": 388,
       "public_health": 290,
       "environment_energy": 271,
-      "education_culture": 1307,
-      "society_livelihood": 924,
+      "education_culture": 1309,
+      "society_livelihood": 925,
       "international_relations": 367,
-      "other": 0
+      "other": 1
     }
   },
   "currentIncrement": {
-    "newNews": 9503,
+    "newNews": 7,
     "newNewsWithoutKnownEntities": 0,
-    "otherTypeNews": 0,
-    "untypedReviewSample": [],
+    "otherTypeNews": 1,
+    "untypedReviewSample": [
+      {
+        "id": "event-1a393b08edc5",
+        "newsId": "news-6e12027ca677",
+        "title": "江苏多地“处”改回“科”，“科”改回“股”",
+        "pageId": "page-db4f2b99a971"
+      }
+    ],
     "entityGapReviewSample": []
   }
 }
