@@ -91,6 +91,19 @@ test("incremental policy phrase maps to the reviewed macroeconomic topic", () =>
   );
 });
 
+test("development zone consolidation maps to public governance", () => {
+  const title = "5个考核评价靠后国家级经开区被摘帽，地方撤并经开区";
+  const candidates = extractor.extractCandidates(title, title);
+
+  assert.ok(
+    candidates.some(
+      (candidate) =>
+        candidate.type === "topic" && candidate.label === "公共治理",
+    ),
+  );
+  assert.equal(extractor.classifyEvent(title, title), "policy_governance");
+});
+
 test("reviewed entity filters reject recurring grammatical false positives", () => {
   const text =
     "记者采访后表示，省级政府会见有关团队，这条铁路仍在讨论中。";
