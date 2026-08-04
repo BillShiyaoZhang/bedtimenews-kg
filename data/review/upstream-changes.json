@@ -15,19 +15,17 @@
   "segmentationVersion": "1.3.0",
   "newsOverrideVersion": "1.1.0",
   "summary": {
-    "ingestedFiles": 1,
-    "appendedPages": 1,
-    "appendedNews": 7,
+    "ingestedFiles": 0,
+    "appendedPages": 0,
+    "appendedNews": 0,
     "appendedEntities": 0,
-    "appendedRelations": 2,
+    "appendedRelations": 0,
     "modifiedFilesAwaitingReview": 1,
     "deletedFilesAwaitingReview": 0,
     "possibleRenamesAwaitingReview": 0,
     "duplicateAdditionsAwaitingReview": 0
   },
-  "ingestedPaths": [
-    "reference/601-700/632.md"
-  ],
+  "ingestedPaths": [],
   "pendingReview": {
     "modified": [
       {
