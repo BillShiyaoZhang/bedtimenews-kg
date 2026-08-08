@@ -69,6 +69,7 @@ for (const item of newsDataset.news) {
   const candidates = extractor.extractCandidates(
     `${item.title}\n${item.summary}\n${fragment}`,
     `${item.title}\n${item.summary}`,
+    { newsId: item.id },
   );
   const candidateKeys = [];
   for (const candidate of candidates) {

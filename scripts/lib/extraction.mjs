@@ -358,7 +358,7 @@ export function createExtractionEngine(rules) {
     topic,
   }));
 
-  function extractCandidates(text, prominentText = "") {
+  function extractCandidates(text, prominentText = "", context = {}) {
     const normalizedText = normalizeText(text);
     const normalizedProminent = normalizeText(prominentText);
     const normalizedNamedText = normalizedProminent || normalizedText;
@@ -498,6 +498,22 @@ export function createExtractionEngine(rules) {
         add(candidate);
       }
     }
+    for (const link of rules.reviewedNewsEntityLinks?.[context.newsId] ?? []) {
+      const canonical =
+        link.type === "organization"
+          ? organizationAliases.get(link.label)
+          : undefined;
+      const label = canonical?.label ?? link.label;
+      add({
+        key: entityKey(link.type, label),
+        type: link.type,
+        label,
+        aliases: canonical?.aliases ?? link.aliases ?? [],
+        method: "reviewed_news_link",
+        confidence: 1,
+        prominent: true,
+      });
+    }
     return [...candidates.values()];
   }
 
@@ -541,7 +557,11 @@ export function createExtractionEngine(rules) {
 }
 
 export function shouldKeepCandidate(stat) {
-  if (stat.method === "controlled_vocabulary" || stat.method === "gazetteer") {
+  if (
+    ["controlled_vocabulary", "gazetteer", "reviewed_news_link"].includes(
+      stat.method,
+    )
+  ) {
     return true;
   }
   if (["document_title", "named_document"].includes(stat.method)) return true;
@@ -562,6 +582,7 @@ export function materializeEntity(stat) {
     named_document: `由书名号与文献类型后缀识别的报告或文献；在 ${stat.eventCount} 条独立新闻中出现。`,
     role_after: `由职务后的姓名上下文识别的人物；在 ${stat.eventCount} 条独立新闻中出现。`,
     role_before: `由姓名后的职务上下文识别的人物；在 ${stat.eventCount} 条独立新闻中出现。`,
+    reviewed_news_link: `经人工审查与独立新闻建立的实体关联；关联 ${stat.eventCount} 条独立新闻。`,
   };
   return {
     id: entityId(stat.type, stat.label),

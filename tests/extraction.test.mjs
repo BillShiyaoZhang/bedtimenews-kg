@@ -104,6 +104,20 @@ test("development zone consolidation maps to public governance", () => {
   assert.equal(extractor.classifyEvent(title, title), "policy_governance");
 });
 
+test("reviewed news link associates the cicada hearing-loss item with Huawei", () => {
+  const title = "这个夏天的知了叫好像特别响，多地多人因蝉鸣听力受损";
+  const candidates = extractor.extractCandidates(title, title, {
+    newsId: "news-e2fbb834e13e",
+  });
+
+  assert.ok(
+    candidates.some(
+      (candidate) =>
+        candidate.type === "organization" && candidate.label === "华为",
+    ),
+  );
+});
+
 test("reviewed entity filters reject recurring grammatical false positives", () => {
   const text =
     "记者采访后表示，省级政府会见有关团队，这条铁路仍在讨论中。";

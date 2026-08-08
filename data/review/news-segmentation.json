@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-03T12:57:06Z",
+  "generatedAt": "2026-08-06T12:47:19Z",
   "segmentationVersion": "1.3.0",
   "summary": {
-    "pages": 2056,
-    "news": 9510,
-    "multiNewsPages": 1288,
-    "reviewPages": 564,
+    "pages": 2057,
+    "news": 9516,
+    "multiNewsPages": 1289,
+    "reviewPages": 565,
     "pagesByStrategy": {
       "page_fallback": 763,
       "manual_single": 1,
@@ -15,7 +15,7 @@
       "manual_markers": 1,
       "main_interview_topic": 167,
       "reference_numbered_heading": 537,
-      "reference_description_sentence": 96
+      "reference_description_sentence": 97
     },
     "episodeDateResolutions": {
       "observed": 714,
@@ -7195,6 +7195,16 @@
       "repositoryPath": "reference/601-700/632.md",
       "title": "【参考信息632】南华与湘雅；地铁涨价潮",
       "newsCount": 7,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-c2bf95e8b6f0",
+      "repositoryPath": "reference/601-700/633.md",
+      "title": "【参考信息633】鞍山鬼火少年炸街；《求是》讨论经济温差",
+      "newsCount": 6,
       "strategy": "reference_description_sentence",
       "reasons": [
         "metadata_only_news_segmentation"
