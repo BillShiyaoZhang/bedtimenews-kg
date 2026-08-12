@@ -28,7 +28,7 @@ test("generated semantic knowledge graph passes schema and reference checks", ()
   assert.equal(kg.schemaVersion, ontology.version);
   assert.equal(kg.source.newsDatasetSchemaVersion, "1.1.0");
   assert.equal(kg.source.segmentationVersion, "1.3.0");
-  assert.equal(kg.source.extractionVersion, "3.2.0");
+  assert.equal(kg.source.extractionVersion, "3.3.0");
 });
 
 test("processed dataset splits multi-news pages before KG extraction", () => {

@@ -79,6 +79,33 @@ test("reviewed vocabulary gives long-tail news a semantic entity", () => {
   }
 });
 
+test("new archive headlines map to reviewed semantic topics", () => {
+  for (const { title, topic, eventType } of [
+    {
+      title:
+        "今年首轮投档未能录满、需要征集志愿的本科专业，财经、外语和一些热门工科专业排在前列",
+      topic: "教育",
+      eventType: "education_culture",
+    },
+    {
+      title: "打击电诈误伤带来新难题，不知情第三方卷入，也会被冻结账户",
+      topic: "法律与司法",
+      eventType: "law_justice",
+    },
+  ]) {
+    const candidates = extractor.extractCandidates(title, title);
+
+    assert.ok(
+      candidates.some(
+        (candidate) =>
+          candidate.type === "topic" && candidate.label === topic,
+      ),
+      `expected ${topic} topic for: ${title}`,
+    );
+    assert.equal(extractor.classifyEvent(title, title), eventType);
+  }
+});
+
 test("incremental policy phrase maps to the reviewed macroeconomic topic", () => {
   const title = "最高层会议提出及时谋划出台务实管用的增量政策";
   const candidates = extractor.extractCandidates(title, title);
