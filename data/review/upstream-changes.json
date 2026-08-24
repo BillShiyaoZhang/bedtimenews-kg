@@ -11,7 +11,7 @@
   "observedAt": "2026-08-10T12:23:29Z",
   "bootstrap": false,
   "semanticRebuild": true,
-  "extractionVersion": "3.3.0",
+  "extractionVersion": "3.4.0",
   "segmentationVersion": "1.3.0",
   "newsOverrideVersion": "1.1.0",
   "summary": {

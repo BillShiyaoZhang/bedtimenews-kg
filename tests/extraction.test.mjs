@@ -131,7 +131,26 @@ test("development zone consolidation maps to public governance", () => {
   assert.equal(extractor.classifyEvent(title, title), "policy_governance");
 });
 
-test("reviewed news link associates the cicada hearing-loss item with Huawei", () => {
+test("coverage advisory headlines map to evidence-backed event types", () => {
+  for (const { title, eventType } of [
+    {
+      title: "江苏多地“处”改回“科”，“科”改回“股”",
+      eventType: "policy_governance",
+    },
+    {
+      title: "辽宁鞍山频现“鬼火少年”飙车炸街，一次性抓捕103人",
+      eventType: "law_justice",
+    },
+    {
+      title: "这个夏天的知了叫好像特别响，多地多人因蝉鸣听力受损",
+      eventType: "public_health",
+    },
+  ]) {
+    assert.equal(extractor.classifyEvent(title, title), eventType);
+  }
+});
+
+test("cicada hearing-loss news uses healthcare semantics without borrowing Huawei", () => {
   const title = "这个夏天的知了叫好像特别响，多地多人因蝉鸣听力受损";
   const candidates = extractor.extractCandidates(title, title, {
     newsId: "news-e2fbb834e13e",
@@ -140,8 +159,15 @@ test("reviewed news link associates the cicada hearing-loss item with Huawei", (
   assert.ok(
     candidates.some(
       (candidate) =>
+        candidate.type === "topic" && candidate.label === "医疗健康",
+    ),
+  );
+  assert.equal(
+    candidates.some(
+      (candidate) =>
         candidate.type === "organization" && candidate.label === "华为",
     ),
+    false,
   );
 });
 
@@ -158,7 +184,7 @@ test("reviewed entity filters reject recurring grammatical false positives", () 
 
 test("reviewed organization aliases resolve to one canonical identity", () => {
   const text =
-    "中国人民银行与人民银行均被提及，国铁集团发布消息，人民大学参与研究。";
+    "中国人民银行与人民银行均被提及，国铁集团发布消息，人民大学参与研究，华为公布进展。";
   const organizations = extractor
     .extractCandidates(text, text)
     .filter((candidate) => candidate.type === "organization");
@@ -169,4 +195,5 @@ test("reviewed organization aliases resolve to one canonical identity", () => {
   assert.ok(byLabel.get("中国人民银行").aliases.includes("人民银行"));
   assert.ok(byLabel.has("中国国家铁路集团有限公司"));
   assert.ok(byLabel.has("中国人民大学"));
+  assert.ok(byLabel.has("华为"));
 });

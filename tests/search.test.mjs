@@ -144,6 +144,9 @@ test("real KG search benchmark has complete recall for representative queries", 
     ["AI", /人工智能|AI|大模型/iu],
     ["COVID-19", /新冠|疫情|防疫/iu],
     ["北京市", /北京/u],
+    ["政策与治理", /江苏多地“处”改回“科”/u],
+    ["法律与司法", /鬼火少年/u],
+    ["医疗健康", /蝉鸣听力受损/u],
   ];
   for (const [query, expectedTitle] of benchmarks) {
     const matches = documents.filter((document) =>

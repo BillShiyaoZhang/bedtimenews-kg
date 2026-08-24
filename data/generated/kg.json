@@ -9,7 +9,7 @@
     "newsDatasetSchemaVersion": "1.1.0",
     "segmentationVersion": "1.3.0",
     "newsOverrideVersion": "1.1.0",
-    "extractionVersion": "3.3.0"
+    "extractionVersion": "3.4.0"
   },
   "entities": [
     {
@@ -3033,9 +3033,9 @@
       "aliases": [
         "金融监管总局"
       ],
-      "description": "由组织名称后缀规则识别的主体；在 36 条独立新闻中出现。",
+      "description": "由经审查的组织名称或别名识别的主体；在 36 条独立新闻中出现。",
       "extraction": {
-        "method": "organization_suffix",
+        "method": "organization_alias",
         "confidence": 0.84,
         "eventCount": 36
       }
@@ -3062,9 +3062,9 @@
       "aliases": [
         "税务总局"
       ],
-      "description": "由组织名称后缀规则识别的主体；在 37 条独立新闻中出现。",
+      "description": "由经审查的组织名称或别名识别的主体；在 37 条独立新闻中出现。",
       "extraction": {
-        "method": "organization_suffix",
+        "method": "organization_alias",
         "confidence": 0.84,
         "eventCount": 37
       }
@@ -3076,9 +3076,9 @@
       "aliases": [
         "体育总局"
       ],
-      "description": "由组织名称后缀规则识别的主体；在 45 条独立新闻中出现。",
+      "description": "由经审查的组织名称或别名识别的主体；在 45 条独立新闻中出现。",
       "extraction": {
-        "method": "organization_suffix",
+        "method": "organization_alias",
         "confidence": 0.84,
         "eventCount": 45
       }
@@ -3357,11 +3357,11 @@
         "华为技术有限公司",
         "Huawei"
       ],
-      "description": "经人工审查与独立新闻建立的实体关联；关联 122 条独立新闻。",
+      "description": "由经审查的组织名称或别名识别的主体；在 121 条独立新闻中出现。",
       "extraction": {
-        "method": "reviewed_news_link",
-        "confidence": 1,
-        "eventCount": 122
+        "method": "organization_alias",
+        "confidence": 0.84,
+        "eventCount": 121
       }
     },
     {
@@ -4032,9 +4032,9 @@
         "上海交大",
         "上海交大学"
       ],
-      "description": "由组织名称后缀规则识别的主体；在 51 条独立新闻中出现。",
+      "description": "由经审查的组织名称或别名识别的主体；在 51 条独立新闻中出现。",
       "extraction": {
-        "method": "organization_suffix",
+        "method": "organization_alias",
         "confidence": 0.84,
         "eventCount": 51
       }
@@ -4689,9 +4689,9 @@
       "aliases": [
         "国铁集团"
       ],
-      "description": "由组织名称后缀规则识别的主体；在 17 条独立新闻中出现。",
+      "description": "由经审查的组织名称或别名识别的主体；在 17 条独立新闻中出现。",
       "extraction": {
-        "method": "organization_suffix",
+        "method": "organization_alias",
         "confidence": 0.84,
         "eventCount": 17
       }
@@ -21803,6 +21803,7 @@
         "治疗",
         "患者",
         "健康",
+        "听力受损",
         "连花清瘟",
         "艾滋病",
         "心梗",
@@ -21823,11 +21824,11 @@
         "戒网瘾",
         "成瘾性物质"
       ],
-      "description": "受控主题词；由 1851 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1852 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1851
+        "eventCount": 1852
       }
     },
     {
@@ -23384,6 +23385,7 @@
         "entity-place-3268b6f7cec4",
         "entity-place-ae019a9e566d",
         "entity-place-7562747c6e2f",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-ec064b630b41",
         "entity-topic-1111de459cd2",
         "entity-topic-db818238bf90",
@@ -23398,8 +23400,7 @@
         "entity-topic-09a250abf6ac",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-240a20d1377a",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-240a20d1377a"
       ]
     },
     {
@@ -28846,9 +28847,9 @@
       "significance": "",
       "entityIds": [
         "entity-place-a43c3dd589f7",
+        "entity-organization-3a9cf57a0e92",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8427f6313373",
-        "entity-organization-3a9cf57a0e92"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -30249,10 +30250,10 @@
       "entityIds": [
         "entity-place-cc6336fa8eb9",
         "entity-place-9e19703aebe6",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-d68c099d5b04",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-d68c099d5b04"
       ]
     },
     {
@@ -36396,8 +36397,8 @@
       "significance": "",
       "entityIds": [
         "entity-place-2a1f489d410a",
-        "entity-topic-8427f6313373",
-        "entity-organization-edb13a30e27d"
+        "entity-organization-edb13a30e27d",
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -38097,9 +38098,9 @@
       "significance": "",
       "entityIds": [
         "entity-place-231429983435",
+        "entity-organization-f1c6317344b3",
         "entity-topic-da8baac7a56a",
-        "entity-topic-6c34323d1aa3",
-        "entity-organization-f1c6317344b3"
+        "entity-topic-6c34323d1aa3"
       ]
     },
     {
@@ -42372,9 +42373,9 @@
       "entityIds": [
         "entity-place-a43c3dd589f7",
         "entity-organization-edb13a30e27d",
+        "entity-organization-3a9cf57a0e92",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8427f6313373",
-        "entity-organization-3a9cf57a0e92"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -44313,10 +44314,10 @@
       "significance": "",
       "entityIds": [
         "entity-place-cc6336fa8eb9",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-85bc32ad72f0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-f8be44d48cf6",
         "entity-organization-4e71da55ccf3"
       ]
     },
@@ -44447,11 +44448,11 @@
       "entityIds": [
         "entity-place-b7f3ca4844c8",
         "entity-place-a2ef4c813efc",
+        "entity-organization-250763f2943f",
         "entity-policy-59a49730c157",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-250763f2943f"
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -44468,13 +44469,13 @@
       "significance": "",
       "entityIds": [
         "entity-place-cc6336fa8eb9",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-db818238bf90",
         "entity-topic-85bc32ad72f0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-8e6234a589f6",
         "entity-topic-e3a330ceec3c",
         "entity-organization-6b63583921cc",
-        "entity-organization-f8be44d48cf6",
         "entity-organization-e9c3462ababe",
         "entity-organization-4e71da55ccf3"
       ]
@@ -47976,10 +47977,10 @@
       "entityIds": [
         "entity-place-a43c3dd589f7",
         "entity-organization-edb13a30e27d",
+        "entity-organization-3a9cf57a0e92",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8427f6313373",
-        "entity-organization-3a9cf57a0e92"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -48599,11 +48600,11 @@
       "entityIds": [
         "entity-place-a7e2567f856a",
         "entity-organization-259680d0fdc0",
+        "entity-organization-edb13a30e27d",
         "entity-topic-3619e6a68ba1",
         "entity-topic-d68c099d5b04",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-8427f6313373",
-        "entity-organization-edb13a30e27d"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -52147,8 +52148,8 @@
       "significance": "",
       "entityIds": [
         "entity-place-cedfd66ac164",
-        "entity-topic-9be00a89dec0",
-        "entity-organization-3d6bcf5335d1"
+        "entity-organization-3d6bcf5335d1",
+        "entity-topic-9be00a89dec0"
       ]
     },
     {
@@ -52931,7 +52932,7 @@
       "title": "河南兰考县原政法委副书记被通缉 当地回应：提供线索或协助抓捕奖励现金",
       "date": "2023-03-06",
       "datePrecision": "day",
-      "type": "policy_governance",
+      "type": "law_justice",
       "summary": "10. 河南兰考县原政法委副书记被通缉 当地回应：提供线索或协助抓捕奖励现金",
       "sourceIds": [
         "page-ab0e38a871fe"
@@ -53335,9 +53336,9 @@
       "entityIds": [
         "entity-place-fb1fdb8985ba",
         "entity-organization-d886598c7d23",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-d68c099d5b04",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-d68c099d5b04"
       ]
     },
     {
@@ -53803,8 +53804,8 @@
       ],
       "significance": "",
       "entityIds": [
-        "entity-topic-da8baac7a56a",
-        "entity-organization-f8be44d48cf6"
+        "entity-organization-f8be44d48cf6",
+        "entity-topic-da8baac7a56a"
       ]
     },
     {
@@ -55863,11 +55864,11 @@
       "significance": "",
       "entityIds": [
         "entity-place-19e3c53de5ee",
+        "entity-organization-f8be44d48cf6",
+        "entity-organization-950f60f74eaa",
         "entity-topic-6c34323d1aa3",
         "entity-topic-3619e6a68ba1",
-        "entity-topic-5dd0d821b9a8",
-        "entity-organization-f8be44d48cf6",
-        "entity-organization-950f60f74eaa"
+        "entity-topic-5dd0d821b9a8"
       ]
     },
     {
@@ -58461,9 +58462,9 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-edb13a30e27d",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-8427f6313373",
-        "entity-organization-edb13a30e27d"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -59060,8 +59061,8 @@
       ],
       "significance": "",
       "entityIds": [
-        "entity-topic-db818238bf90",
-        "entity-organization-f8be44d48cf6"
+        "entity-organization-f8be44d48cf6",
+        "entity-topic-db818238bf90"
       ]
     },
     {
@@ -61381,11 +61382,11 @@
       "entityIds": [
         "entity-place-b6188eff8f66",
         "entity-organization-103ce941206e",
+        "entity-organization-6c503bc56b89",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-53d167322c77",
-        "entity-topic-ba1dbbad6e64",
-        "entity-organization-6c503bc56b89"
+        "entity-topic-ba1dbbad6e64"
       ]
     },
     {
@@ -64743,11 +64744,11 @@
       "significance": "",
       "entityIds": [
         "entity-place-b7f3ca4844c8",
+        "entity-organization-f56b9d78f517",
         "entity-topic-da8baac7a56a",
         "entity-topic-8a581a8f5d03",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-d68c099d5b04",
-        "entity-organization-f56b9d78f517"
+        "entity-topic-d68c099d5b04"
       ]
     },
     {
@@ -67280,8 +67281,8 @@
       "entityIds": [
         "entity-place-cdbc6d893c9b",
         "entity-organization-b6df303ad2d5",
-        "entity-topic-8e6234a589f6",
-        "entity-organization-f8be44d48cf6"
+        "entity-organization-f8be44d48cf6",
+        "entity-topic-8e6234a589f6"
       ]
     },
     {
@@ -76778,9 +76779,9 @@
         "entity-place-a43c3dd589f7",
         "entity-place-3b3c224693dc",
         "entity-organization-edb13a30e27d",
+        "entity-organization-3a9cf57a0e92",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8427f6313373",
-        "entity-organization-3a9cf57a0e92"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -79834,10 +79835,10 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-f8be44d48cf6",
         "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
-        "entity-topic-8e6234a589f6",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-8e6234a589f6"
       ]
     },
     {
@@ -85037,9 +85038,9 @@
       "significance": "",
       "entityIds": [
         "entity-place-04e20705be02",
+        "entity-organization-250763f2943f",
         "entity-topic-da8baac7a56a",
-        "entity-topic-d68c099d5b04",
-        "entity-organization-250763f2943f"
+        "entity-topic-d68c099d5b04"
       ]
     },
     {
@@ -86671,11 +86672,11 @@
       "significance": "",
       "entityIds": [
         "entity-place-b7f3ca4844c8",
+        "entity-organization-3a9cf57a0e92",
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8427f6313373",
-        "entity-organization-3a9cf57a0e92"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -87787,9 +87788,9 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
-        "entity-topic-db818238bf90",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-db818238bf90"
       ]
     },
     {
@@ -89544,10 +89545,10 @@
       "significance": "",
       "entityIds": [
         "entity-place-ae019a9e566d",
+        "entity-organization-c3bf388f5f04",
         "entity-topic-d68c099d5b04",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-240a20d1377a",
-        "entity-organization-c3bf388f5f04"
+        "entity-topic-240a20d1377a"
       ]
     },
     {
@@ -94191,12 +94192,12 @@
       "entityIds": [
         "entity-place-cc6336fa8eb9",
         "entity-place-231429983435",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-85bc32ad72f0",
         "entity-topic-3619e6a68ba1",
-        "entity-topic-8e6234a589f6",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-8e6234a589f6"
       ]
     },
     {
@@ -94599,13 +94600,13 @@
       "entityIds": [
         "entity-place-cc6336fa8eb9",
         "entity-organization-e9c3462ababe",
+        "entity-organization-f8be44d48cf6",
         "entity-person-930024f84559",
         "entity-topic-db818238bf90",
         "entity-topic-8f0d9fc472a1",
         "entity-topic-5dd0d821b9a8",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8e6234a589f6",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-8e6234a589f6"
       ]
     },
     {
@@ -94907,12 +94908,12 @@
       "entityIds": [
         "entity-place-cc6336fa8eb9",
         "entity-organization-e17547a2d56f",
+        "entity-organization-250763f2943f",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-8e6234a589f6",
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-250763f2943f"
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -98307,10 +98308,10 @@
       "entityIds": [
         "entity-place-cc6336fa8eb9",
         "entity-organization-e9c3462ababe",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-db818238bf90",
         "entity-topic-8f0d9fc472a1",
         "entity-topic-d68c099d5b04",
-        "entity-organization-f8be44d48cf6",
         "entity-person-930024f84559"
       ]
     },
@@ -100009,9 +100010,9 @@
         "entity-organization-103ce941206e",
         "entity-organization-ab5b270d4974",
         "entity-organization-fc5db7ac6b3d",
+        "entity-organization-6c503bc56b89",
         "entity-topic-da8baac7a56a",
-        "entity-topic-53d167322c77",
-        "entity-organization-6c503bc56b89"
+        "entity-topic-53d167322c77"
       ]
     },
     {
@@ -101473,8 +101474,8 @@
       "significance": "",
       "entityIds": [
         "entity-place-2dfb696c17d1",
-        "entity-topic-8427f6313373",
-        "entity-organization-edb13a30e27d"
+        "entity-organization-edb13a30e27d",
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -102211,9 +102212,9 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-3a9cf57a0e92",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-8427f6313373",
-        "entity-organization-3a9cf57a0e92"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -104801,11 +104802,11 @@
       "significance": "",
       "entityIds": [
         "entity-place-ae019a9e566d",
+        "entity-organization-c3bf388f5f04",
         "entity-topic-da8baac7a56a",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-240a20d1377a",
-        "entity-organization-c3bf388f5f04"
+        "entity-topic-240a20d1377a"
       ]
     },
     {
@@ -105355,9 +105356,9 @@
       "significance": "",
       "entityIds": [
         "entity-place-17f0ef645826",
+        "entity-organization-f903cb7d1fa9",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-d68c099d5b04",
-        "entity-organization-f903cb7d1fa9"
+        "entity-topic-d68c099d5b04"
       ]
     },
     {
@@ -110211,7 +110212,7 @@
       "title": "11月13日，微博有人爆料，中国人毛宇纯（音译）因为操纵美国股市，被FBI全球通缉，悬赏500万美金，协助抓捕还有可能获得美国绿卡",
       "date": "2019-11-24",
       "datePrecision": "day",
-      "type": "economy_business",
+      "type": "law_justice",
       "summary": "11月13日，微博有人爆料，中国人毛宇纯（音译）因为操纵美国股市，被FBI全球通缉，悬赏500万美金，协助抓捕还有可能获得美国绿卡。这个人是拿到了美国什么核心情报吗？",
       "sourceIds": [
         "page-2e21d161313e"
@@ -110617,6 +110618,7 @@
         "entity-place-9652164ccd71",
         "entity-place-8039d52202eb",
         "entity-place-f44cf800c974",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
@@ -110627,7 +110629,6 @@
         "entity-topic-8e6234a589f6",
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-f8be44d48cf6",
         "entity-person-6b7d6c576ba6"
       ]
     },
@@ -115198,11 +115199,11 @@
         "entity-place-3268b6f7cec4",
         "entity-place-f44cf800c974",
         "entity-place-231429983435",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-8a581a8f5d03",
         "entity-topic-1a28a95ca93c",
         "entity-topic-ba1dbbad6e64",
-        "entity-organization-8753ddea4e69",
-        "entity-organization-f8be44d48cf6"
+        "entity-organization-8753ddea4e69"
       ]
     },
     {
@@ -122260,6 +122261,7 @@
         "entity-place-7a49854048c4",
         "entity-place-a47674a782ef",
         "entity-place-cc6336fa8eb9",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-ec064b630b41",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
@@ -122282,7 +122284,6 @@
         "entity-topic-240a20d1377a",
         "entity-organization-9fc26dc5dfb9",
         "entity-organization-a92217a4ae9f",
-        "entity-organization-f8be44d48cf6",
         "entity-organization-7cdc274f6f43",
         "entity-organization-7f265bfe536b",
         "entity-person-6b7d6c576ba6"
@@ -124895,6 +124896,7 @@
         "entity-place-cc6336fa8eb9",
         "entity-place-fb1fdb8985ba",
         "entity-place-02b02a244181",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
@@ -124908,7 +124910,6 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-f8be44d48cf6",
         "entity-organization-e73c3d0c6adb",
         "entity-person-6359c318faf5"
       ]
@@ -128862,6 +128863,7 @@
         "entity-place-d516b77c2c67",
         "entity-place-a2678e701b27",
         "entity-place-ae019a9e566d",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
         "entity-topic-db818238bf90",
@@ -128875,7 +128877,6 @@
         "entity-topic-7826943ffa59",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
-        "entity-organization-f8be44d48cf6",
         "entity-person-6359c318faf5"
       ]
     },
@@ -130347,6 +130348,7 @@
         "entity-place-7908a99f9b50",
         "entity-place-a47674a782ef",
         "entity-place-9d9dc1f4f357",
+        "entity-organization-250763f2943f",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
@@ -130366,8 +130368,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-8427f6313373",
         "entity-organization-51772aa92b37",
-        "entity-organization-8e82e21b66fb",
-        "entity-organization-250763f2943f"
+        "entity-organization-8e82e21b66fb"
       ]
     },
     {
@@ -134795,7 +134796,7 @@
       "title": "悬赏$500万抓中国人，拜登想超越特朗普",
       "date": "2021-09-21",
       "datePrecision": "day",
-      "type": "international_relations",
+      "type": "law_justice",
       "summary": "8月30日，美国悬赏500万美元，抓捕中国公民张健，这个数字已经相当于本-拉登“身价”的五分之一。然而从案情来看，美国根本没打算过真抓到人，当然也不打算付钱。",
       "sourceIds": [
         "page-8a1c80403308"
@@ -138583,10 +138584,10 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-f903cb7d1fa9",
         "entity-topic-8a581a8f5d03",
         "entity-topic-ba1dbbad6e64",
         "entity-organization-f1b3905d4656",
-        "entity-organization-f903cb7d1fa9",
         "entity-organization-f8be44d48cf6",
         "entity-organization-52b4cf36c8bd"
       ]
@@ -140566,6 +140567,7 @@
         "entity-place-7908a99f9b50",
         "entity-place-a47674a782ef",
         "entity-place-fb1fdb8985ba",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
         "entity-topic-db818238bf90",
@@ -140579,7 +140581,6 @@
         "entity-topic-18a9a1d4f0e0",
         "entity-topic-8e6234a589f6",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-f8be44d48cf6",
         "entity-organization-f673a257d9e2"
       ]
     },
@@ -145048,6 +145049,7 @@
         "entity-place-702f283bc00b",
         "entity-organization-c3bf388f5f04",
         "entity-organization-fbfc9328a173",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-ec064b630b41",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
@@ -145069,7 +145071,6 @@
         "entity-topic-8427f6313373",
         "entity-facility-ba295016c9b0",
         "entity-organization-6c0c7932c17f",
-        "entity-organization-f8be44d48cf6",
         "entity-organization-22c9f51e550f",
         "entity-organization-35cbc711adca",
         "entity-organization-f1c6317344b3"
@@ -145145,6 +145146,7 @@
         "entity-place-ae019a9e566d",
         "entity-place-5e59af8f1f5d",
         "entity-place-3e8f796e0763",
+        "entity-organization-c3bf388f5f04",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
@@ -145157,8 +145159,7 @@
         "entity-topic-240a20d1377a",
         "entity-organization-225aea809990",
         "entity-organization-f8be44d48cf6",
-        "entity-organization-fbfc9328a173",
-        "entity-organization-c3bf388f5f04"
+        "entity-organization-fbfc9328a173"
       ]
     },
     {
@@ -145768,6 +145769,7 @@
         "entity-place-a7e2567f856a",
         "entity-place-9f175d2e735a",
         "entity-place-66b01b35c116",
+        "entity-organization-c3bf388f5f04",
         "entity-policy-bcef5e28ce7a",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
@@ -145794,7 +145796,6 @@
         "entity-organization-a93880b8f979",
         "entity-organization-f8be44d48cf6",
         "entity-organization-fbfc9328a173",
-        "entity-organization-c3bf388f5f04",
         "entity-organization-91948f39911a",
         "entity-person-6359c318faf5"
       ]
@@ -145906,8 +145907,8 @@
       "significance": "",
       "entityIds": [
         "entity-place-3268b6f7cec4",
-        "entity-topic-db818238bf90",
-        "entity-organization-c3bf388f5f04"
+        "entity-organization-c3bf388f5f04",
+        "entity-topic-db818238bf90"
       ]
     },
     {
@@ -148114,8 +148115,8 @@
       ],
       "significance": "",
       "entityIds": [
-        "entity-topic-da8baac7a56a",
-        "entity-organization-250763f2943f"
+        "entity-organization-250763f2943f",
+        "entity-topic-da8baac7a56a"
       ]
     },
     {
@@ -149949,6 +149950,7 @@
         "entity-place-19e3c53de5ee",
         "entity-place-9e0fb239c255",
         "entity-organization-22c9f51e550f",
+        "entity-organization-f8be44d48cf6",
         "entity-policy-4cf74e40a053",
         "entity-policy-87ca0dbc1cd8",
         "entity-topic-4aec0475249f",
@@ -149973,7 +149975,6 @@
         "entity-topic-8427f6313373",
         "entity-organization-f903cb7d1fa9",
         "entity-organization-1f9e676e15e7",
-        "entity-organization-f8be44d48cf6",
         "entity-organization-85365e5995c8",
         "entity-organization-58011f4a309a",
         "entity-organization-c3bf388f5f04"
@@ -150832,8 +150833,8 @@
       ],
       "significance": "",
       "entityIds": [
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-c3bf388f5f04"
+        "entity-organization-c3bf388f5f04",
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -157227,6 +157228,7 @@
         "entity-place-17f0ef645826",
         "entity-place-9f175d2e735a",
         "entity-place-1ffcaea14502",
+        "entity-organization-edb13a30e27d",
         "entity-topic-4aec0475249f",
         "entity-topic-1111de459cd2",
         "entity-topic-db818238bf90",
@@ -157243,8 +157245,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-8427f6313373",
         "entity-organization-3a9cf57a0e92",
-        "entity-organization-134a9d3a8c64",
-        "entity-organization-edb13a30e27d"
+        "entity-organization-134a9d3a8c64"
       ]
     },
     {
@@ -165682,13 +165683,13 @@
       "significance": "",
       "entityIds": [
         "entity-place-5ca10b6a5b38",
+        "entity-organization-3d6bcf5335d1",
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
         "entity-topic-18a9a1d4f0e0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-3d6bcf5335d1"
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -167508,10 +167509,10 @@
         "entity-place-a47674a782ef",
         "entity-place-b323e491e463",
         "entity-place-231429983435",
+        "entity-organization-edb13a30e27d",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8427f6313373",
-        "entity-organization-edb13a30e27d"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -169283,11 +169284,11 @@
       "significance": "",
       "entityIds": [
         "entity-organization-3a9cf57a0e92",
+        "entity-organization-edb13a30e27d",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-8427f6313373",
-        "entity-organization-edb13a30e27d"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -172176,10 +172177,10 @@
       "entityIds": [
         "entity-place-fffefd8e4a76",
         "entity-place-0aada1d1bb1c",
+        "entity-organization-f903cb7d1fa9",
         "entity-policy-a1519bfab118",
         "entity-topic-1a28a95ca93c",
-        "entity-topic-ba1dbbad6e64",
-        "entity-organization-f903cb7d1fa9"
+        "entity-topic-ba1dbbad6e64"
       ]
     },
     {
@@ -172232,14 +172233,14 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-8e82e21b66fb",
         "entity-topic-7fe1d89c885d",
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-8e82e21b66fb"
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -179219,6 +179220,7 @@
         "entity-place-9d9dc1f4f357",
         "entity-place-52e0ae99fcf0",
         "entity-place-cfc80ed5116d",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-4aec0475249f",
         "entity-topic-db818238bf90",
         "entity-topic-85bc32ad72f0",
@@ -179227,7 +179229,6 @@
         "entity-topic-8e6234a589f6",
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-f8be44d48cf6",
         "entity-organization-e9c3462ababe",
         "entity-organization-c658f48117e6",
         "entity-person-930024f84559"
@@ -181692,7 +181693,7 @@
       "title": "职校毕业生赌场案",
       "date": "2023-10-09",
       "datePrecision": "day",
-      "type": "education_culture",
+      "type": "law_justice",
       "summary": "2016年到2018年间，湖南常德海乘职业学校十几名毕业生经学校推荐去菲律宾工作了一两年，回国三四年了，今年成为“网上通缉犯”，在深圳、长沙、常德等地被警方抓捕，有的已经被判刑，涉及开设赌场罪。",
       "sourceIds": [
         "page-3c1f13d83b20"
@@ -182241,10 +182242,10 @@
         "entity-place-2ab0c4fc4585",
         "entity-place-c2c4d9360011",
         "entity-place-6d2e03cac4b3",
+        "entity-organization-edb13a30e27d",
         "entity-topic-18a9a1d4f0e0",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-8427f6313373",
-        "entity-organization-edb13a30e27d"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -184273,6 +184274,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-a3b40e42bf13",
         "entity-topic-ec064b630b41",
         "entity-topic-4aec0475249f",
         "entity-topic-db818238bf90",
@@ -184280,8 +184282,7 @@
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
         "entity-topic-9be00a89dec0",
-        "entity-topic-240a20d1377a",
-        "entity-organization-a3b40e42bf13"
+        "entity-topic-240a20d1377a"
       ]
     },
     {
@@ -189421,6 +189422,7 @@
         "entity-place-19e3c53de5ee",
         "entity-place-f44cf800c974",
         "entity-place-41a9abcd966c",
+        "entity-organization-8e82e21b66fb",
         "entity-policy-39b5ad9aa566",
         "entity-topic-8a581a8f5d03",
         "entity-topic-1a28a95ca93c",
@@ -189433,8 +189435,7 @@
         "entity-topic-7826943ffa59",
         "entity-topic-8e6234a589f6",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-4d81f5d3cc1f",
-        "entity-organization-8e82e21b66fb"
+        "entity-organization-4d81f5d3cc1f"
       ]
     },
     {
@@ -196179,12 +196180,12 @@
         "entity-place-c51d29311ed6",
         "entity-place-9d9dc1f4f357",
         "entity-place-13e5841d337d",
+        "entity-organization-edb13a30e27d",
         "entity-topic-da8baac7a56a",
         "entity-topic-7fe1d89c885d",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8427f6313373",
-        "entity-organization-edb13a30e27d"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -196908,7 +196909,7 @@
       "title": "谭秦东近况",
       "date": "2024-04-03",
       "datePrecision": "day",
-      "type": "society_livelihood",
+      "type": "law_justice",
       "summary": "3月25日，谭秦东发朋友圈宣布因病提前退休，离开医生岗位，署名用了网友起的绰号“谭彦祖”。2017年12月，还是医学硕士的谭秦东发帖批评当时大火的保健品鸿茅药酒。2018年1月，内蒙古乌兰察布市凉城县公安局以损害商业信誉、商品声誉为由跨省抓捕在广州的谭秦东，并采取刑拘强制措施。",
       "sourceIds": [
         "page-ada4e1c0b532"
@@ -199157,6 +199158,7 @@
         "entity-organization-71b1f4324722",
         "entity-organization-35cbc711adca",
         "entity-organization-f38f062f8e25",
+        "entity-organization-950f60f74eaa",
         "entity-topic-4aec0475249f",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
@@ -199165,7 +199167,6 @@
         "entity-topic-5dd0d821b9a8",
         "entity-topic-ba1dbbad6e64",
         "entity-organization-a479f39275ac",
-        "entity-organization-950f60f74eaa",
         "entity-organization-5747d48f6f17"
       ]
     },
@@ -200366,14 +200367,14 @@
       "entityIds": [
         "entity-place-a2678e701b27",
         "entity-place-8b3721273072",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
         "entity-topic-8a581a8f5d03",
         "entity-topic-3619e6a68ba1",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-8e6234a589f6",
         "entity-topic-89169131f716",
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -202947,12 +202948,12 @@
       "significance": "",
       "entityIds": [
         "entity-place-9652164ccd71",
+        "entity-organization-f56b9d78f517",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-f56b9d78f517",
         "entity-organization-ab5b270d4974"
       ]
     },
@@ -205312,6 +205313,7 @@
         "entity-place-82390768e1b8",
         "entity-place-7b9df876e8dc",
         "entity-place-233ebc723a70",
+        "entity-organization-3d6bcf5335d1",
         "entity-policy-23d58ea15270",
         "entity-topic-ec064b630b41",
         "entity-topic-4aec0475249f",
@@ -205320,8 +205322,7 @@
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-3d6bcf5335d1"
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -207865,6 +207866,7 @@
         "entity-place-7fad64cf238e",
         "entity-place-19e3c53de5ee",
         "entity-place-b7368bc5ea60",
+        "entity-organization-8e82e21b66fb",
         "entity-topic-7fe1d89c885d",
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
@@ -207872,8 +207874,7 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-a3b40e42bf13",
-        "entity-organization-8e82e21b66fb"
+        "entity-organization-a3b40e42bf13"
       ]
     },
     {
@@ -209123,6 +209124,7 @@
         "entity-place-5e59af8f1f5d",
         "entity-place-1ffcaea14502",
         "entity-organization-8f1fb291ff91",
+        "entity-organization-8e82e21b66fb",
         "entity-facility-4d3d5e44e8bb",
         "entity-topic-db818238bf90",
         "entity-topic-7fe1d89c885d",
@@ -209130,8 +209132,7 @@
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-8e82e21b66fb"
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -211206,12 +211207,12 @@
         "entity-place-a2ef4c813efc",
         "entity-place-7562747c6e2f",
         "entity-place-4ad5cfd9df5b",
+        "entity-organization-f56b9d78f517",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-240a20d1377a",
-        "entity-organization-f56b9d78f517"
+        "entity-topic-240a20d1377a"
       ]
     },
     {
@@ -211266,6 +211267,7 @@
         "entity-organization-644de59c8106",
         "entity-organization-5e461d16489f",
         "entity-organization-d070343297ec",
+        "entity-organization-a3b40e42bf13",
         "entity-topic-1111de459cd2",
         "entity-topic-85bc32ad72f0",
         "entity-topic-6c34323d1aa3",
@@ -211274,7 +211276,6 @@
         "entity-topic-18a9a1d4f0e0",
         "entity-topic-9be00a89dec0",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-a3b40e42bf13",
         "entity-organization-8c82933500f7"
       ]
     },
@@ -212755,6 +212756,7 @@
         "entity-place-231429983435",
         "entity-place-cc6336fa8eb9",
         "entity-place-9d9dc1f4f357",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
@@ -212763,7 +212765,6 @@
         "entity-topic-8e6234a589f6",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
-        "entity-organization-f8be44d48cf6",
         "entity-person-6359c318faf5"
       ]
     },
@@ -212904,13 +212905,13 @@
         "entity-place-da7f53fa67f7",
         "entity-place-9d9dc1f4f357",
         "entity-organization-3a9cf57a0e92",
+        "entity-organization-edb13a30e27d",
         "entity-topic-1a28a95ca93c",
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-8427f6313373",
-        "entity-organization-edb13a30e27d"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -212929,12 +212930,12 @@
         "entity-place-2a1f489d410a",
         "entity-place-7562747c6e2f",
         "entity-place-19e3c53de5ee",
+        "entity-organization-3a9cf57a0e92",
+        "entity-organization-edb13a30e27d",
         "entity-topic-da8baac7a56a",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8427f6313373",
-        "entity-organization-3a9cf57a0e92",
-        "entity-organization-edb13a30e27d"
+        "entity-topic-8427f6313373"
       ]
     },
     {
@@ -214726,13 +214727,13 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-f56b9d78f517",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-6c34323d1aa3",
         "entity-topic-53d167322c77",
-        "entity-topic-ba1dbbad6e64",
-        "entity-organization-f56b9d78f517"
+        "entity-topic-ba1dbbad6e64"
       ]
     },
     {
@@ -215067,11 +215068,11 @@
         "entity-place-19e3c53de5ee",
         "entity-place-231429983435",
         "entity-place-66b01b35c116",
+        "entity-organization-950f60f74eaa",
         "entity-topic-7fe1d89c885d",
         "entity-topic-1a28a95ca93c",
         "entity-topic-3619e6a68ba1",
-        "entity-topic-5dd0d821b9a8",
-        "entity-organization-950f60f74eaa"
+        "entity-topic-5dd0d821b9a8"
       ]
     },
     {
@@ -222152,12 +222153,12 @@
       "significance": "",
       "entityIds": [
         "entity-place-231429983435",
+        "entity-organization-8e82e21b66fb",
         "entity-topic-7fe1d89c885d",
         "entity-topic-53d167322c77",
         "entity-topic-3619e6a68ba1",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-240a20d1377a",
-        "entity-organization-8e82e21b66fb"
+        "entity-topic-240a20d1377a"
       ]
     },
     {
@@ -222572,6 +222573,7 @@
         "entity-place-5ca10b6a5b38",
         "entity-place-cedfd66ac164",
         "entity-organization-4d81f5d3cc1f",
+        "entity-organization-8e82e21b66fb",
         "entity-policy-9973f8cf9dc0",
         "entity-policy-9bd80349581d",
         "entity-policy-4e519ccb0e51",
@@ -222588,8 +222590,7 @@
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-8e82e21b66fb"
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -223328,13 +223329,13 @@
         "entity-place-8deb1a3032c1",
         "entity-place-a2678e701b27",
         "entity-place-b7368bc5ea60",
+        "entity-organization-950f60f74eaa",
         "entity-topic-7fe1d89c885d",
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
         "entity-topic-d68c099d5b04",
         "entity-topic-8e6234a589f6",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-950f60f74eaa",
         "entity-organization-8c82933500f7",
         "entity-organization-644de59c8106"
       ]
@@ -223355,6 +223356,7 @@
         "entity-place-19e3c53de5ee",
         "entity-organization-0b54128df616",
         "entity-organization-8e82e21b66fb",
+        "entity-organization-a3b40e42bf13",
         "entity-topic-db818238bf90",
         "entity-topic-53d167322c77",
         "entity-topic-2578a308b835",
@@ -223363,8 +223365,7 @@
         "entity-topic-18a9a1d4f0e0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-8e6234a589f6",
-        "entity-organization-a3b40e42bf13"
+        "entity-topic-8e6234a589f6"
       ]
     },
     {
@@ -225302,12 +225303,12 @@
         "entity-place-b323e491e463",
         "entity-place-f44cf800c974",
         "entity-place-ae019a9e566d",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
         "entity-topic-8a581a8f5d03",
         "entity-topic-1a28a95ca93c",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-240a20d1377a",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-240a20d1377a"
       ]
     },
     {
@@ -228579,7 +228580,7 @@
       "title": "财政局长跑路",
       "date": "2025-03-29",
       "datePrecision": "day",
-      "type": "policy_governance",
+      "type": "law_justice",
       "summary": "河南官场出了一件离谱事：安阳市殷都区财政局原局长路庆峰跑了。区监委发通告，敦促路庆峰及两名密切关系人自首，提供线索查实的奖励5000元，协助抓捕路庆峰到案的奖励2万。",
       "sourceIds": [
         "page-2d62ecaf8511"
@@ -228808,14 +228809,14 @@
       "significance": "",
       "entityIds": [
         "entity-place-7562747c6e2f",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
         "entity-topic-5dd0d821b9a8",
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-e3a330ceec3c",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-e3a330ceec3c"
       ]
     },
     {
@@ -233583,6 +233584,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-cc6336fa8eb9",
+        "entity-organization-f8be44d48cf6",
         "entity-topic-db818238bf90",
         "entity-topic-85bc32ad72f0",
         "entity-topic-8f0d9fc472a1",
@@ -233590,7 +233592,6 @@
         "entity-topic-7fe1d89c885d",
         "entity-topic-6c34323d1aa3",
         "entity-topic-5dd0d821b9a8",
-        "entity-organization-f8be44d48cf6",
         "entity-organization-e9c3462ababe"
       ]
     },
@@ -239523,11 +239524,11 @@
       "significance": "",
       "entityIds": [
         "entity-place-19e3c53de5ee",
+        "entity-organization-950f60f74eaa",
         "entity-topic-6cf73dbb1b59",
         "entity-topic-1a28a95ca93c",
         "entity-topic-3619e6a68ba1",
         "entity-topic-ba1dbbad6e64",
-        "entity-organization-950f60f74eaa",
         "entity-organization-5288d4f9c5bf"
       ]
     },
@@ -246993,9 +246994,9 @@
       "significance": "",
       "entityIds": [
         "entity-organization-4d81f5d3cc1f",
+        "entity-organization-8e82e21b66fb",
         "entity-topic-3619e6a68ba1",
-        "entity-topic-5dd0d821b9a8",
-        "entity-organization-8e82e21b66fb"
+        "entity-topic-5dd0d821b9a8"
       ]
     },
     {
@@ -247359,8 +247360,8 @@
       "significance": "",
       "entityIds": [
         "entity-place-19e3c53de5ee",
-        "entity-topic-3619e6a68ba1",
-        "entity-organization-950f60f74eaa"
+        "entity-organization-950f60f74eaa",
+        "entity-topic-3619e6a68ba1"
       ]
     },
     {
@@ -250853,9 +250854,9 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-f8be44d48cf6",
         "entity-topic-8a581a8f5d03",
-        "entity-topic-d68c099d5b04",
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-d68c099d5b04"
       ]
     },
     {
@@ -254028,10 +254029,10 @@
       "significance": "",
       "entityIds": [
         "entity-place-a43c3dd589f7",
+        "entity-organization-f56b9d78f517",
         "entity-topic-da8baac7a56a",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-d68c099d5b04",
-        "entity-organization-f56b9d78f517"
+        "entity-topic-d68c099d5b04"
       ]
     },
     {
@@ -254942,7 +254943,7 @@
       "title": "江苏多地“处”改回“科”，“科”改回“股”",
       "date": "2026-08-03",
       "datePrecision": "day",
-      "type": "other",
+      "type": "policy_governance",
       "summary": "江苏多地“处”改回“科”，“科”改回“股”。",
       "sourceIds": [
         "page-db4f2b99a971"
@@ -255040,7 +255041,7 @@
       "title": "辽宁鞍山频现“鬼火少年”飙车炸街，一次性抓捕103人",
       "date": "2026-08-06",
       "datePrecision": "day",
-      "type": "other",
+      "type": "law_justice",
       "summary": "辽宁鞍山频现“鬼火少年”飙车炸街，一次性抓捕103人。",
       "sourceIds": [
         "page-c2bf95e8b6f0"
@@ -255090,14 +255091,14 @@
       "title": "这个夏天的知了叫好像特别响，多地多人因蝉鸣听力受损",
       "date": "2026-08-06",
       "datePrecision": "day",
-      "type": "other",
+      "type": "public_health",
       "summary": "这个夏天的知了叫好像特别响，多地多人因蝉鸣听力受损。",
       "sourceIds": [
         "page-c2bf95e8b6f0"
       ],
       "significance": "",
       "entityIds": [
-        "entity-organization-f8be44d48cf6"
+        "entity-topic-1a28a95ca93c"
       ]
     },
     {
@@ -255113,8 +255114,8 @@
       ],
       "significance": "",
       "entityIds": [
-        "entity-topic-d68c099d5b04",
-        "entity-organization-f8be44d48cf6"
+        "entity-organization-f8be44d48cf6",
+        "entity-topic-d68c099d5b04"
       ]
     },
     {

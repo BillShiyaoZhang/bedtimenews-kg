@@ -331,6 +331,12 @@ export function createExtractionEngine(rules) {
     `([\\p{Script=Han}A-Za-z0-9·&（）()《》“”_-]{2,32}(?:${organizationSuffixPattern}))`,
     "gu",
   );
+  const reviewedOrganizationAliases = [...organizationAliases.keys()].filter(
+    (alias) => alias.length >= 2,
+  );
+  const reviewedOrganizationPattern = reviewedOrganizationAliases.length
+    ? new RegExp(alternativesPattern(reviewedOrganizationAliases), "gu")
+    : null;
   const facilityPattern = new RegExp(
     `([\\p{Script=Han}A-Za-z0-9·（）()_-]{2,28}(?:${facilitySuffixPattern}))`,
     "gu",
@@ -420,6 +426,24 @@ export function createExtractionEngine(rules) {
         method: "organization_suffix",
         confidence: 0.84,
       });
+    }
+
+    if (reviewedOrganizationPattern) {
+      reviewedOrganizationPattern.lastIndex = 0;
+      for (const match of normalizedNamedText.matchAll(
+        reviewedOrganizationPattern,
+      )) {
+        const canonical = organizationAliases.get(match[0]);
+        if (!canonical) continue;
+        add({
+          key: entityKey("organization", canonical.label),
+          type: "organization",
+          label: canonical.label,
+          aliases: canonical.aliases ?? [],
+          method: "organization_alias",
+          confidence: 0.84,
+        });
+      }
     }
 
     facilityPattern.lastIndex = 0;
@@ -577,6 +601,7 @@ export function materializeEntity(stat) {
     gazetteer: `标准地名；在 ${stat.eventCount} 条独立新闻中出现。`,
     administrative_suffix: `由行政区划后缀规则识别的地点；在 ${stat.eventCount} 条独立新闻中出现。`,
     organization_suffix: `由组织名称后缀规则识别的主体；在 ${stat.eventCount} 条独立新闻中出现。`,
+    organization_alias: `由经审查的组织名称或别名识别的主体；在 ${stat.eventCount} 条独立新闻中出现。`,
     facility_suffix: `由设施名称后缀规则识别的命名对象；在 ${stat.eventCount} 条独立新闻中出现。`,
     document_title: `由书名号与文件类型后缀识别的政策文件；在 ${stat.eventCount} 条独立新闻中出现。`,
     named_document: `由书名号与文献类型后缀识别的报告或文献；在 ${stat.eventCount} 条独立新闻中出现。`,

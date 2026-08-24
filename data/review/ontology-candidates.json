@@ -5,7 +5,7 @@
   "ontologyVersion": "2.1.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.3.0",
-  "extractionVersion": "3.3.0",
+  "extractionVersion": "3.4.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
     "totalNews": 9528,
@@ -13,8 +13,8 @@
     "newsWithKnownEntities": 9528,
     "newsWithoutKnownEntities": 0,
     "entityCoveragePercent": 100,
-    "specificallyClassifiedNews": 9525,
-    "eventTypeCoveragePercent": 99.97,
+    "specificallyClassifiedNews": 9528,
+    "eventTypeCoveragePercent": 100,
     "averageEntitiesPerNews": 9.5,
     "requiredCoverage": {
       "semanticEntity": {
@@ -23,9 +23,9 @@
         "percent": 100
       },
       "specificEventType": {
-        "covered": 9525,
+        "covered": 9528,
         "total": 9528,
-        "percent": 99.97
+        "percent": 100
       },
       "sourceTraceability": {
         "covered": 9528,
@@ -40,16 +40,16 @@
     },
     "facetPresence": {
       "subject": {
-        "news": 3036,
-        "percent": 31.86
+        "news": 3035,
+        "percent": 31.85
       },
       "place": {
         "news": 7946,
         "percent": 83.4
       },
       "topic": {
-        "news": 9302,
-        "percent": 97.63
+        "news": 9303,
+        "percent": 97.64
       },
       "named_object": {
         "news": 1168,
@@ -66,45 +66,26 @@
       "topic": 27
     },
     "eventTypeCounts": {
-      "policy_governance": 1225,
-      "economy_business": 2450,
+      "policy_governance": 1224,
+      "economy_business": 2449,
       "infrastructure_transport": 302,
       "science_technology": 593,
-      "law_justice": 848,
+      "law_justice": 855,
       "conflict_security": 553,
       "disaster_accident": 389,
-      "public_health": 290,
+      "public_health": 291,
       "environment_energy": 271,
-      "education_culture": 1312,
-      "society_livelihood": 925,
-      "international_relations": 367,
-      "other": 3
+      "education_culture": 1311,
+      "society_livelihood": 924,
+      "international_relations": 366,
+      "other": 0
     }
   },
   "currentIncrement": {
     "newNews": 9528,
     "newNewsWithoutKnownEntities": 0,
-    "otherTypeNews": 3,
-    "untypedReviewSample": [
-      {
-        "id": "event-1a393b08edc5",
-        "newsId": "news-6e12027ca677",
-        "title": "江苏多地“处”改回“科”，“科”改回“股”",
-        "pageId": "page-db4f2b99a971"
-      },
-      {
-        "id": "event-009590a378f8",
-        "newsId": "news-1db5abfca84d",
-        "title": "辽宁鞍山频现“鬼火少年”飙车炸街，一次性抓捕103人",
-        "pageId": "page-c2bf95e8b6f0"
-      },
-      {
-        "id": "event-88864becbbf5",
-        "newsId": "news-e2fbb834e13e",
-        "title": "这个夏天的知了叫好像特别响，多地多人因蝉鸣听力受损",
-        "pageId": "page-c2bf95e8b6f0"
-      }
-    ],
+    "otherTypeNews": 0,
+    "untypedReviewSample": [],
     "entityGapReviewSample": []
   }
 }
