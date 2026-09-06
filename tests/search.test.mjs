@@ -170,6 +170,18 @@ test("every published entity has a non-empty searchable document", () => {
   }
 });
 
+test("every published news title is a non-empty query that recalls its event", () => {
+  for (const document of documents) {
+    const query = parseSearchQuery(document.event.title);
+    assert.ok(query.length > 0, `${document.event.id} has an unsearchable title`);
+    assert.equal(
+      matchesSearchDocument(document, query),
+      true,
+      `${document.event.id} cannot be recalled by its title`,
+    );
+  }
+});
+
 async function readJson(url) {
   return JSON.parse(await readFile(url, "utf8"));
 }

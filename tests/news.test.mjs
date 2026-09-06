@@ -1,10 +1,108 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  maskHtmlComments,
   parseSourcePage,
   readNewsFragment,
   reconcileEpisodeDates,
 } from "../scripts/lib/news.mjs";
+
+test("HTML comment masking preserves source positions and hides unfinished comments", () => {
+  const raw = "正文<!-- 模板说明\r\n\r\n## 隐藏标题\n-->继续正文<!-- 未闭合说明";
+  const masked = maskHtmlComments(raw);
+  assert.equal(masked.length, raw.length);
+  assert.deepEqual(masked.match(/\r\n|\n/gu), raw.match(/\r\n|\n/gu));
+  assert.equal(masked.indexOf("继续正文"), raw.indexOf("继续正文"));
+  assert.doesNotMatch(masked, /模板说明|隐藏标题|未闭合说明/u);
+});
+
+test("multiline comments cannot supply news titles, summaries, or horizontal boundaries", () => {
+  const first = "第一条新闻讨论人工智能技术进展，研究团队公布了一项重要的实验结果";
+  const raw = `---
+title: 两条独立新闻
+published: true
+---
+
+# Tabs {.tabset}
+
+<!-- 这里是视频账号与模板的维护说明，长度足够被旧版拆分器误认为新闻正文
+
+## 隐藏的假新闻标题
+
+---
+
+<font color="indigo">昨天的消息，隐藏的新闻不应该被识别为独立边界。</font>
+
+-->
+
+${first}。这项研究包含具体的数据和技术方案，相关团队介绍了实验过程与后续计划。该段还提供充分的背景和事实描述，以便作为一条内容完整的独立新闻，并且不会因为页面长度不足而退回整页模式。
+
+---
+
+## 第二条具体新闻
+
+第二条新闻讨论铁路建设的最新进展，工程团队介绍了建设过程和通车计划。这条新闻与上一条科研新闻的主题不同，需要保留各自的标题、摘要和原文范围。报道还给出了具体的工程背景、涉及地点和实施进展，为读者提供完整的信息与可以追溯的原始证据。`;
+  const result = parseSourcePage("main/1-100/comments.md", raw);
+
+  assert.equal(result.page.segmentation.strategy, "horizontal_rule");
+  assert.equal(result.page.segmentation.candidateBoundaryCount, 1);
+  assert.equal(result.news.length, 2);
+  assert.equal(result.news[0].title, first);
+  assert.ok(result.news[0].summary.startsWith(first));
+  assert.equal(result.news[1].title, "第二条具体新闻");
+  for (const item of result.news) {
+    assert.doesNotMatch(item.title + item.summary, /模板|隐藏|<!--/u);
+  }
+  assert.match(readNewsFragment(raw, result.news[0].fragment), /<!--/u);
+  assert.match(readNewsFragment(raw, result.news[1].fragment), /铁路建设/u);
+});
+
+test("commented numbered headings do not create news or change visible news identities", () => {
+  const raw = `---
+title: 测试日报
+published: true
+---
+
+## 1、第一条新闻
+
+第一条新闻有明确的主题和足够长的事实描述，需要保留准确的原文片段、标题与摘要，供后续检索使用。
+
+## 2、第二条新闻
+
+第二条新闻同样有自己的事实背景和具体内容，不应因为插入模板注释而改变它的稳定新闻标识。`;
+  const commented = raw.replace(
+    "## 2、第二条新闻",
+    "<!--\n\n## 99、隐藏的标题\n\n隐藏内容不能成为新闻，尽管它有足够多的文字并且看起来很像一个编号新闻段落。\n\n-->\n\n## 2、第二条新闻",
+  );
+  const original = parseSourcePage("daily/2026/07/23.md", raw);
+  const result = parseSourcePage("daily/2026/07/23.md", commented);
+
+  assert.equal(result.news.length, 2);
+  assert.deepEqual(
+    result.news.map((item) => item.id),
+    original.news.map((item) => item.id),
+  );
+  assert.match(readNewsFragment(commented, result.news[0].fragment), /隐藏的标题/u);
+  assert.match(readNewsFragment(commented, result.news[1].fragment), /## 2、第二条新闻/u);
+});
+
+test("navigation indexes remain excluded when their link lists are commented out", () => {
+  const raw = `---
+title: 第701-800期
+published: true
+---
+
+> 这段时间暂无节目更新。
+
+<!--
+- [701](./701-800/701.md)
+- [702](./701-800/702.md)
+- [703](./701-800/703.md)
+- [704](./701-800/704.md)
+- [705](./701-800/705.md)
+-->`;
+  assert.equal(parseSourcePage("main/701-800.md", raw), null);
+});
 
 test("numbered page sections become independent news with exact provenance", () => {
   const raw = `---

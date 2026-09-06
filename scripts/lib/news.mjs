@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 
 export const NEWS_DATASET_SCHEMA_VERSION = "1.1.0";
-export const SEGMENTATION_VERSION = "1.3.0";
+export const SEGMENTATION_VERSION = "1.4.0";
 
 const MEDIA_HEADING = /^(?:Tabs|B站|西瓜视频|YouTube|播客)$/iu;
 const NUMBERED_HEADING =
@@ -34,21 +34,23 @@ const DATE_RESOLUTIONS = new Set([
 
 export function parseSourcePage(repositoryPath, raw, overrides = {}) {
   const parsed = parseFrontMatter(raw);
+  const visibleBody = maskHtmlComments(parsed.body);
   if (
     String(parsed.attributes.published).toLocaleLowerCase("en-US") === "false" ||
-    isNavigationIndex(parsed.body)
+    isNavigationIndex(parsed.body) ||
+    isNavigationIndex(visibleBody)
   ) {
     return null;
   }
 
   const sourceTitle =
     parsed.attributes.title ||
-    firstHeading(parsed.body) ||
+    firstHeading(visibleBody) ||
     basename(repositoryPath, ".md");
   const pageId = `page-${shortHash(repositoryPath)}`;
   const dateObservation = extractDate(
     repositoryPath,
-    parsed.body,
+    visibleBody,
     parsed.attributes,
   );
   const episode = extractEpisode(sourceTitle);
@@ -56,7 +58,7 @@ export function parseSourcePage(repositoryPath, raw, overrides = {}) {
   const segmentation = applyManualExclusions(
     segmentNews(
       repositoryPath,
-      parsed.bodyLines,
+      visibleBody.split(/\r?\n/u),
       sourceTitle,
       parsed.attributes.description,
       overrides,
@@ -100,7 +102,7 @@ export function parseSourcePage(repositoryPath, raw, overrides = {}) {
       sourceField === "body"
         ? parsed.bodyLines.slice(section.start, section.end).join("\n")
         : section.metadataText;
-    const explicitDate = extractExplicitDate(rawSection);
+    const explicitDate = extractExplicitDate(maskHtmlComments(rawSection));
     const hasPageDate = pageDate && pageDate !== "1900-01-01";
     const date = hasPageDate
       ? pageDate
@@ -353,6 +355,9 @@ export function validateNewsDataset(dataset) {
     (dataset.pages ?? []).map((page) => [page.id, page]),
   );
   for (const [index, item] of (dataset.news ?? []).entries()) {
+    if (!/[\p{L}\p{N}]/u.test(item.title ?? "")) {
+      issues.push(issue(`news.${index}.title`, "title has no searchable text"));
+    }
     if (!pageIds.has(item.pageId)) {
       issues.push(issue(`news.${index}.pageId`, `missing page ${item.pageId}`));
     }
@@ -582,9 +587,15 @@ export function buildSegmentationReport(dataset) {
   };
 }
 
+export function maskHtmlComments(value = "") {
+  // Keep line numbers and UTF-16 offsets aligned with the unmodified source.
+  return String(value).replace(/<!--[\s\S]*?(?:-->|$)/gu, (comment) =>
+    comment.replace(/[^\r\n]/g, " "),
+  );
+}
+
 export function cleanText(value = "") {
-  return String(value)
-    .replace(/<!--[\s\S]*?-->/gu, " ")
+  return maskHtmlComments(value)
     .replace(/!\[[^\]]*\]\((?:[^()]|\([^()]*\))*\)/gu, " ")
     .replace(/\[([^\]]+)\]\((?:[^()]|\([^()]*\))*\)/gu, "$1")
     .replace(/!\[[^\]]*\]\([^)]+\)/gu, " ")
@@ -1139,7 +1150,7 @@ function firstHeading(body) {
 
 function meaningfulParagraph(body) {
   return (
-    body
+    maskHtmlComments(body)
       .split(/\n\s*\n/u)
       .map(cleanText)
       .find(

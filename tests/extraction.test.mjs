@@ -150,6 +150,23 @@ test("coverage advisory headlines map to evidence-backed event types", () => {
   }
 });
 
+test("HTML comments cannot invent entities or override the visible event type", () => {
+  const text = `<!-- 华为发布《虚假条例》，法院判决涉及犯罪、起诉、逮捕、抓捕、违法与执法。
+
+这里仍然是模板注释，不是新闻事实。
+-->
+人工智能技术研发取得进展，研究团队公布实验结果。`;
+  const candidates = extractor.extractCandidates(text, text);
+  assert.equal(extractor.classifyEvent(text, text), "science_technology");
+  assert.ok(candidates.some((candidate) => candidate.label === "人工智能"));
+  assert.equal(
+    candidates.some((candidate) =>
+      ["华为", "《虚假条例》", "法律与司法"].includes(candidate.label),
+    ),
+    false,
+  );
+});
+
 test("cicada hearing-loss news uses healthcare semantics without borrowing Huawei", () => {
   const title = "这个夏天的知了叫好像特别响，多地多人因蝉鸣听力受损";
   const candidates = extractor.extractCandidates(title, title, {

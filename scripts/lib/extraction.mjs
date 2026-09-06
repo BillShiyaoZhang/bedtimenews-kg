@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { maskHtmlComments } from "./news.mjs";
 
 const GENERIC_LABELS = new Set([
   "中国",
@@ -777,7 +778,7 @@ function normalizeIdentifier(value) {
 }
 
 function normalizeText(value = "") {
-  return String(value).replace(/\s+/gu, " ").trim();
+  return maskHtmlComments(value).replace(/\s+/gu, " ").trim();
 }
 
 function countOccurrences(text, keyword) {

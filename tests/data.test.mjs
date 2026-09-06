@@ -27,8 +27,22 @@ test("generated semantic knowledge graph passes schema and reference checks", ()
   assert.ok(kg.entities.length > 1_500);
   assert.equal(kg.schemaVersion, ontology.version);
   assert.equal(kg.source.newsDatasetSchemaVersion, "1.1.0");
-  assert.equal(kg.source.segmentationVersion, "1.3.0");
-  assert.equal(kg.source.extractionVersion, "3.4.0");
+  assert.equal(kg.source.segmentationVersion, "1.4.0");
+  assert.equal(kg.source.extractionVersion, "3.5.0");
+});
+
+test("news validation rejects titles with no searchable text", () => {
+  const invalid = {
+    ...newsDataset,
+    news: newsDataset.news.map((item, index) =>
+      index === 0 ? { ...item, title: "<" } : item,
+    ),
+  };
+  assert.ok(
+    validateNewsDataset(invalid).some(
+      (issue) => issue.path === "news.0.title",
+    ),
+  );
 });
 
 test("processed dataset splits multi-news pages before KG extraction", () => {

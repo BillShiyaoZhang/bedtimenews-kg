@@ -7,7 +7,7 @@
     "licenseNote": "本数据集只保存新闻级索引、摘要、片段哈希与原文位置；完整原文保留在上游仓库。"
   },
   "segmentation": {
-    "version": "1.3.0",
+    "version": "1.4.0",
     "overrideVersion": "1.1.0",
     "mode": "deterministic-page-to-news-segmentation"
   },
@@ -126906,11 +126906,11 @@
       }
     },
     {
-      "id": "news-e220969a5689",
-      "title": "<",
+      "id": "news-8c736a5762bb",
+      "title": "他的研究方向在中国不算多见，是基层政府和企业、个人之间的互动",
       "date": "2026-01-15",
       "datePrecision": "day",
-      "summary": "<!-- 睡前消息的西瓜视频账号仍处于禁言状态，暂时将其从模板中注释",
+      "summary": "他的研究方向在中国不算多见，是基层政府和企业、个人之间的互动。他致力于回答一个常见、但又被学术界忽视的问题——就是国家的政策、宏观的经济规划如何与普通中国人的生活互动。他最近出版了一本科普著作，名字是《基层中国的运行逻辑》。",
       "pageId": "page-e59bb0b079f1",
       "fragment": {
         "strategy": "horizontal_rule",
@@ -126918,7 +126918,7 @@
         "sourceField": "body",
         "startLine": 10,
         "endLine": 44,
-        "marker": "<",
+        "marker": "他的研究方向在中国不算多见，是基层政府和企业、个人之间的互动",
         "contentHash": "c1730f35109ad8267390fcef7ac8307b121a121bf7d1033c8eb3e680a63c48ed"
       }
     },
