@@ -5,7 +5,7 @@
   "ontologyVersion": "2.1.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.4.0",
-  "extractionVersion": "3.5.0",
+  "extractionVersion": "3.6.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
     "totalNews": 9528,
@@ -15,7 +15,7 @@
     "entityCoveragePercent": 100,
     "specificallyClassifiedNews": 9528,
     "eventTypeCoveragePercent": 100,
-    "averageEntitiesPerNews": 9.5,
+    "averageEntitiesPerNews": 9.51,
     "requiredCoverage": {
       "semanticEntity": {
         "covered": 9528,
@@ -48,8 +48,8 @@
         "percent": 83.4
       },
       "topic": {
-        "news": 9303,
-        "percent": 97.64
+        "news": 9304,
+        "percent": 97.65
       },
       "named_object": {
         "news": 1168,
@@ -66,17 +66,17 @@
       "topic": 27
     },
     "eventTypeCounts": {
-      "policy_governance": 1225,
-      "economy_business": 2449,
+      "policy_governance": 1224,
+      "economy_business": 2442,
       "infrastructure_transport": 302,
-      "science_technology": 593,
-      "law_justice": 855,
+      "science_technology": 591,
+      "law_justice": 862,
       "conflict_security": 553,
-      "disaster_accident": 389,
+      "disaster_accident": 388,
       "public_health": 291,
       "environment_energy": 271,
-      "education_culture": 1310,
-      "society_livelihood": 924,
+      "education_culture": 1309,
+      "society_livelihood": 929,
       "international_relations": 366,
       "other": 0
     }

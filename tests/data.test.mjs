@@ -28,7 +28,7 @@ test("generated semantic knowledge graph passes schema and reference checks", ()
   assert.equal(kg.schemaVersion, ontology.version);
   assert.equal(kg.source.newsDatasetSchemaVersion, "1.1.0");
   assert.equal(kg.source.segmentationVersion, "1.4.0");
-  assert.equal(kg.source.extractionVersion, "3.5.0");
+  assert.equal(kg.source.extractionVersion, "3.6.0");
 });
 
 test("news validation rejects titles with no searchable text", () => {

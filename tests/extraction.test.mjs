@@ -118,6 +118,85 @@ test("incremental policy phrase maps to the reviewed macroeconomic topic", () =>
   );
 });
 
+// Reviewed against reference/601-700/{636,637,639,641,643,646}.md at
+// upstream fed7fdb5e3703d03c947252302b6f4a202610e9c.
+test("late-summer archive vocabulary supplies evidence-backed semantic topics", () => {
+  for (const [title, topic] of [
+    [
+      "多地查处严重超载面包车，都是暑假到父母工作地探望父母的“小候鸟”",
+      "公共安全",
+    ],
+    ["暑假儿童被单独放在图书馆一天，现在成了问题", "文化与传媒"],
+    [
+      "涨价也没救成茅台，净利润开始下滑，甚至中央汇金、证金公司清仓退出前十大股东",
+      "金融与资本市场",
+    ],
+    ["今年法拍房市场明显放量，前七个月成交量相当于去年全年近八成", "住房与土地"],
+    [
+      "国内一个月被曝三起IIT试验死亡事件，曾让中国生物制药企业获得成本和速度优势的模式受到考验",
+      "医疗健康",
+    ],
+    ["又见村医造假虚报精神病，但是纠错难", "医疗健康"],
+    ["我国与热浪相关的过早死亡有多少", "环境与气候"],
+    ["1991年前出生的人，不能新办理40年期个人房贷吗", "住房与土地"],
+    ["“年龄＋期限”不超过75岁的规则会松动吗", "金融与资本市场"],
+  ]) {
+    assert.ok(
+      extractor.extractCandidates(title, title).some(
+        (candidate) => candidate.type === "topic" && candidate.label === topic,
+      ),
+      `expected ${topic} topic for: ${title}`,
+    );
+  }
+});
+
+test("new archive event types follow the specific reported action", () => {
+  for (const [title, eventType] of [
+    ["多地查处严重超载面包车", "law_justice"],
+    ["陕西房主反抗强拆导致强拆人员死亡案宣判，属于正当防卫", "law_justice"],
+    ["我国与热浪相关的过早死亡有多少", "environment_energy"],
+    ["四川雷波县让老师和“耻辱”合影", "education_culture"],
+    ["华芯科技与海特高新抢公章还有前传", "economy_business"],
+    ["1991年前出生的人，不能新办理40年期个人房贷吗", "society_livelihood"],
+    ["“年龄＋期限”不超过75岁的规则会松动吗", "economy_business"],
+    ["其实还有接力贷、子孙贷，南宁一楼盘曾宣传贷款年龄最长达100岁", "economy_business"],
+  ]) {
+    assert.equal(extractor.classifyEvent(title, title), eventType, title);
+  }
+});
+
+test("company dispute aliases preserve both source-named organizations", () => {
+  // The full name occurs in reference/640; reference/644 uses its short name.
+  for (const title of [
+    "成都海威华芯科技与大股东海特高新的公司治理纠纷再次升级，再度爆发抢公章大战",
+    "华芯科技与海特高新抢公章还有前传",
+  ]) {
+    const organizations = extractor.extractCandidates(title, title)
+      .filter((candidate) => candidate.type === "organization");
+    const labels = new Set(organizations.map((candidate) => candidate.label));
+    assert.ok(labels.has("成都海威华芯科技"));
+    assert.ok(labels.has("海特高新"));
+    assert.equal(labels.has("华芯科技"), false);
+    assert.equal(labels.has("华为"), false);
+  }
+});
+
+test("reviewed health and loan vocabulary does not generalize to unrelated words", () => {
+  const titles = [
+    "试验结束后，所有设备停止运行",
+    "年龄增长，期限延长，调整规则",
+    "死亡事件仍有疑问",
+  ];
+  for (const title of titles) {
+    const topics = extractor.extractCandidates(title, title)
+      .filter((candidate) => candidate.type === "topic")
+      .map((candidate) => candidate.label);
+    for (const unwanted of ["医疗健康", "金融与资本市场", "住房与土地", "环境与气候"]) {
+      assert.equal(topics.includes(unwanted), false, title);
+    }
+  }
+});
+
 test("development zone consolidation maps to public governance", () => {
   const title = "5个考核评价靠后国家级经开区被摘帽，地方撤并经开区";
   const candidates = extractor.extractCandidates(title, title);

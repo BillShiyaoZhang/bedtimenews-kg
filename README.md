@@ -79,7 +79,7 @@ npm run kg:rebuild
 
 1. 更新 submodule；
 2. 对 processed news 和 KG 运行 append-only 更新；
-3. 校验原文片段哈希、page → news → KG 的一对一投影、ontology 与 100% 必填语义覆盖；
+3. 校验原文片段哈希、page → news → KG 的一对一投影、ontology 和最小语义实体约束，再执行独立的覆盖检查；
 4. 构建静态站；
 5. 将通过完整验证的同步直接提交到 `main`，并显式触发 GitHub Pages 部署。
 
@@ -88,11 +88,21 @@ npm run kg:rebuild
 中调用大模型。Codex App 中每天运行的
 `Daily ontology and KG remediation` scheduled task 是唯一的语义修复执行者。
 
-每日任务使用 ChatGPT/Codex 订阅下的 `gpt-5.6-sol` 与 `xhigh`（Extra High）
+同步的 checkout、安装、更新、必需验证、构建、推送或部署派发失败时，独立通知
+job 会创建或更新 `sync-failure` issue。每日任务同时直接检查 `main` 的最新同步
+Actions 运行和日志，即使没有 issue 也会发现故障；API 查询受阻不会被当作
+“无事项”。它按最新已完成运行判断是否恢复，避免反复处理已被成功运行覆盖的
+历史失败。GitHub 邮件不直接触发 Codex；当前 Windows 任务每天北京时间 09:00 检查。
+
+每日任务使用 ChatGPT/Codex 订阅下的 `gpt-6-astra` 与 `max`
 推理强度，系统审查 ontology、KG、抽取规则和搜索召回。它先确认本地 `main`
 工作区干净，再读取固定审查提示词，仅允许修改受控的数据、应用、脚本、测试
 和文档路径。只有完整 KG 校验、测试、lint 和两套生产构建全部通过后，修复才
-会直接提交到 `main` 并关闭 issue；否则不提交、不推送并保留 issue。
+会直接提交到 `main`；coverage advisory 可在验证后关闭，`sync-failure` 则必须
+等修复后的 GitHub 同步成功才能关闭。若新增上游数据在提交前就被严格校验拒绝，
+每日任务会用 `work/` 内独立的上游候选复现，避免只测试旧 KG 而误判已修复。
+受跟踪 submodule 仍由同步工作流推进。具体排查和验证步骤见
+[同步故障与每日修复](docs/sync-triage.md)。验证失败时不提交、不推送并保留 issue。
 项目级 `.codex/rules/coverage-remediation.rules` 只为该本地任务放行读取最新
 `origin/main` 和推送已验证 `HEAD:main` 所需的两个 Git 前缀；issue 的读取、
 评论和关闭使用已连接的 GitHub 插件。首次配置或规则变化后需重启一次

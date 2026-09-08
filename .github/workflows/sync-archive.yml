@@ -104,3 +104,87 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --ref main
+
+  # A separate job can report failures even when checkout or npm never ran.
+  # The daily Codex task also checks failed runs directly if reporting cannot run.
+  notify-sync-failure:
+    needs: sync
+    if: always() && needs.sync.result == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      issues: write
+    steps:
+      - name: Open or refresh archive sync failure issue
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const repo = context.repo;
+            const label = "sync-failure";
+            const title = "Bedtime News archive sync failed";
+            const runUrl = `${context.serverUrl}/${repo.owner}/${repo.repo}/actions/runs/${context.runId}`;
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              ...repo,
+              run_id: context.runId,
+              filter: "latest",
+              per_page: 100,
+            });
+            const failedSteps = jobs
+              .filter((job) => ["failure", "timed_out"].includes(job.conclusion))
+              .flatMap((job) => {
+                const steps = (job.steps ?? []).filter((step) =>
+                  ["failure", "timed_out"].includes(step.conclusion),
+                );
+                return steps.length
+                  ? steps.map((step) => `- ${job.name}: ${step.name} (${step.conclusion})`)
+                  : [`- ${job.name}: ${job.conclusion}; step details unavailable`];
+              });
+            const start = "<!-- sync-failure-report:start -->";
+            const end = "<!-- sync-failure-report:end -->";
+            const report = [
+              start,
+              `Latest failed run: [${context.workflow} #${context.runNumber}, attempt ${process.env.GITHUB_RUN_ATTEMPT}](${runUrl})`,
+              `Workflow SHA: \`${context.sha}\``,
+              "",
+              "Failed steps:",
+              ...(failedSteps.length ? failedSteps : ["- Sync failed before step details were available; inspect the run logs."]),
+              end,
+            ].join("\n");
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              ...repo,
+              state: "open",
+              labels: label,
+              per_page: 100,
+            });
+            const existing = issues.find((issue) => !issue.pull_request && issue.title === title);
+            if (existing) {
+              const previous = existing.body ?? "";
+              const startIndex = previous.indexOf(start);
+              const endIndex = previous.indexOf(end, startIndex);
+              const body = startIndex >= 0 && endIndex >= startIndex
+                ? previous.slice(0, startIndex) + report + previous.slice(endIndex + end.length)
+                : `${previous}\n\n${report}`;
+              if (body !== previous) {
+                await github.rest.issues.update({ ...repo, issue_number: existing.number, body });
+              }
+              core.info(`Reused sync failure issue #${existing.number}; no repeat comment sent.`);
+            } else {
+              try {
+                await github.rest.issues.getLabel({ ...repo, name: label });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({
+                  ...repo,
+                  name: label,
+                  color: "D73A4A",
+                  description: "Archive sync failed before completion",
+                });
+              }
+              const { data: issue } = await github.rest.issues.create({
+                ...repo,
+                title,
+                labels: [label],
+                body: "Archive synchronization failed. The daily Codex scheduled task should inspect the run logs and repair the cause before closing this issue.\n\n" + report,
+              });
+              core.info(`Opened sync failure issue #${issue.number}.`);
+            }
