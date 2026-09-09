@@ -62,8 +62,11 @@ npm run kg:update
 安全策略保持 append-only：
 
 - 新文件自动追加；
-- 已接受文件的修改、删除、疑似改名或重复复制只进入审查报告；
+- 已接受文件的修改先进入审查；每日任务可自主审查不改变既有新闻的目录、元数据和正文补充，在 `data/source-revisions.json` 记录精确旧、新哈希后由同步接受；
+- 删除、疑似改名或重复复制继续保留待审；
 - 增量更新不会静默重写既有事件或关系。
+
+已审查的文件版本也必须重新核验全部新闻记录、日期、边界与片段哈希，以及除完整文件哈希外的全部页面元数据。任何一项变化都会拒绝应用该审查记录；完整来源校验不会跳过。具体流程见 `docs/source-revisions.md`。
 
 修改 ontology 或抽取规则后，必须显式运行：
 
@@ -78,7 +81,7 @@ npm run kg:rebuild
 `.github/workflows/sync-archive.yml` 每 6 小时检查一次上游，也支持手动触发与 `archive-updated` repository dispatch。检测到安全新增后会：
 
 1. 更新 submodule；
-2. 对 processed news 和 KG 运行 append-only 更新；
+2. 对 processed news 和 KG 运行 append-only 更新，并应用精确匹配的来源版本审查；
 3. 校验原文片段哈希、page → news → KG 的一对一投影、ontology 和最小语义实体约束，再执行独立的覆盖检查；
 4. 构建静态站；
 5. 将通过完整验证的同步直接提交到 `main`，并显式触发 GitHub Pages 部署。
@@ -108,6 +111,10 @@ Actions 运行和日志，即使没有 issue 也会发现故障；API 查询受�
 评论和关闭使用已连接的 GitHub 插件。首次配置或规则变化后需重启一次
 ChatGPT/Codex App，且每日执行时电脑需开机、App 需保持运行。
 
+用户已授权每日任务直接修复同类来源维护变更，无需逐次确认。任务会先审查上游
+精确差异，再验证真实增量结果；通过全部检查后提交、推送并确认 GitHub 同步恢复。
+授权不包括跳过校验或把新闻内容、日期、边界的变化伪装成文件哈希更新。
+
 ## 目录
 
 ```text
@@ -121,6 +128,7 @@ data/news-overrides.json     经审查的页面拆分修正
 data/processed/news.json     页面拆分后的独立新闻数据集
 data/generated/kg.json       独立新闻的语义 KG 投影
 data/archive-state.json      已接受上游文件的哈希基线
+data/source-revisions.json   已审查且不改变既有新闻的精确文件版本转换
 data/review/                 上游风险与覆盖质量报告
 scripts/build-news.mjs       Markdown 页面 → 独立新闻
 scripts/build-kg.mjs         独立新闻 → 语义 KG

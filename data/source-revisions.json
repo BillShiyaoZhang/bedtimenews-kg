@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "revisions": [
+    {
+      "id": "review-20260909-1",
+      "path": "reference/601-700.md",
+      "fromHash": "fce2e010908325870b7d4f3ffa6da5bb4554b02d793c6bdc97eb9e21624ac91b",
+      "toHash": "fe79f8387f0dbb1a04bf72077cc400edefbcce8b5573db7d14ba9972136541ad",
+      "upstreamCommit": "06fc723c88b9bc519eba4bb137742408c4f4b33f",
+      "reviewedAt": "2026-09-09T13:30:44.772Z",
+      "kind": "navigation_only",
+      "reason": "目录日期及链接文字维护；旧、新候选中均不产生页面或新闻记录。已审查精确 Git diff。"
+    },
+    {
+      "id": "review-20260909-2",
+      "path": "reference/601-700/625.md",
+      "fromHash": "0a6ab306e6893f5c84baae3b21d50cd593df5cf58228b344ec2333f846fe2d9a",
+      "toHash": "2775a44d57aeb9d289dda26c14ab5d8c3058c4597fd64fc1beca7b0c3c096bae",
+      "upstreamCommit": "06fc723c88b9bc519eba4bb137742408c4f4b33f",
+      "reviewedAt": "2026-09-09T13:30:44.773Z",
+      "kind": "preserve_news",
+      "reason": "维护日期更新并追加后续动态；原 description 保持不变，全部 5 条已收录新闻、日期、片段位置与片段哈希逐项一致。"
+    },
+    {
+      "id": "review-20260909-3",
+      "path": "reference/601-700/635.md",
+      "fromHash": "496f211665fe3e36b3d8fc56191a3e13dd73219cf4de49f6acebe79a314c63fd",
+      "toHash": "4cb72591c1c8e52e14e7aaa07c1b5e78e382dbd815ed338cab18d7b4bc3d79e3",
+      "upstreamCommit": "06fc723c88b9bc519eba4bb137742408c4f4b33f",
+      "reviewedAt": "2026-09-09T13:30:44.773Z",
+      "kind": "preserve_news",
+      "reason": "维护日期更新并追加教师招聘通报；原 description 保持不变，全部 6 条已收录新闻、日期、片段位置与片段哈希逐项一致。"
+    }
+  ]
+}

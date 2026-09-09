@@ -9,7 +9,7 @@
     "newsDatasetSchemaVersion": "1.1.0",
     "segmentationVersion": "1.4.0",
     "newsOverrideVersion": "1.1.0",
-    "extractionVersion": "3.6.0"
+    "extractionVersion": "3.7.0"
   },
   "entities": [
     {
@@ -21031,13 +21031,14 @@
         "钢铁",
         "钢城",
         "停产",
-        "限产"
+        "限产",
+        "车企"
       ],
-      "description": "受控主题词；由 2729 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 2739 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 2729
+        "eventCount": 2739
       }
     },
     {
@@ -21466,7 +21467,8 @@
         "躺平",
         "升职加薪",
         "骑手",
-        "配送时间"
+        "配送时间",
+        "员工内外有别"
       ],
       "description": "受控主题词；由 2201 条独立新闻的关键词规则命中。",
       "extraction": {
@@ -55659,6 +55661,7 @@
         "entity-place-fffefd8e4a76",
         "entity-organization-cdc435353c9c",
         "entity-topic-4aec0475249f",
+        "entity-topic-db818238bf90",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-240a20d1377a",
         "entity-organization-f8be44d48cf6",
@@ -64745,6 +64748,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-topic-db818238bf90",
         "entity-topic-85bc32ad72f0",
         "entity-person-6359c318faf5"
       ]
@@ -65265,6 +65269,7 @@
       "entityIds": [
         "entity-place-eeffed97b3c4",
         "entity-place-cc6336fa8eb9",
+        "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-240a20d1377a"
@@ -65647,6 +65652,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-eeffed97b3c4",
+        "entity-topic-db818238bf90",
         "entity-topic-7fe1d89c885d",
         "entity-topic-d68c099d5b04",
         "entity-topic-8e6234a589f6"
@@ -82369,6 +82375,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
         "entity-topic-6cf73dbb1b59"
       ]
@@ -83801,7 +83808,8 @@
         "entity-place-2ab0c4fc4585",
         "entity-place-cc6336fa8eb9",
         "entity-place-fb1fdb8985ba",
-        "entity-topic-da8baac7a56a"
+        "entity-topic-da8baac7a56a",
+        "entity-topic-db818238bf90"
       ]
     },
     {
@@ -86314,6 +86322,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-cc6336fa8eb9",
+        "entity-topic-db818238bf90",
         "entity-topic-85bc32ad72f0",
         "entity-topic-6c34323d1aa3",
         "entity-topic-5dd0d821b9a8",
@@ -115017,6 +115026,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-topic-db818238bf90",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-e3a330ceec3c"
       ]
@@ -181178,6 +181188,7 @@
       "entityIds": [
         "entity-place-cc6336fa8eb9",
         "entity-topic-da8baac7a56a",
+        "entity-topic-db818238bf90",
         "entity-topic-85bc32ad72f0",
         "entity-topic-9be00a89dec0",
         "entity-topic-09a250abf6ac",
@@ -237197,6 +237208,7 @@
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
+        "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-240a20d1377a",

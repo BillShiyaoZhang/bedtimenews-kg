@@ -51,12 +51,18 @@ node scripts/validate-kg.mjs work/sync-kg.json data/ontology.json work/sync-news
 避免遗漏旧页面哈希变化。Windows 上游副本应保留 `git archive` 导出的原始 blob
 字节，避免 clone 的 CRLF 转换制造伪修改；不要修改主仓库或 submodule 的 Git 配置。
 
-本次修复的模拟结果：上游 `fed7fdb5e3703d03c947252302b6f4a202610e9c` 可追加
-10 页、63 条新闻，四项必需覆盖均为 100%。但上游还修改了
+后续上游 `06fc723c88b9bc519eba4bb137742408c4f4b33f` 可追加 12 页、74 条新闻。
+除语义缺口外，上游还修改了
 `reference/601-700.md`、`reference/601-700/625.md` 和
-`reference/601-700/635.md`；后两页的既有来源哈希校验仍失败。两个页面保留了
-原 description，但更新了日期并追加正文，尚未接受这些修改。这是独立于抽取
-缺口的后续阻塞，应保留待审，不能把本次规则修复视为同步已完全恢复。
+`reference/601-700/635.md`。两个页面保留了原 description，但更新了维护日期并
+追加正文；完整页面哈希变化曾阻塞真实增量。审查确认全部既有新闻、日期和片段
+完全不变后，可通过 `data/source-revisions.json` 接受这三个精确文件版本。
+来源校验仍逐项执行，不把片段覆盖 100% 当作完整页面校验通过。
+
+用户已授权每日任务自主审查并修复这种目录维护、元数据维护及不改变既有新闻的
+正文补充，无需再询问。按 `docs/source-revisions.md` 固定 SHA、检查完整差异、
+记录精确哈希，并同时验证正式数据、全量候选和真实增量。没有通过严格验证的
+改动不能提交或推送；涉及新闻改写、删除或改名时不能借此通道接受。
 
 语义规则修改需要正确升级版本，并在仓库固定的 submodule 上运行 `npm run kg:rebuild`，
 更新受跟踪的规则与生成数据。独立 checkout 和临时候选产物不得加入提交。
@@ -68,7 +74,8 @@ node scripts/validate-kg.mjs work/sync-kg.json data/ontology.json work/sync-news
 领先远端的本地提交并能安全快进才修改；快进后必须确认 `HEAD == origin/main`，
 避免连带推送用户的本地提交。不得修改 `.github`、`.codex`、Git 配置、密钥或受跟踪的 submodule。
 语义问题按 `.github/codex/prompts/remediate-coverage.md` 审查。
-基础设施、工作流权限或上游非追加变更需要报告具体阻塞，不能伪装成 coverage 修复。
+来源维护变更按已授权的精确审查流程修复。基础设施、工作流权限及超出该流程的
+新闻改写、删除或改名应报告具体证据，不能伪装成 coverage 修复。
 
 完成回归测试、`npm test`、`npm run lint`、`npm run test:coverage` 和 `git diff --check`
 后，才按已批准的规则提交和执行 `git push origin HEAD:main`。没有 issue 时提交消息

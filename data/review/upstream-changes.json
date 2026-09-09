@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "policy": {
     "additions": "append_automatically",
-    "modifications": "report_only_preserve_existing_records",
+    "modifications": "apply_exact_reviewed_revisions_preserving_news_otherwise_report",
     "deletions": "report_only_preserve_existing_records",
     "renames": "report_only_preserve_existing_records",
     "ontology": "versioned_extraction_rules_require_explicit_reviewed_semantic_rebuild"
@@ -11,7 +11,7 @@
   "observedAt": "2026-08-10T12:23:29Z",
   "bootstrap": false,
   "semanticRebuild": true,
-  "extractionVersion": "3.6.0",
+  "extractionVersion": "3.7.0",
   "segmentationVersion": "1.4.0",
   "newsOverrideVersion": "1.1.0",
   "summary": {
@@ -23,8 +23,10 @@
     "modifiedFilesAwaitingReview": 0,
     "deletedFilesAwaitingReview": 0,
     "possibleRenamesAwaitingReview": 0,
-    "duplicateAdditionsAwaitingReview": 0
+    "duplicateAdditionsAwaitingReview": 0,
+    "appliedSourceRevisions": 0
   },
+  "appliedSourceRevisions": [],
   "ingestedPaths": [],
   "pendingReview": {
     "modified": [],

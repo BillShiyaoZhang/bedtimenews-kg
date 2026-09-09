@@ -23,7 +23,9 @@ import {
   buildSegmentationReport,
   validateKnowledgeBaseNewsProjection,
   validateNewsDataset,
+  validateNewsFragments,
 } from "./lib/news.mjs";
+import { applyReviewedSourceRevisions } from "./lib/source-revisions.mjs";
 import { validate } from "./lib/validate.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -109,6 +111,7 @@ if (bootstrap) {
   issues.push(...validateKnowledgeBaseNewsProjection(candidate, candidateNews));
   if (issues.length) throwValidationError(issues);
   throwNewsValidationError(validateNewsDataset(candidateNews));
+  throwNewsValidationError(await validateNewsFragments(candidateNews, sourceRoot));
 
   const state = {
     schemaVersion: 3,
@@ -184,7 +187,7 @@ if (JSON.stringify(state.includedRoots) !== JSON.stringify(includeRoots)) {
   );
 }
 
-const changes = classifyArchiveChanges(state.acceptedFiles, currentFiles);
+let changes = classifyArchiveChanges(state.acceptedFiles, currentFiles);
 if (rebuild) {
   const unsafeChanges =
     changes.modified.length +
@@ -201,6 +204,7 @@ if (rebuild) {
   issues.push(...validateKnowledgeBaseNewsProjection(candidate, candidateNews));
   if (issues.length) throwValidationError(issues);
   throwNewsValidationError(validateNewsDataset(candidateNews));
+  throwNewsValidationError(await validateNewsFragments(candidateNews, sourceRoot));
   const nextState = {
     ...state,
     schemaVersion: 3,
@@ -269,14 +273,30 @@ if (
       "explicitly; incremental update will not silently rewrite accepted news records.",
   );
 }
+let sourceRevisions;
+try {
+  sourceRevisions = await readJson(resolve(projectRoot, "data/source-revisions.json"));
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+  sourceRevisions = { schemaVersion: 1, revisions: [] };
+}
+const reviewed = await applyReviewedSourceRevisions({
+  manifest: sourceRevisions,
+  changes,
+  dataset: existingNews,
+  kg: existing,
+  candidateDataset: candidateNews,
+  sourceRoot,
+});
+changes = reviewed.changes;
 const { dataset: newsDataset, appended: appendedNews } = appendNewsRecords(
-  existingNews,
+  reviewed.dataset,
   candidateNews,
   changes.added,
   observedAt,
 );
 const { kg, appended } = appendNewRecords(
-  existing,
+  reviewed.kg,
   candidate,
   changes.added,
   observedAt,
@@ -285,9 +305,11 @@ throwNewsValidationError(validateNewsDataset(newsDataset));
 const issues = validate(kg, ontology);
 issues.push(...validateKnowledgeBaseNewsProjection(kg, newsDataset));
 if (issues.length) throwValidationError(issues);
+throwNewsValidationError(await validateNewsFragments(newsDataset, sourceRoot));
 
 const acceptedFiles = { ...state.acceptedFiles };
 for (const path of changes.added) acceptedFiles[path] = currentFiles[path];
+for (const revision of reviewed.applied) acceptedFiles[revision.path] = revision.toHash;
 const nextState = {
   ...state,
   lastObservedCommit: upstreamCommit,
@@ -302,8 +324,10 @@ const report = buildUpstreamReport({
   changes,
   ingestedPaths: changes.added,
   appended,
+  appliedSourceRevisions: reviewed.applied,
 });
 const generatedChanged =
+  reviewed.updatedPageCount ||
   appendedNews.pages.length ||
   appendedNews.news.length ||
   appended.sources.length ||
@@ -312,7 +336,7 @@ const generatedChanged =
   appended.eventRelations.length ||
   appended.entityRelations.length;
 const stateChanged =
-  upstreamCommit !== state.lastObservedCommit || changes.added.length > 0;
+  upstreamCommit !== state.lastObservedCommit || changes.added.length > 0 || reviewed.applied.length > 0;
 const reportChanged =
   stateChanged ||
   changes.modified.length ||
@@ -352,12 +376,13 @@ function buildUpstreamReport({
   changes,
   ingestedPaths,
   appended,
+  appliedSourceRevisions = [],
 }) {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     policy: {
       additions: "append_automatically",
-      modifications: "report_only_preserve_existing_records",
+      modifications: "apply_exact_reviewed_revisions_preserving_news_otherwise_report",
       deletions: "report_only_preserve_existing_records",
       renames: "report_only_preserve_existing_records",
       ontology:
@@ -381,7 +406,9 @@ function buildUpstreamReport({
       deletedFilesAwaitingReview: changes.deleted.length,
       possibleRenamesAwaitingReview: changes.possibleRenames.length,
       duplicateAdditionsAwaitingReview: changes.duplicateAdditions.length,
+      appliedSourceRevisions: appliedSourceRevisions.length,
     },
+    appliedSourceRevisions,
     ingestedPaths: isBootstrap || isRebuild ? [] : ingestedPaths,
     pendingReview: {
       modified: changes.modified,
@@ -631,6 +658,9 @@ function printSummary(verb, report, kg) {
     `KG total: ${kg.sources.length} referenced pages, ${kg.events.length} news items, ` +
       `${kg.entities.length} entities.`,
   );
+  if (summary.appliedSourceRevisions) {
+    console.log(`${summary.appliedSourceRevisions} exact reviewed source revision(s) accepted; existing news preserved.`);
+  }
   const pending =
     summary.modifiedFilesAwaitingReview +
     summary.deletedFilesAwaitingReview +

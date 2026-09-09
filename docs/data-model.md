@@ -173,4 +173,15 @@ Unicode 兼容归一化，忽略大小写、全半角、空白和标点差异，
 
 `data/archive-state.json` 保存文件 SHA-256、上游 commit、栏目范围、拆分器版本、override 版本和抽取规则版本。
 
-新路径可以同时追加 page、news 和 KG 投影；既有路径内容变化、删除、疑似改名或重复复制只进入 `data/review/upstream-changes.json`。拆分或语义版本变化必须显式全量重建。
+新路径可以同时追加 page、news 和 KG 投影。既有路径内容变化先进入
+`data/review/upstream-changes.json`；经任务审查、写入 `data/source-revisions.json`
+且旧、新完整文件哈希精确匹配的版本转换，可在增量中接受。
+
+这种转换只允许更新 Page 与 KG source 的完整文件 `contentHash`：两套候选的
+全部既有新闻记录必须完全一致，页面其他字段也必须完全一致，原始片段必须
+重新验签。目录页转换要求两套数据中均未产生该页面或新闻。通过后才更新
+`acceptedFiles`，并在版本 3 的上游报告中记录 `appliedSourceRevisions`；永久审查
+记录保留旧、新哈希、上游 commit、时间和理由。没有精确审查匹配的修改仍待审，
+且来源校验会阻止发布无效旧页面。删除、疑似改名或重复复制不走此路径。
+
+拆分或语义版本变化必须显式全量重建；来源版本审查不允许借机修改新闻边界或语义。
