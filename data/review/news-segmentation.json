@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-10T12:23:29Z",
+  "generatedAt": "2026-09-08T05:46:11Z",
   "segmentationVersion": "1.4.0",
   "summary": {
-    "pages": 2059,
-    "news": 9528,
-    "multiNewsPages": 1291,
-    "reviewPages": 567,
+    "pages": 2071,
+    "news": 9602,
+    "multiNewsPages": 1303,
+    "reviewPages": 579,
     "pagesByStrategy": {
       "page_fallback": 763,
       "manual_single": 1,
@@ -15,7 +15,7 @@
       "manual_markers": 1,
       "main_interview_topic": 167,
       "reference_numbered_heading": 537,
-      "reference_description_sentence": 99
+      "reference_description_sentence": 111
     },
     "episodeDateResolutions": {
       "observed": 714,
@@ -7224,6 +7224,126 @@
       "pageId": "page-0dc267e0e5a4",
       "repositoryPath": "reference/601-700/635.md",
       "title": "【参考信息635】哪些专业招不满；改造农田实为采砂",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-d19446c46444",
+      "repositoryPath": "reference/601-700/636.md",
+      "title": "【参考信息636】“小候鸟”超载；大师头衔作废；银行办结婚证",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-70d3e5e37d60",
+      "repositoryPath": "reference/601-700/637.md",
+      "title": "【参考信息637】汇金证金清仓茅台；劳动法律意识过强",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-9092c4e86669",
+      "repositoryPath": "reference/601-700/638.md",
+      "title": "【参考信息638】《牛来》能过审逻辑；找地方政府要钱",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-a60558fef488",
+      "repositoryPath": "reference/601-700/639.md",
+      "title": "【参考信息639】“预制娃”卷抢跑 校招需求萎缩",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-4963557c0ca8",
+      "repositoryPath": "reference/601-700/640.md",
+      "title": "【参考信息640】抗拆致死正当防卫；公众人物容忍义务",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-a787754d2251",
+      "repositoryPath": "reference/601-700/641.md",
+      "title": "【参考信息641】甲醛保鲜大白菜；敌敌畏消毒餐厅",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-4f0fb81d544f",
+      "repositoryPath": "reference/601-700/642.md",
+      "title": "【参考信息第642期】羞辱式劝退；博士比驴多",
+      "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-1ef7e10db6c0",
+      "repositoryPath": "reference/601-700/643.md",
+      "title": "【参考信息643】房贷延到40年；受贿7亿排第几",
+      "newsCount": 7,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-03bdb1514e47",
+      "repositoryPath": "reference/601-700/644.md",
+      "title": "【参考信息644】社区岗位缩招；中公招生上涨",
+      "newsCount": 7,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-ec776b4b1371",
+      "repositoryPath": "reference/601-700/645.md",
+      "title": "【参考信息645】260名看不起2600；中企匈牙利遇挫",
+      "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-f11e66161d68",
+      "repositoryPath": "reference/601-700/646.md",
+      "title": "【参考信息646】谁能贷款40年；再停三款中成药",
+      "newsCount": 8,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-258a87e20314",
+      "repositoryPath": "reference/601-700/647.md",
+      "title": "【参考信息647】名校停招学硕；储能也要过剩",
       "newsCount": 6,
       "strategy": "reference_description_sentence",
       "reasons": [

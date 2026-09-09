@@ -7,27 +7,71 @@
     "renames": "report_only_preserve_existing_records",
     "ontology": "versioned_extraction_rules_require_explicit_reviewed_semantic_rebuild"
   },
-  "upstreamCommit": "92cb94f0476eb80a10580659aa12273d20ed41a5",
-  "observedAt": "2026-08-10T12:23:29Z",
+  "upstreamCommit": "06fc723c88b9bc519eba4bb137742408c4f4b33f",
+  "observedAt": "2026-09-08T05:46:11Z",
   "bootstrap": false,
-  "semanticRebuild": true,
+  "semanticRebuild": false,
   "extractionVersion": "3.7.0",
   "segmentationVersion": "1.4.0",
   "newsOverrideVersion": "1.1.0",
   "summary": {
-    "ingestedFiles": 2089,
-    "appendedPages": 2059,
-    "appendedNews": 9528,
-    "appendedEntities": 1755,
-    "appendedRelations": 8031,
+    "ingestedFiles": 12,
+    "appendedPages": 12,
+    "appendedNews": 74,
+    "appendedEntities": 4,
+    "appendedRelations": 7,
     "modifiedFilesAwaitingReview": 0,
     "deletedFilesAwaitingReview": 0,
     "possibleRenamesAwaitingReview": 0,
     "duplicateAdditionsAwaitingReview": 0,
-    "appliedSourceRevisions": 0
+    "appliedSourceRevisions": 3
   },
-  "appliedSourceRevisions": [],
-  "ingestedPaths": [],
+  "appliedSourceRevisions": [
+    {
+      "id": "review-20260909-1",
+      "path": "reference/601-700.md",
+      "fromHash": "fce2e010908325870b7d4f3ffa6da5bb4554b02d793c6bdc97eb9e21624ac91b",
+      "toHash": "fe79f8387f0dbb1a04bf72077cc400edefbcce8b5573db7d14ba9972136541ad",
+      "upstreamCommit": "06fc723c88b9bc519eba4bb137742408c4f4b33f",
+      "reviewedAt": "2026-09-09T13:30:44.772Z",
+      "kind": "navigation_only",
+      "reason": "目录日期及链接文字维护；旧、新候选中均不产生页面或新闻记录。已审查精确 Git diff。"
+    },
+    {
+      "id": "review-20260909-2",
+      "path": "reference/601-700/625.md",
+      "fromHash": "0a6ab306e6893f5c84baae3b21d50cd593df5cf58228b344ec2333f846fe2d9a",
+      "toHash": "2775a44d57aeb9d289dda26c14ab5d8c3058c4597fd64fc1beca7b0c3c096bae",
+      "upstreamCommit": "06fc723c88b9bc519eba4bb137742408c4f4b33f",
+      "reviewedAt": "2026-09-09T13:30:44.773Z",
+      "kind": "preserve_news",
+      "reason": "维护日期更新并追加后续动态；原 description 保持不变，全部 5 条已收录新闻、日期、片段位置与片段哈希逐项一致。"
+    },
+    {
+      "id": "review-20260909-3",
+      "path": "reference/601-700/635.md",
+      "fromHash": "496f211665fe3e36b3d8fc56191a3e13dd73219cf4de49f6acebe79a314c63fd",
+      "toHash": "4cb72591c1c8e52e14e7aaa07c1b5e78e382dbd815ed338cab18d7b4bc3d79e3",
+      "upstreamCommit": "06fc723c88b9bc519eba4bb137742408c4f4b33f",
+      "reviewedAt": "2026-09-09T13:30:44.773Z",
+      "kind": "preserve_news",
+      "reason": "维护日期更新并追加教师招聘通报；原 description 保持不变，全部 6 条已收录新闻、日期、片段位置与片段哈希逐项一致。"
+    }
+  ],
+  "ingestedPaths": [
+    "reference/601-700/636.md",
+    "reference/601-700/637.md",
+    "reference/601-700/638.md",
+    "reference/601-700/639.md",
+    "reference/601-700/640.md",
+    "reference/601-700/641.md",
+    "reference/601-700/642.md",
+    "reference/601-700/643.md",
+    "reference/601-700/644.md",
+    "reference/601-700/645.md",
+    "reference/601-700/646.md",
+    "reference/601-700/647.md"
+  ],
   "pendingReview": {
     "modified": [],
     "deleted": [],

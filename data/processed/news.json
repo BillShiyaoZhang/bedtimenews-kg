@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1.0",
-  "generatedAt": "2026-08-10T12:23:29Z",
+  "generatedAt": "2026-09-08T05:46:11Z",
   "source": {
     "name": "bedtimenews/bedtimenews-archive-contents",
     "url": "https://github.com/bedtimenews/bedtimenews-archive-contents",
@@ -51937,7 +51937,7 @@
         "resolution": "observed"
       },
       "kind": "reference",
-      "contentHash": "0a6ab306e6893f5c84baae3b21d50cd593df5cf58228b344ec2333f846fe2d9a",
+      "contentHash": "2775a44d57aeb9d289dda26c14ab5d8c3058c4597fd64fc1beca7b0c3c096bae",
       "segmentation": {
         "strategy": "reference_description_sentence",
         "confidence": 0.76,
@@ -52187,7 +52187,7 @@
         "resolution": "observed"
       },
       "kind": "reference",
-      "contentHash": "496f211665fe3e36b3d8fc56191a3e13dd73219cf4de49f6acebe79a314c63fd",
+      "contentHash": "4cb72591c1c8e52e14e7aaa07c1b5e78e382dbd815ed338cab18d7b4bc3d79e3",
       "segmentation": {
         "strategy": "reference_description_sentence",
         "confidence": 0.76,
@@ -52220,6 +52220,306 @@
         "candidateBoundaryCount": 0,
         "needsReview": false,
         "reviewReasons": []
+      }
+    },
+    {
+      "id": "page-d19446c46444",
+      "title": "【参考信息636】“小候鸟”超载；大师头衔作废；银行办结婚证",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/636",
+      "repositoryPath": "reference/601-700/636.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/636.md",
+      "publishedAt": "2026-08-13",
+      "dateProvenance": {
+        "observedAt": "2026-08-13",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "1632052320d609800bfd6ea9a6159329a0ce15e073cfec5a4d3cb57b38ddb3e0",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-70d3e5e37d60",
+      "title": "【参考信息637】汇金证金清仓茅台；劳动法律意识过强",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/637",
+      "repositoryPath": "reference/601-700/637.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/637.md",
+      "publishedAt": "2026-08-27",
+      "dateProvenance": {
+        "observedAt": "2026-08-27",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "763246d5477fcf24e2139a909731115fe2ddc73bfc29ee66abf04ae5bc53aaee",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-9092c4e86669",
+      "title": "【参考信息638】《牛来》能过审逻辑；找地方政府要钱",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/638",
+      "repositoryPath": "reference/601-700/638.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/638.md",
+      "publishedAt": "2026-08-27",
+      "dateProvenance": {
+        "observedAt": "2026-08-27",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "255e6ee2f8f5240d306272a8c628c17a7e62f43d46e4915068194e1006341d98",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-a60558fef488",
+      "title": "【参考信息639】“预制娃”卷抢跑 校招需求萎缩",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/639",
+      "repositoryPath": "reference/601-700/639.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/639.md",
+      "publishedAt": "2026-08-27",
+      "dateProvenance": {
+        "observedAt": "2026-08-27",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "497d5153489e9ed46a2eaaf6cd9080359cfcd1224e5ca3419c7d9b66ca430a34",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-4963557c0ca8",
+      "title": "【参考信息640】抗拆致死正当防卫；公众人物容忍义务",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/640",
+      "repositoryPath": "reference/601-700/640.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/640.md",
+      "publishedAt": "2026-08-27",
+      "dateProvenance": {
+        "observedAt": "2026-08-27",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "296c5dbf15fabb5ff101e182b827c52e36634e6dbf4ae312c863ee0ab56b7945",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-a787754d2251",
+      "title": "【参考信息641】甲醛保鲜大白菜；敌敌畏消毒餐厅",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/641",
+      "repositoryPath": "reference/601-700/641.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/641.md",
+      "publishedAt": "2026-08-27",
+      "dateProvenance": {
+        "observedAt": "2026-08-27",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "b171eab8fa63862818cb4cab4a7f3a17cf011a6cdaba51e1b0d2d5ceb389f017",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-4f0fb81d544f",
+      "title": "【参考信息第642期】羞辱式劝退；博士比驴多",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/642",
+      "repositoryPath": "reference/601-700/642.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/642.md",
+      "publishedAt": "2026-08-27",
+      "dateProvenance": {
+        "observedAt": "2026-08-27",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "8783f6765de02b0f8a316517bd641a42d57e4b4500124de7a8c7b4b58aea18e7",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 5,
+        "candidateBoundaryCount": 5,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-1ef7e10db6c0",
+      "title": "【参考信息643】房贷延到40年；受贿7亿排第几",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/643",
+      "repositoryPath": "reference/601-700/643.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/643.md",
+      "publishedAt": "2026-08-29",
+      "dateProvenance": {
+        "observedAt": "2026-08-29",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "ffd784f4bd2734ba434d4a7d593ef1755d0a93770cfac15d994878f664bdf87c",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 7,
+        "candidateBoundaryCount": 7,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-03bdb1514e47",
+      "title": "【参考信息644】社区岗位缩招；中公招生上涨",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/644",
+      "repositoryPath": "reference/601-700/644.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/644.md",
+      "publishedAt": "2026-09-01",
+      "dateProvenance": {
+        "observedAt": "2026-09-01",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "688fac638940cd50d8e761238a7e7c61a447c1608042b73e9562064baffe369b",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 7,
+        "candidateBoundaryCount": 7,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-ec776b4b1371",
+      "title": "【参考信息645】260名看不起2600；中企匈牙利遇挫",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/645",
+      "repositoryPath": "reference/601-700/645.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/645.md",
+      "publishedAt": "2026-09-08",
+      "dateProvenance": {
+        "observedAt": "2026-09-08",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "8547e472de28fc4ec5b6ecbc6983088b7dffde4bca573600147fb7c98a14386f",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 5,
+        "candidateBoundaryCount": 5,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-f11e66161d68",
+      "title": "【参考信息646】谁能贷款40年；再停三款中成药",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/646",
+      "repositoryPath": "reference/601-700/646.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/646.md",
+      "publishedAt": "2026-09-05",
+      "dateProvenance": {
+        "observedAt": "2026-09-05",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "f074e982cc0270b5d063e50de2cd6f962a434696e017aa31ff7163aa32a5d9c9",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 8,
+        "candidateBoundaryCount": 8,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-258a87e20314",
+      "title": "【参考信息647】名校停招学硕；储能也要过剩",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/647",
+      "repositoryPath": "reference/601-700/647.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/647.md",
+      "publishedAt": "2026-09-08",
+      "dateProvenance": {
+        "observedAt": "2026-09-08",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "eadb6a0409e3cbd2b122dd367462f99ec30060699ded0e6d9ec1b28d6070ad58",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
       }
     }
   ],
@@ -215346,6 +215646,1412 @@
         "endLine": 15,
         "marker": "page",
         "contentHash": "82f00b37a16ad6bb5d449fd21b4f18776ad794d296bd9c0ddc9444e7baaaccdd"
+      }
+    },
+    {
+      "id": "news-c28bcfc70961",
+      "title": "多地查处严重超载面包车，都是暑假到父母工作地探望父母的“小候鸟”",
+      "date": "2026-08-13",
+      "datePrecision": "day",
+      "summary": "多地查处严重超载面包车，都是暑假到父母工作地探望父母的“小候鸟”。",
+      "pageId": "page-d19446c46444",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 46,
+        "marker": "多地查处严重超载面包车，都是暑假到父母工作地探望父母的“小候鸟”。",
+        "contentHash": "2db432565f8c18e54061088731394e95a1fe8d4a229b9ba5b1467adc0c1daa46"
+      }
+    },
+    {
+      "id": "news-5573fd853257",
+      "title": "暑假儿童被单独放在图书馆一天，现在成了问题",
+      "date": "2026-08-13",
+      "datePrecision": "day",
+      "summary": "暑假儿童被单独放在图书馆一天，现在成了问题。",
+      "pageId": "page-d19446c46444",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 47,
+        "endColumn": 68,
+        "marker": "暑假儿童被单独放在图书馆一天，现在成了问题。",
+        "contentHash": "723bfe6b647489d5ec9bbc7ff7f405356ccb157b43ca68a69dee0ff63e910f21"
+      }
+    },
+    {
+      "id": "news-32c9d3bf0f2a",
+      "title": "酿酒大师、制茶大师、烹饪大师等“大师”头衔开始清零退场，共同点是信息容易不对称的消费领域",
+      "date": "2026-08-13",
+      "datePrecision": "day",
+      "summary": "酿酒大师、制茶大师、烹饪大师等“大师”头衔开始清零退场，共同点是信息容易不对称的消费领域。",
+      "pageId": "page-d19446c46444",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 69,
+        "endColumn": 113,
+        "marker": "酿酒大师、制茶大师、烹饪大师等“大师”头衔开始清零退场，共同点是信息容易不对称的消费领域。",
+        "contentHash": "4954ad628abb03946d57b29427841a9b46531819e582ccd24c0487d596c41ca3"
+      }
+    },
+    {
+      "id": "news-d1faf236e518",
+      "title": "但北京中科国茶农业科学研究院、中国制茶大师等级评定委员会仍顶风作案，还有假院士包装",
+      "date": "2026-08-13",
+      "datePrecision": "day",
+      "summary": "但北京中科国茶农业科学研究院、中国制茶大师等级评定委员会仍顶风作案，还有假院士包装。",
+      "pageId": "page-d19446c46444",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 114,
+        "endColumn": 155,
+        "marker": "但北京中科国茶农业科学研究院、中国制茶大师等级评定委员会仍顶风作案，还有假院士包装。",
+        "contentHash": "cae68285f9e024ed8a8b56a8bb63183fe2f016916bdcddad67bc3dee1211c569"
+      }
+    },
+    {
+      "id": "news-dc1e8fb47db4",
+      "title": "天津在银行设立婚姻登记处，叫爱情主题银行服务点",
+      "date": "2026-08-13",
+      "datePrecision": "day",
+      "summary": "天津在银行设立婚姻登记处，叫爱情主题银行服务点。",
+      "pageId": "page-d19446c46444",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 156,
+        "endColumn": 179,
+        "marker": "天津在银行设立婚姻登记处，叫爱情主题银行服务点。",
+        "contentHash": "2b095ced59624c4a3142eaa229872c9062fa1b7c0bfef9861abe9e996c6ea6f0"
+      }
+    },
+    {
+      "id": "news-b61e8c115a2c",
+      "title": "印度、越南开始发钱鼓励生育",
+      "date": "2026-08-13",
+      "datePrecision": "day",
+      "summary": "印度、越南开始发钱鼓励生育。",
+      "pageId": "page-d19446c46444",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 180,
+        "endColumn": 193,
+        "marker": "印度、越南开始发钱鼓励生育。",
+        "contentHash": "77ab10f90adec778c7015d2db7ca0dedb9f03662791814a45816be4e190a0c5d"
+      }
+    },
+    {
+      "id": "news-83b9d2bed9ec",
+      "title": "涨价也没救成茅台，净利润开始下滑，甚至中央汇金、证金公司清仓退出前十大股东",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "涨价也没救成茅台，净利润开始下滑，甚至中央汇金、证金公司清仓退出前十大股东。",
+      "pageId": "page-70d3e5e37d60",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 51,
+        "marker": "涨价也没救成茅台，净利润开始下滑，甚至中央汇金、证金公司清仓退出前十大股东。",
+        "contentHash": "ebd535fe5adf53b0a1fb1cc40129f37cda4f459ea514b2fa2546f058dde0a260"
+      }
+    },
+    {
+      "id": "news-efd28179d324",
+      "title": "广州深圳部分购房者压缩买房预算，选择全款支付",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "广州深圳部分购房者压缩买房预算，选择全款支付。",
+      "pageId": "page-70d3e5e37d60",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 52,
+        "endColumn": 74,
+        "marker": "广州深圳部分购房者压缩买房预算，选择全款支付。",
+        "contentHash": "b636a1f3a8c1f0d8b9276a15392c90b4135797dda559406eb73c4fc1a2185890"
+      }
+    },
+    {
+      "id": "news-c54653186a60",
+      "title": "今年法拍房市场明显放量，前七个月成交量相当于去年全年近八成",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "今年法拍房市场明显放量，前七个月成交量相当于去年全年近八成。",
+      "pageId": "page-70d3e5e37d60",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 75,
+        "endColumn": 104,
+        "marker": "今年法拍房市场明显放量，前七个月成交量相当于去年全年近八成。",
+        "contentHash": "ba817fb020661bf7e04f23d24680f934f56d01d4f539c5b0c92efbb3e1756dd8"
+      }
+    },
+    {
+      "id": "news-efb00b2c6ebf",
+      "title": "企业背景调查过度，劳动仲裁经历如同“案底”，更大的问题是背调数据来源是个黑箱",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "企业背景调查过度，劳动仲裁经历如同“案底”，更大的问题是背调数据来源是个黑箱。",
+      "pageId": "page-70d3e5e37d60",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 105,
+        "endColumn": 143,
+        "marker": "企业背景调查过度，劳动仲裁经历如同“案底”，更大的问题是背调数据来源是个黑箱。",
+        "contentHash": "ab1d0f4e4fc4385e552ae4cf1c750b71e1edb1247797467253d085d9e769198e"
+      }
+    },
+    {
+      "id": "news-3f30cebf61eb",
+      "title": "浙江抓获“炸厂碰瓷”的虚假应聘团伙；多地出现虚假招工案件",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "浙江抓获“炸厂碰瓷”的虚假应聘团伙；多地出现虚假招工案件。",
+      "pageId": "page-70d3e5e37d60",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 144,
+        "endColumn": 172,
+        "marker": "浙江抓获“炸厂碰瓷”的虚假应聘团伙；多地出现虚假招工案件。",
+        "contentHash": "1fe693f31429b5e39e00ee8e964d4564f427ccb410eb9948c87ac4d4514b1a49"
+      }
+    },
+    {
+      "id": "news-f83fc3cbb2a6",
+      "title": "南京法院判决奶茶店“蜜桃里”“套路加盟”构成合同诈骗罪，300多人被骗5400万",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "南京法院判决奶茶店“蜜桃里”“套路加盟”构成合同诈骗罪，300多人被骗5400万。",
+      "pageId": "page-70d3e5e37d60",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 173,
+        "endColumn": 213,
+        "marker": "南京法院判决奶茶店“蜜桃里”“套路加盟”构成合同诈骗罪，300多人被骗5400万。",
+        "contentHash": "bd7468c564e7dd1e6f10fa193e50c6efe20873751c26a8c1ec93e7d19d6d2cc4"
+      }
+    },
+    {
+      "id": "news-4cab6445faef",
+      "title": "粗制滥造的《牛来》反向火爆，最让人不解的是怎么通过电影审查的，另有洗钱、套取地方补贴等质疑",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "粗制滥造的《牛来》反向火爆，最让人不解的是怎么通过电影审查的，另有洗钱、套取地方补贴等质疑。",
+      "pageId": "page-9092c4e86669",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 59,
+        "marker": "粗制滥造的《牛来》反向火爆，最让人不解的是怎么通过电影审查的，另有洗钱、套取地方补贴等质疑。",
+        "contentHash": "96c7dfb93804c1ae91ec0dcbe2b1f79af8eeae9be0d1361fe4720544bf2ed5e5"
+      }
+    },
+    {
+      "id": "news-7003db0da04d",
+      "title": "向地方政府讨债要钱成为一门技术活，一名深度参与PPP项目的基建企业高管归纳出一套回款体系方法，甚至为上市公司授课",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "向地方政府讨债要钱成为一门技术活，一名深度参与PPP项目的基建企业高管归纳出一套回款体系方法，甚至为上市公司授课。",
+      "pageId": "page-9092c4e86669",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 60,
+        "endColumn": 116,
+        "marker": "向地方政府讨债要钱成为一门技术活，一名深度参与PPP项目的基建企业高管归纳出一套回款体系方法，甚至为上市公司授课。",
+        "contentHash": "ca511c28986135c931823688104827f261ac076981457f2ede6c2af29004b883"
+      }
+    },
+    {
+      "id": "news-66e38808be9a",
+      "title": "补税风暴刮向光伏，多地存量光伏电站被追缴税费",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "补税风暴刮向光伏，多地存量光伏电站被追缴税费。",
+      "pageId": "page-9092c4e86669",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 117,
+        "endColumn": 139,
+        "marker": "补税风暴刮向光伏，多地存量光伏电站被追缴税费。",
+        "contentHash": "8702a47cdc8b50214df8897e214eb29f0c26dbc3d5754c8f6f3601225359a45b"
+      }
+    },
+    {
+      "id": "news-89c8118005ac",
+      "title": "养老金账户最新出现在20只个股前十大流通股东名单",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "养老金账户最新出现在20只个股前十大流通股东名单。",
+      "pageId": "page-9092c4e86669",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 140,
+        "endColumn": 164,
+        "marker": "养老金账户最新出现在20只个股前十大流通股东名单。",
+        "contentHash": "7d0d949ac974f201c0168919e72e7fecb04425846c421bb39277c3b2cd83b04a"
+      }
+    },
+    {
+      "id": "news-5da80948f30c",
+      "title": "传销头目出狱后变“国学大师”，开办如是书院，类似戒网瘾学校",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "传销头目出狱后变“国学大师”，开办如是书院，类似戒网瘾学校。",
+      "pageId": "page-9092c4e86669",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 165,
+        "endColumn": 194,
+        "marker": "传销头目出狱后变“国学大师”，开办如是书院，类似戒网瘾学校。",
+        "contentHash": "2756f452c1ba7b3da570f726e680a00a56483490dea0b8ab87de16c1449aa94c"
+      }
+    },
+    {
+      "id": "news-584a2d99e4c6",
+      "title": "西南医科大学辅导员强迫医学生买新教材",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "西南医科大学辅导员强迫医学生买新教材。",
+      "pageId": "page-9092c4e86669",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 195,
+        "endColumn": 213,
+        "marker": "西南医科大学辅导员强迫医学生买新教材。",
+        "contentHash": "25e0443d9eb0c4691e796d3cfa746a1c22fcbc5867fae3426b9f5e326f1917d3"
+      }
+    },
+    {
+      "id": "news-fe6d5587e4cf",
+      "title": "教育圈和家长中又流行一个新词：预制娃，本质是学业焦虑下的抢跑",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "教育圈和家长中又流行一个新词：预制娃，本质是学业焦虑下的抢跑。",
+      "pageId": "page-a60558fef488",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 44,
+        "marker": "教育圈和家长中又流行一个新词：预制娃，本质是学业焦虑下的抢跑。",
+        "contentHash": "21e0f982a5e5f9c6f4dfa4aba6b6bfcd5525e385894b34fb93a9b43adfc6d7cd"
+      }
+    },
+    {
+      "id": "news-b9fa6e4e1541",
+      "title": "青年失业率升至去年9月以来新高，企业面向应届生的校招岗位萎缩",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "青年失业率升至去年9月以来新高，企业面向应届生的校招岗位萎缩。",
+      "pageId": "page-a60558fef488",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 45,
+        "endColumn": 75,
+        "marker": "青年失业率升至去年9月以来新高，企业面向应届生的校招岗位萎缩。",
+        "contentHash": "56daaca1e0eb82dd45108260d2dc923955c371ab4c911b181b2b44b5cb003c33"
+      }
+    },
+    {
+      "id": "news-884b641f04b0",
+      "title": "9部委发文激发下沉市场活力、活跃县域消费",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "9部委发文激发下沉市场活力、活跃县域消费。",
+      "pageId": "page-a60558fef488",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 76,
+        "endColumn": 96,
+        "marker": "9部委发文激发下沉市场活力、活跃县域消费。",
+        "contentHash": "68d268bc327993fa96adfa95f43a129aaf4de2a6a0722b776095a60cf1394b27"
+      }
+    },
+    {
+      "id": "news-ce5109e3cd4b",
+      "title": "医保局鼓励基层就医，推出“同病同治同价”，划出158个基层病种，在不同等级医疗机构执行相同的支付标准",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "医保局鼓励基层就医，推出“同病同治同价”，划出158个基层病种，在不同等级医疗机构执行相同的支付标准。",
+      "pageId": "page-a60558fef488",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 97,
+        "endColumn": 147,
+        "marker": "医保局鼓励基层就医，推出“同病同治同价”，划出158个基层病种，在不同等级医疗机构执行相同的支付标准。",
+        "contentHash": "fcc216db8daf9aad4bf9c8137de0569fc3588cbccb9e4383768b950d518aedd8"
+      }
+    },
+    {
+      "id": "news-4c20d98ac3be",
+      "title": "国内一个月被曝三起IIT试验死亡事件，曾让中国生物制药企业获得成本和速度优势的模式受到考验",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "国内一个月被曝三起IIT试验死亡事件，曾让中国生物制药企业获得成本和速度优势的模式受到考验。",
+      "pageId": "page-a60558fef488",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 148,
+        "endColumn": 193,
+        "marker": "国内一个月被曝三起IIT试验死亡事件，曾让中国生物制药企业获得成本和速度优势的模式受到考验。",
+        "contentHash": "1c005765a799939a730473b46dccbc6620ee2db85be05bf6fcfa230021394ecf"
+      }
+    },
+    {
+      "id": "news-b25c8b29fbee",
+      "title": "朱雀三号可重复使用火箭成功回收",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "朱雀三号可重复使用火箭成功回收。",
+      "pageId": "page-a60558fef488",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 194,
+        "endColumn": 209,
+        "marker": "朱雀三号可重复使用火箭成功回收。",
+        "contentHash": "75906bc07c562ffb90d35ba30640012f4ce357f66cd1d30a0a5566cc66417c12"
+      }
+    },
+    {
+      "id": "news-2939c3775ef0",
+      "title": "陕西房主反抗强拆导致强拆人员死亡案宣判，属于正当防卫",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "陕西房主反抗强拆导致强拆人员死亡案宣判，属于正当防卫。",
+      "pageId": "page-4963557c0ca8",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 40,
+        "marker": "陕西房主反抗强拆导致强拆人员死亡案宣判，属于正当防卫。",
+        "contentHash": "02b27d735b435ba3c4263a3887721a2128c584172ab1487d480be16dfeca0614"
+      }
+    },
+    {
+      "id": "news-2892dbe957c4",
+      "title": "许家印被判无期，恒大集团被罚88.2亿；恒大地产被罚70亿，启动破产清算；恒大足球学校破产重整",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "许家印被判无期，恒大集团被罚88.2亿；恒大地产被罚70亿，启动破产清算；恒大足球学校破产重整。",
+      "pageId": "page-4963557c0ca8",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 41,
+        "endColumn": 88,
+        "marker": "许家印被判无期，恒大集团被罚88.2亿；恒大地产被罚70亿，启动破产清算；恒大足球学校破产重整。",
+        "contentHash": "be2a3c07e682b288e11989fd72583c48a72d27e381522bef8e3ccf24f34feff3"
+      }
+    },
+    {
+      "id": "news-2ec23426bdfe",
+      "title": "张兰诉《凤凰周刊》侵犯隐私权、名誉权败诉，法院重申公众人物容忍义务",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "张兰诉《凤凰周刊》侵犯隐私权、名誉权败诉，法院重申公众人物容忍义务。",
+      "pageId": "page-4963557c0ca8",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 89,
+        "endColumn": 122,
+        "marker": "张兰诉《凤凰周刊》侵犯隐私权、名誉权败诉，法院重申公众人物容忍义务。",
+        "contentHash": "0cf2a88ab6d6ededc3ab3e6d5774ec53f77c546b5af42df18d74ed3d41d632b5"
+      }
+    },
+    {
+      "id": "news-02e347431c81",
+      "title": "旺旺集团称遇到重大经营危机，启动裁员并要求所有员工反思",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "旺旺集团称遇到重大经营危机，启动裁员并要求所有员工反思。",
+      "pageId": "page-4963557c0ca8",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 123,
+        "endColumn": 150,
+        "marker": "旺旺集团称遇到重大经营危机，启动裁员并要求所有员工反思。",
+        "contentHash": "52fd12b580e3611b65439338b7f58f1b3e4dca66538c6fa22030f551f3ce0536"
+      }
+    },
+    {
+      "id": "news-2ed740daf63b",
+      "title": "成都海威华芯科技与大股东海特高新的公司治理纠纷再次升级，再度爆发抢公章大战",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "成都海威华芯科技与大股东海特高新的公司治理纠纷再次升级，再度爆发抢公章大战。",
+      "pageId": "page-4963557c0ca8",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 151,
+        "endColumn": 188,
+        "marker": "成都海威华芯科技与大股东海特高新的公司治理纠纷再次升级，再度爆发抢公章大战。",
+        "contentHash": "c8b4ae09a8237c7a6980b9c5dc9c4ff86997bc55ae81871f3eac29c578a5919d"
+      }
+    },
+    {
+      "id": "news-8a14f35df1ee",
+      "title": "上市两天，宇树科技回撤近40%",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "上市两天，宇树科技回撤近40%。",
+      "pageId": "page-4963557c0ca8",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 189,
+        "endColumn": 204,
+        "marker": "上市两天，宇树科技回撤近40%。",
+        "contentHash": "047ac2b99cf328a74fe36d117fb09c2fbf1bf262f01f53333a647532b17b55d0"
+      }
+    },
+    {
+      "id": "news-f8b9b5147e86",
+      "title": "渔猎齐哥曝光河北康保县有收购商用甲醛浸沾白菜保鲜，其实也不是第一次了",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "渔猎齐哥曝光河北康保县有收购商用甲醛浸沾白菜保鲜，其实也不是第一次了。",
+      "pageId": "page-a787754d2251",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 48,
+        "marker": "渔猎齐哥曝光河北康保县有收购商用甲醛浸沾白菜保鲜，其实也不是第一次了。",
+        "contentHash": "f67ba8e72286e6d22261e7c36920231c5e9cdd128fb0394907d380ef10184c53"
+      }
+    },
+    {
+      "id": "news-727122a3166e",
+      "title": "新京报曝光厦门消杀公司用敌敌畏给连锁餐厅消杀",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "新京报曝光厦门消杀公司用敌敌畏给连锁餐厅消杀。",
+      "pageId": "page-a787754d2251",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 49,
+        "endColumn": 71,
+        "marker": "新京报曝光厦门消杀公司用敌敌畏给连锁餐厅消杀。",
+        "contentHash": "8f5fd97ad25d24f0f158a37b8624e14dcbb06e3989642d3f7272e73484d4864f"
+      }
+    },
+    {
+      "id": "news-9701b5b58e47",
+      "title": "北大国发院副院长张丹丹说“灵活（就业）本身就是一种福利”被误读，学术自洽不等于面向大众传播合时宜",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "北大国发院副院长张丹丹说“灵活（就业）本身就是一种福利”被误读，学术自洽不等于面向大众传播合时宜。",
+      "pageId": "page-a787754d2251",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 72,
+        "endColumn": 120,
+        "marker": "北大国发院副院长张丹丹说“灵活（就业）本身就是一种福利”被误读，学术自洽不等于面向大众传播合时宜。",
+        "contentHash": "e2cf9be9e3d286faa2b283c6b4dbb29c5da80dc408b10c61894c0da20a4444ef"
+      }
+    },
+    {
+      "id": "news-d19fc6b364fc",
+      "title": "多地上调最低工资和社保缴费基数下线",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "多地上调最低工资和社保缴费基数下线。",
+      "pageId": "page-a787754d2251",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 121,
+        "endColumn": 138,
+        "marker": "多地上调最低工资和社保缴费基数下线。",
+        "contentHash": "6aa2658ef1d713605cbf485a39124bc2e46a0bf89664c6ffa29ea5cbb2d3242d"
+      }
+    },
+    {
+      "id": "news-18e08bd222c1",
+      "title": "员工在公司自杀身亡，公司没有交社保，要不要赔偿",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "员工在公司自杀身亡，公司没有交社保，要不要赔偿？",
+      "pageId": "page-a787754d2251",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 139,
+        "endColumn": 162,
+        "marker": "员工在公司自杀身亡，公司没有交社保，要不要赔偿？",
+        "contentHash": "6081b2726eb3c774c7952cdbf590f9b88c9d04db831eb9e1309635807c411eb4"
+      }
+    },
+    {
+      "id": "news-69e2be3a5432",
+      "title": "又见村医造假虚报精神病，但是纠错难",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "又见村医造假虚报精神病，但是纠错难。",
+      "pageId": "page-a787754d2251",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 163,
+        "endColumn": 180,
+        "marker": "又见村医造假虚报精神病，但是纠错难。",
+        "contentHash": "590e3ec7aac6d1e1cfe0d7f07958353fa88e3f63b28930fb4c8cda9645477b46"
+      }
+    },
+    {
+      "id": "news-eef613831898",
+      "title": "星宇股份羞辱式劝退应届生，被投诉至港交所，应届生甚至在整理BBA和欧盟的投诉渠道",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "星宇股份羞辱式劝退应届生，被投诉至港交所，应届生甚至在整理BBA和欧盟的投诉渠道。",
+      "pageId": "page-4f0fb81d544f",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 54,
+        "marker": "星宇股份羞辱式劝退应届生，被投诉至港交所，应届生甚至在整理BBA和欧盟的投诉渠道。",
+        "contentHash": "841bbf5f17f6aa002e3e3dcccfdf6b762e086ab7204967493977b725f5cc19c8"
+      }
+    },
+    {
+      "id": "news-4ddb4133ee55",
+      "title": "全国累计培养博士约120万，而驴的存栏量跌至120万，博士过剩了吗",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "全国累计培养博士约120万，而驴的存栏量跌至120万，博士过剩了吗？",
+      "pageId": "page-4f0fb81d544f",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 55,
+        "endColumn": 88,
+        "marker": "全国累计培养博士约120万，而驴的存栏量跌至120万，博士过剩了吗？",
+        "contentHash": "8d443e642c5abea14ad0506331c38e699c1f11c0992916d833f25d575700bf60"
+      }
+    },
+    {
+      "id": "news-a9b4833808b7",
+      "title": "研究证实中国医保报销受益向高收入群体倾斜，收入越低，疾病经济反而负担越重",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "研究证实中国医保报销受益向高收入群体倾斜，收入越低，疾病经济反而负担越重。",
+      "pageId": "page-4f0fb81d544f",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 89,
+        "endColumn": 125,
+        "marker": "研究证实中国医保报销受益向高收入群体倾斜，收入越低，疾病经济反而负担越重。",
+        "contentHash": "874a8efcc17a51ee8a41abafdb97b0b9147182c5bf0f43038dead9aca96a9f49"
+      }
+    },
+    {
+      "id": "news-7289c5d1b194",
+      "title": "12345热线一方面变成了许愿池，奇葩投诉不断，一方面误杀严肃投诉，问题出在哪里",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "12345热线一方面变成了许愿池，奇葩投诉不断，一方面误杀严肃投诉，问题出在哪里？",
+      "pageId": "page-4f0fb81d544f",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 126,
+        "endColumn": 166,
+        "marker": "12345热线一方面变成了许愿池，奇葩投诉不断，一方面误杀严肃投诉，问题出在哪里？",
+        "contentHash": "97a8a57800b87a0c3058a4d3a257ed84873b2a043135b8011c55ffce51910b62"
+      }
+    },
+    {
+      "id": "news-431409b99c5d",
+      "title": "江苏灌云县一办事大厅被拍空岗后禁止群众带手机进入；人民日报发文如何让群众敞开心扉、畅所欲言",
+      "date": "2026-08-27",
+      "datePrecision": "day",
+      "summary": "江苏灌云县一办事大厅被拍空岗后禁止群众带手机进入；人民日报发文如何让群众敞开心扉、畅所欲言。",
+      "pageId": "page-4f0fb81d544f",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 167,
+        "endColumn": 212,
+        "marker": "江苏灌云县一办事大厅被拍空岗后禁止群众带手机进入；人民日报发文如何让群众敞开心扉、畅所欲言。",
+        "contentHash": "dcc50442a91484709a1af6ae910616f7d81db168020b7235fa5e847900df9997"
+      }
+    },
+    {
+      "id": "news-82dbdf102ac2",
+      "title": "重磅房地产新政出台，预售门槛提升到主体结构封顶，推行现房销售，房贷期限上限延长到40年",
+      "date": "2026-08-29",
+      "datePrecision": "day",
+      "summary": "重磅房地产新政出台，预售门槛提升到主体结构封顶，推行现房销售，房贷期限上限延长到40年。",
+      "pageId": "page-1ef7e10db6c0",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 57,
+        "marker": "重磅房地产新政出台，预售门槛提升到主体结构封顶，推行现房销售，房贷期限上限延长到40年。",
+        "contentHash": "cc185529ca8133e7077aeef5870c51fe1041101f27ac8ce648c113401c46de90"
+      }
+    },
+    {
+      "id": "news-f3e8534670c1",
+      "title": "房地产税立法暂缓，地方附加税后发先至，合并城建税和教育附加，将成地方第一大水中",
+      "date": "2026-08-29",
+      "datePrecision": "day",
+      "summary": "房地产税立法暂缓，地方附加税后发先至，合并城建税和教育附加，将成地方第一大水中。",
+      "pageId": "page-1ef7e10db6c0",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 58,
+        "endColumn": 97,
+        "marker": "房地产税立法暂缓，地方附加税后发先至，合并城建税和教育附加，将成地方第一大水中。",
+        "contentHash": "468e63beaca3b5d6608a05b920cfda361d2de50b4c8efa82ced3205293f59ce8"
+      }
+    },
+    {
+      "id": "news-69505efac908",
+      "title": "财政压力增加将显著提高地方罚没收入强度的假说证实了，重要动因是官员晋升压力",
+      "date": "2026-08-29",
+      "datePrecision": "day",
+      "summary": "财政压力增加将显著提高地方罚没收入强度的假说证实了，重要动因是官员晋升压力。",
+      "pageId": "page-1ef7e10db6c0",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 98,
+        "endColumn": 135,
+        "marker": "财政压力增加将显著提高地方罚没收入强度的假说证实了，重要动因是官员晋升压力。",
+        "contentHash": "b3a992af7499296edc31e50c62c7217402d3e73e93228a34c4c9c9e8229090b6"
+      }
+    },
+    {
+      "id": "news-ffa4cc985417",
+      "title": "蒋超良被判牢底坐穿，7.46亿的受贿金额能排第几",
+      "date": "2026-08-29",
+      "datePrecision": "day",
+      "summary": "蒋超良被判牢底坐穿，7.46亿的受贿金额能排第几？",
+      "pageId": "page-1ef7e10db6c0",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 136,
+        "endColumn": 160,
+        "marker": "蒋超良被判牢底坐穿，7.46亿的受贿金额能排第几？",
+        "contentHash": "6db2b43ab15474cd79b304d0408c4cac20212bde57f7c8946dfb395a8858a287"
+      }
+    },
+    {
+      "id": "news-f61ff9367cc7",
+      "title": "中尼边境冰山崩塌导致泥石流，和全球变暖有关",
+      "date": "2026-08-29",
+      "datePrecision": "day",
+      "summary": "中尼边境冰山崩塌导致泥石流，和全球变暖有关。",
+      "pageId": "page-1ef7e10db6c0",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 161,
+        "endColumn": 182,
+        "marker": "中尼边境冰山崩塌导致泥石流，和全球变暖有关。",
+        "contentHash": "c801f8ad5c6052b5dd2f1e81009268dbe22cf229acb210494ac3f39592557318"
+      }
+    },
+    {
+      "id": "news-50af744e1b54",
+      "title": "全球变暖对老人的危害超出预期",
+      "date": "2026-08-29",
+      "datePrecision": "day",
+      "summary": "全球变暖对老人的危害超出预期。",
+      "pageId": "page-1ef7e10db6c0",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 183,
+        "endColumn": 197,
+        "marker": "全球变暖对老人的危害超出预期。",
+        "contentHash": "3ae35662735fd5a831243ed4e308bcf589aba47a167520e1377d784677484e27"
+      }
+    },
+    {
+      "id": "news-e110e2d4c766",
+      "title": "我国与热浪相关的过早死亡有多少",
+      "date": "2026-08-29",
+      "datePrecision": "day",
+      "summary": "我国与热浪相关的过早死亡有多少？",
+      "pageId": "page-1ef7e10db6c0",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 7,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 198,
+        "endColumn": 213,
+        "marker": "我国与热浪相关的过早死亡有多少？",
+        "contentHash": "66df5a30e9ae1d352f1c581f67888d6f11786d0d8b699c34adc4bf32476844e0"
+      }
+    },
+    {
+      "id": "news-c85694bdeacd",
+      "title": "三部门鼓励吸纳更多毕业生到基层城乡社区岗位就业，背景是近年来社区岗位招聘放缓",
+      "date": "2026-09-01",
+      "datePrecision": "day",
+      "summary": "三部门鼓励吸纳更多毕业生到基层城乡社区岗位就业，背景是近年来社区岗位招聘放缓。",
+      "pageId": "page-03bdb1514e47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 52,
+        "marker": "三部门鼓励吸纳更多毕业生到基层城乡社区岗位就业，背景是近年来社区岗位招聘放缓。",
+        "contentHash": "47825aeee7224e9672f0ed377e67acde8e198d8663a55d193b7a6b40eb016e03"
+      }
+    },
+    {
+      "id": "news-31771d6f1ba6",
+      "title": "国考缩招，但报考人数冲高，中公教育效益都更好了",
+      "date": "2026-09-01",
+      "datePrecision": "day",
+      "summary": "国考缩招，但报考人数冲高，中公教育效益都更好了。",
+      "pageId": "page-03bdb1514e47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 53,
+        "endColumn": 76,
+        "marker": "国考缩招，但报考人数冲高，中公教育效益都更好了。",
+        "contentHash": "72bf14a6d4fb08971977b480b9a03aab0217818d198f1256a06df6fd1b980116"
+      }
+    },
+    {
+      "id": "news-f3ec97ddf70d",
+      "title": "四川雷波县让老师和“耻辱”合影",
+      "date": "2026-09-01",
+      "datePrecision": "day",
+      "summary": "四川雷波县让老师和“耻辱”合影。",
+      "pageId": "page-03bdb1514e47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 77,
+        "endColumn": 92,
+        "marker": "四川雷波县让老师和“耻辱”合影。",
+        "contentHash": "a81af5ce901c9759b9ce79ac23ea7e4ac40f66fe3167815ab8b566cf0894c74d"
+      }
+    },
+    {
+      "id": "news-ac583c2abfe1",
+      "title": "辽宁中考生物学、地理、历史3科不计入总分",
+      "date": "2026-09-01",
+      "datePrecision": "day",
+      "summary": "辽宁中考生物学、地理、历史3科不计入总分。",
+      "pageId": "page-03bdb1514e47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 93,
+        "endColumn": 113,
+        "marker": "辽宁中考生物学、地理、历史3科不计入总分。",
+        "contentHash": "77139aa0e1854355353fb5b54f8c96c8628255b4cc04237f90bf44cd0a071754"
+      }
+    },
+    {
+      "id": "news-a9c91f18c5ea",
+      "title": "小学学龄人口已经过峰，大城市学位供给压力下降，但一些城市外来人口的随迁子女上学门槛不降反升",
+      "date": "2026-09-01",
+      "datePrecision": "day",
+      "summary": "小学学龄人口已经过峰，大城市学位供给压力下降，但一些城市外来人口的随迁子女上学门槛不降反升。",
+      "pageId": "page-03bdb1514e47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 114,
+        "endColumn": 159,
+        "marker": "小学学龄人口已经过峰，大城市学位供给压力下降，但一些城市外来人口的随迁子女上学门槛不降反升。",
+        "contentHash": "7cb2726bbed4ace270675849316aff241b32c01e69d1a42e6a4c587ece98927b"
+      }
+    },
+    {
+      "id": "news-a2e739b916f2",
+      "title": "宇树科技上市9天，股价、市值腰斩；追觅科技解散汽车团队",
+      "date": "2026-09-01",
+      "datePrecision": "day",
+      "summary": "宇树科技上市9天，股价、市值腰斩；追觅科技解散汽车团队。",
+      "pageId": "page-03bdb1514e47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 160,
+        "endColumn": 187,
+        "marker": "宇树科技上市9天，股价、市值腰斩；追觅科技解散汽车团队。",
+        "contentHash": "010f146d3f3c7335677fe57c2b54fe8b19565e9d35604a92e97deb159f70ca79"
+      }
+    },
+    {
+      "id": "news-ea7e3eae6dad",
+      "title": "华芯科技与海特高新抢公章还有前传",
+      "date": "2026-09-01",
+      "datePrecision": "day",
+      "summary": "华芯科技与海特高新抢公章还有前传。",
+      "pageId": "page-03bdb1514e47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 7,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 188,
+        "endColumn": 204,
+        "marker": "华芯科技与海特高新抢公章还有前传。",
+        "contentHash": "c16954545f32a1420c0543d0a3f90984f8730bfa7a8475f657f2bd55aaaefc37"
+      }
+    },
+    {
+      "id": "news-1e6fd171d8b5",
+      "title": "开学季，广西平乐中学78人一间宿舍，湖南麻阳小学四年级两个班没有教室，浙江临海小学要求家长上传学历证明照片，河北保定一家长在群里自报干部身份让老师关照孩子…香港中文大学（深圳）湖南籍新生提出退学，理由是同寝室有同学是2600名，我是260名，怎么可以和他住一个房间学习",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "开学季，广西平乐中学78人一间宿舍，湖南麻阳小学四年级两个班没有教室，浙江临海小学要求家长上传学历证明照片，河北保定一家长在群里自报干部身份让老师关照孩子…香港中文大学（深圳）湖南籍新生提出退学，理由是同寝室有同学是2600名，我是260名，怎么可以和他住一个房间学习？",
+      "pageId": "page-ec776b4b1371",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 148,
+        "marker": "开学季，广西平乐中学78人一间宿舍，湖南麻阳小学四年级两个班没有教室，浙江临海小学要求家长上传学历证明照片，河北保定一家长在群里自报干部身份让老师关照孩子…香港中文大学（深圳）湖南籍新生提出退学，理由是同寝室有同学是2600名，我是260名，怎么可以和他住一个房间学习？",
+        "contentHash": "889ad7fb55f74f591c6fe0e92e9b5f60c68a1b8d8c49097b12b745500a7e4e43"
+      }
+    },
+    {
+      "id": "news-ca6cce08b53e",
+      "title": "我国光伏发电装机超过煤电",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "我国光伏发电装机超过煤电。",
+      "pageId": "page-ec776b4b1371",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 149,
+        "endColumn": 161,
+        "marker": "我国光伏发电装机超过煤电。",
+        "contentHash": "f59501ad48347260854c37f2ae1832d8ebe58aa2534733c8fd9a7e4646d3016a"
+      }
+    },
+    {
+      "id": "news-3e481961bf35",
+      "title": "三部门出台指引，缓解车企内卷外溢",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "三部门出台指引，缓解车企内卷外溢。",
+      "pageId": "page-ec776b4b1371",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 162,
+        "endColumn": 178,
+        "marker": "三部门出台指引，缓解车企内卷外溢。",
+        "contentHash": "fb302332c1599ffb5ebc55bf2990d3b36c6cfa4172de0d398005e25780e5ddde"
+      }
+    },
+    {
+      "id": "news-4931dff36d49",
+      "title": "多家中企在匈牙利遇挫",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "多家中企在匈牙利遇挫。",
+      "pageId": "page-ec776b4b1371",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 179,
+        "endColumn": 189,
+        "marker": "多家中企在匈牙利遇挫。",
+        "contentHash": "76b65515f93e59960652e47977d05a7b18b68e0a60208c3585050c1aaab9b413"
+      }
+    },
+    {
+      "id": "news-f5dfb1b37117",
+      "title": "星宇股份员工内外有别，丁仲礼之问还在发力：中国人是不是人",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "星宇股份员工内外有别，丁仲礼之问还在发力：中国人是不是人。",
+      "pageId": "page-ec776b4b1371",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 190,
+        "endColumn": 218,
+        "marker": "星宇股份员工内外有别，丁仲礼之问还在发力：中国人是不是人。",
+        "contentHash": "d84020b3112af3c5d99162cd491d69841ca3b251d7a6205003329d39e241c180"
+      }
+    },
+    {
+      "id": "news-deafb1f90625",
+      "title": "1991年前出生的人，不能新办理40年期个人房贷吗",
+      "date": "2026-09-05",
+      "datePrecision": "day",
+      "summary": "1991年前出生的人，不能新办理40年期个人房贷吗？",
+      "pageId": "page-f11e66161d68",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 39,
+        "marker": "1991年前出生的人，不能新办理40年期个人房贷吗？",
+        "contentHash": "d20545db50dd5b6141e5de8ed6f9b569fa9491a71e1920c68a08507eba1d20b8"
+      }
+    },
+    {
+      "id": "news-ec142243c8e3",
+      "title": "“年龄＋期限”不超过75岁的规则会松动吗",
+      "date": "2026-09-05",
+      "datePrecision": "day",
+      "summary": "“年龄＋期限”不超过75岁的规则会松动吗？",
+      "pageId": "page-f11e66161d68",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 40,
+        "endColumn": 60,
+        "marker": "“年龄＋期限”不超过75岁的规则会松动吗？",
+        "contentHash": "38ce44a61c12720ced6d9214feaa435cd27662ec23ead478a464a0da1bb56349"
+      }
+    },
+    {
+      "id": "news-7069290723cc",
+      "title": "其实还有接力贷、子孙贷，南宁一楼盘曾宣传贷款年龄最长达100岁",
+      "date": "2026-09-05",
+      "datePrecision": "day",
+      "summary": "其实还有接力贷、子孙贷，南宁一楼盘曾宣传贷款年龄最长达100岁。",
+      "pageId": "page-f11e66161d68",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 61,
+        "endColumn": 92,
+        "marker": "其实还有接力贷、子孙贷，南宁一楼盘曾宣传贷款年龄最长达100岁。",
+        "contentHash": "23d2a1ab135cc95b07089e849f1037d65394fcd1234f117b6d167c2f852638ac"
+      }
+    },
+    {
+      "id": "news-3f0177b3ced1",
+      "title": "上市银行半年报显示，提前还房贷潮仍在",
+      "date": "2026-09-05",
+      "datePrecision": "day",
+      "summary": "上市银行半年报显示，提前还房贷潮仍在。",
+      "pageId": "page-f11e66161d68",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 93,
+        "endColumn": 111,
+        "marker": "上市银行半年报显示，提前还房贷潮仍在。",
+        "contentHash": "8aeeb77f5ae3f613d323d3c097d99280c7823e994e65b875f744742ae7b9e91e"
+      }
+    },
+    {
+      "id": "news-1c4f377f1630",
+      "title": "去年台湾地区在东亚乃至全球的生育率垫底",
+      "date": "2026-09-05",
+      "datePrecision": "day",
+      "summary": "去年台湾地区在东亚乃至全球的生育率垫底。",
+      "pageId": "page-f11e66161d68",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 112,
+        "endColumn": 131,
+        "marker": "去年台湾地区在东亚乃至全球的生育率垫底。",
+        "contentHash": "cb14d5532ef77ccd1728e6b24cc328858a8113f9350607fecfd2b1721cbafbea"
+      }
+    },
+    {
+      "id": "news-41ae34fe56aa",
+      "title": "新加坡出台生育刺激政策",
+      "date": "2026-09-05",
+      "datePrecision": "day",
+      "summary": "新加坡出台生育刺激政策。",
+      "pageId": "page-f11e66161d68",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 132,
+        "endColumn": 143,
+        "marker": "新加坡出台生育刺激政策。",
+        "contentHash": "17fd969a530a8a952564c4639f4faabbce0e35ae62509e303a75332fa475af32"
+      }
+    },
+    {
+      "id": "news-0d7ea2099fe9",
+      "title": "梁建章团队发布《中国百年历史人口报告》，还发文呼吁加大育儿补贴发放力度",
+      "date": "2026-09-05",
+      "datePrecision": "day",
+      "summary": "梁建章团队发布《中国百年历史人口报告》，还发文呼吁加大育儿补贴发放力度。",
+      "pageId": "page-f11e66161d68",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 7,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 144,
+        "endColumn": 179,
+        "marker": "梁建章团队发布《中国百年历史人口报告》，还发文呼吁加大育儿补贴发放力度。",
+        "contentHash": "7a3d724be3ce20f8a5edf80a3e4cd31a684fecdb7bbd903fa14a03460cff995f"
+      }
+    },
+    {
+      "id": "news-09bf2191c5f9",
+      "title": "上海暂停三款中成药采购资格，中成药价格治理加码，但高价屡禁不止",
+      "date": "2026-09-05",
+      "datePrecision": "day",
+      "summary": "上海暂停三款中成药采购资格，中成药价格治理加码，但高价屡禁不止。",
+      "pageId": "page-f11e66161d68",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 8,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 180,
+        "endColumn": 211,
+        "marker": "上海暂停三款中成药采购资格，中成药价格治理加码，但高价屡禁不止。",
+        "contentHash": "44de747ae7043425dee637fff361edbf7540a0527be0d82e25e38894fe61628c"
+      }
+    },
+    {
+      "id": "news-d92412594f89",
+      "title": "头部高校收紧甚至停招学硕，但不少本科生未必想清楚自己是否要走学术道路，专硕学费也更高",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "头部高校收紧甚至停招学硕，但不少本科生未必想清楚自己是否要走学术道路，专硕学费也更高。",
+      "pageId": "page-258a87e20314",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 56,
+        "marker": "头部高校收紧甚至停招学硕，但不少本科生未必想清楚自己是否要走学术道路，专硕学费也更高。",
+        "contentHash": "99190ec33ed0ab9779d39583ca4b785f83fe5b0a014313090ca8eef357bf19da"
+      }
+    },
+    {
+      "id": "news-9bae8bc458ad",
+      "title": "高速扩张几年后，储能也产能过剩了，新建产能项目面临从严审批",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "高速扩张几年后，储能也产能过剩了，新建产能项目面临从严审批。",
+      "pageId": "page-258a87e20314",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 57,
+        "endColumn": 86,
+        "marker": "高速扩张几年后，储能也产能过剩了，新建产能项目面临从严审批。",
+        "contentHash": "4d9eacdc226758fc1fec6f2360998375f6319c28370e4c8010091e26707d45bf"
+      }
+    },
+    {
+      "id": "news-74c9d31219e9",
+      "title": "8家中央金融企业迎来增资，财政部首次注资险企",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "8家中央金融企业迎来增资，财政部首次注资险企。",
+      "pageId": "page-258a87e20314",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 87,
+        "endColumn": 109,
+        "marker": "8家中央金融企业迎来增资，财政部首次注资险企。",
+        "contentHash": "65b95be0e524ca13b0e43cf4c505b2e53f8bf85ce441fd6b83b5dfb68cd4d5f2"
+      }
+    },
+    {
+      "id": "news-a51a7d61ada8",
+      "title": "学者观点：让灵活就业者缴职工社保，并非保护，而是剥夺",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "学者观点：让灵活就业者缴职工社保，并非保护，而是剥夺。",
+      "pageId": "page-258a87e20314",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 110,
+        "endColumn": 136,
+        "marker": "学者观点：让灵活就业者缴职工社保，并非保护，而是剥夺。",
+        "contentHash": "9622eb6e15a259fb719669f0b92d053d19f0fa4e800bbaa1a224bb0584d871ea"
+      }
+    },
+    {
+      "id": "news-c323288bb685",
+      "title": "应当让最弱势的人也能够得到最低而可靠的保障，提高保护的地板，《求是》怒批伪史论",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "应当让最弱势的人也能够得到最低而可靠的保障，提高保护的地板，《求是》怒批伪史论。",
+      "pageId": "page-258a87e20314",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 137,
+        "endColumn": 176,
+        "marker": "应当让最弱势的人也能够得到最低而可靠的保障，提高保护的地板，《求是》怒批伪史论。",
+        "contentHash": "390fb35bb0ea31c880093f374a08d0c9fb617165bc0c33297215fd0f49c94f81"
+      }
+    },
+    {
+      "id": "news-64e5c4ac8671",
+      "title": "上海赛车场CHINA GT赛事发生碰撞起火事故，救援不利在先，蓄意塞责在后",
+      "date": "2026-09-08",
+      "datePrecision": "day",
+      "summary": "上海赛车场CHINA GT赛事发生碰撞起火事故，救援不利在先，蓄意塞责在后。",
+      "pageId": "page-258a87e20314",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 177,
+        "endColumn": 214,
+        "marker": "上海赛车场CHINA GT赛事发生碰撞起火事故，救援不利在先，蓄意塞责在后。",
+        "contentHash": "050cc4273ac30e26648fb07c851845477f53cf1c85bc8a1263b462d09a512ab4"
       }
     }
   ]
