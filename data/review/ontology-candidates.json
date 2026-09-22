@@ -5,17 +5,17 @@
   "ontologyVersion": "2.1.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.4.0",
-  "extractionVersion": "3.7.0",
+  "extractionVersion": "3.8.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
     "totalNews": 9602,
-    "totalKnownEntities": 1759,
+    "totalKnownEntities": 1762,
     "newsWithKnownEntities": 9602,
     "newsWithoutKnownEntities": 0,
     "entityCoveragePercent": 100,
     "specificallyClassifiedNews": 9602,
     "eventTypeCoveragePercent": 100,
-    "averageEntitiesPerNews": 9.45,
+    "averageEntitiesPerNews": 9.46,
     "requiredCoverage": {
       "semanticEntity": {
         "covered": 9602,
@@ -40,8 +40,8 @@
     },
     "facetPresence": {
       "subject": {
-        "news": 3041,
-        "percent": 31.67
+        "news": 3088,
+        "percent": 32.16
       },
       "place": {
         "news": 7966,
@@ -58,8 +58,8 @@
     },
     "entityTypeCounts": {
       "person": 48,
-      "organization": 241,
-      "place": 270,
+      "organization": 243,
+      "place": 271,
       "facility": 29,
       "policy": 983,
       "document": 161,
@@ -82,7 +82,7 @@
     }
   },
   "currentIncrement": {
-    "newNews": 74,
+    "newNews": 9602,
     "newNewsWithoutKnownEntities": 0,
     "otherTypeNews": 0,
     "untypedReviewSample": [],

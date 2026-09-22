@@ -52200,29 +52200,6 @@
       }
     },
     {
-      "id": "page-6b7afe80df35",
-      "title": "短视频试验",
-      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
-      "repositoryPath": "shorts/test.md",
-      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
-      "publishedAt": "2023-03-10",
-      "dateProvenance": {
-        "observedAt": "2023-03-10",
-        "source": "frontmatter",
-        "resolution": "observed"
-      },
-      "kind": "shorts",
-      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
-      "segmentation": {
-        "strategy": "page_fallback",
-        "confidence": 0.8,
-        "newsCount": 1,
-        "candidateBoundaryCount": 0,
-        "needsReview": false,
-        "reviewReasons": []
-      }
-    },
-    {
       "id": "page-d19446c46444",
       "title": "【参考信息636】“小候鸟”超载；大师头衔作废；银行办结婚证",
       "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/636",
@@ -52520,6 +52497,29 @@
         "reviewReasons": [
           "metadata_only_news_segmentation"
         ]
+      }
+    },
+    {
+      "id": "page-6b7afe80df35",
+      "title": "短视频试验",
+      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
+      "repositoryPath": "shorts/test.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
+      "publishedAt": "2023-03-10",
+      "dateProvenance": {
+        "observedAt": "2023-03-10",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "shorts",
+      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
+      "segmentation": {
+        "strategy": "page_fallback",
+        "confidence": 0.8,
+        "newsCount": 1,
+        "candidateBoundaryCount": 0,
+        "needsReview": false,
+        "reviewReasons": []
       }
     }
   ],
@@ -215632,23 +215632,6 @@
       }
     },
     {
-      "id": "news-107e28383559",
-      "title": "短视频试验",
-      "date": "2023-03-10",
-      "datePrecision": "day",
-      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
-      "pageId": "page-6b7afe80df35",
-      "fragment": {
-        "strategy": "page_fallback",
-        "ordinal": 1,
-        "sourceField": "body",
-        "startLine": 10,
-        "endLine": 15,
-        "marker": "page",
-        "contentHash": "82f00b37a16ad6bb5d449fd21b4f18776ad794d296bd9c0ddc9444e7baaaccdd"
-      }
-    },
-    {
       "id": "news-c28bcfc70961",
       "title": "多地查处严重超载面包车，都是暑假到父母工作地探望父母的“小候鸟”",
       "date": "2026-08-13",
@@ -217052,6 +217035,23 @@
         "endColumn": 214,
         "marker": "上海赛车场CHINA GT赛事发生碰撞起火事故，救援不利在先，蓄意塞责在后。",
         "contentHash": "050cc4273ac30e26648fb07c851845477f53cf1c85bc8a1263b462d09a512ab4"
+      }
+    },
+    {
+      "id": "news-107e28383559",
+      "title": "短视频试验",
+      "date": "2023-03-10",
+      "datePrecision": "day",
+      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
+      "pageId": "page-6b7afe80df35",
+      "fragment": {
+        "strategy": "page_fallback",
+        "ordinal": 1,
+        "sourceField": "body",
+        "startLine": 10,
+        "endLine": 15,
+        "marker": "page",
+        "contentHash": "82f00b37a16ad6bb5d449fd21b4f18776ad794d296bd9c0ddc9444e7baaaccdd"
       }
     }
   ]

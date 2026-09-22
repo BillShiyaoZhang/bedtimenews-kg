@@ -9,7 +9,7 @@
     "newsDatasetSchemaVersion": "1.1.0",
     "segmentationVersion": "1.4.0",
     "newsOverrideVersion": "1.1.0",
-    "extractionVersion": "3.7.0"
+    "extractionVersion": "3.8.0"
   },
   "entities": [
     {
@@ -1633,6 +1633,18 @@
       }
     },
     {
+      "id": "entity-document-f25c2d65259a",
+      "label": "《中国百年历史人口报告》",
+      "type": "document",
+      "aliases": [],
+      "description": "由书名号与文献类型后缀识别的报告或文献；在 1 条独立新闻中出现。",
+      "extraction": {
+        "method": "named_document",
+        "confidence": 0.98,
+        "eventCount": 1
+      }
+    },
+    {
       "id": "entity-document-e75f544d5265",
       "label": "《中国城乡建设统计年鉴》",
       "type": "document",
@@ -2545,6 +2557,18 @@
       }
     },
     {
+      "id": "entity-organization-6f62d9689460",
+      "label": "比亚迪",
+      "type": "organization",
+      "aliases": [],
+      "description": "由经审查的组织名称或别名识别的主体；在 83 条独立新闻中出现。",
+      "extraction": {
+        "method": "organization_alias",
+        "confidence": 0.84,
+        "eventCount": 83
+      }
+    },
+    {
       "id": "entity-organization-858d6fbe15b0",
       "label": "布基纳法索政府",
       "type": "organization",
@@ -2564,6 +2588,20 @@
       "description": "由组织名称后缀规则识别的主体；在 2 条独立新闻中出现。",
       "extraction": {
         "method": "organization_suffix",
+        "confidence": 0.84,
+        "eventCount": 2
+      }
+    },
+    {
+      "id": "entity-organization-db7dda819461",
+      "label": "成都海威华芯科技",
+      "type": "organization",
+      "aliases": [
+        "华芯科技"
+      ],
+      "description": "由经审查的组织名称或别名识别的主体；在 2 条独立新闻中出现。",
+      "extraction": {
+        "method": "organization_alias",
         "confidence": 0.84,
         "eventCount": 2
       }
@@ -3165,6 +3203,18 @@
       "description": "由组织名称后缀规则识别的主体；在 2 条独立新闻中出现。",
       "extraction": {
         "method": "organization_suffix",
+        "confidence": 0.84,
+        "eventCount": 2
+      }
+    },
+    {
+      "id": "entity-organization-00adfbd5bbfd",
+      "label": "海特高新",
+      "type": "organization",
+      "aliases": [],
+      "description": "由经审查的组织名称或别名识别的主体；在 2 条独立新闻中出现。",
+      "extraction": {
+        "method": "organization_alias",
         "confidence": 0.84,
         "eventCount": 2
       }
@@ -3857,6 +3907,18 @@
       }
     },
     {
+      "id": "entity-organization-f90b6b846de5",
+      "label": "胖东来",
+      "type": "organization",
+      "aliases": [],
+      "description": "由经审查的组织名称或别名识别的主体；在 10 条独立新闻中出现。",
+      "extraction": {
+        "method": "organization_alias",
+        "confidence": 0.84,
+        "eventCount": 10
+      }
+    },
+    {
       "id": "entity-organization-e222009ed116",
       "label": "普林斯顿大学",
       "type": "organization",
@@ -4412,6 +4474,18 @@
         "method": "organization_suffix",
         "confidence": 0.84,
         "eventCount": 2
+      }
+    },
+    {
+      "id": "entity-organization-47eaad2f8871",
+      "label": "星宇股份",
+      "type": "organization",
+      "aliases": [],
+      "description": "由经审查的组织名称或别名识别的主体；在 3 条独立新闻中出现。",
+      "extraction": {
+        "method": "organization_alias",
+        "confidence": 0.84,
+        "eventCount": 3
       }
     },
     {
@@ -6931,6 +7005,20 @@
         "method": "gazetteer",
         "confidence": 1,
         "eventCount": 149
+      }
+    },
+    {
+      "id": "entity-place-1aadfce5b98d",
+      "label": "菏泽市",
+      "type": "place",
+      "aliases": [
+        "菏泽"
+      ],
+      "description": "标准地名；在 14 条独立新闻中出现。",
+      "extraction": {
+        "method": "gazetteer",
+        "confidence": 1,
+        "eventCount": 14
       }
     },
     {
@@ -21186,7 +21274,8 @@
         "太平官",
         "12345",
         "投诉",
-        "经开区"
+        "经开区",
+        "过紧日子通知"
       ],
       "description": "受控主题词；由 4978 条独立新闻的关键词规则命中。",
       "extraction": {
@@ -21338,13 +21427,15 @@
         "城铁",
         "春运",
         "返乡车流",
-        "客机"
+        "客机",
+        "火车站",
+        "乘降所"
       ],
-      "description": "受控主题词；由 1745 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1755 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1745
+        "eventCount": 1755
       }
     },
     {
@@ -21468,7 +21559,9 @@
         "升职加薪",
         "骑手",
         "配送时间",
-        "员工内外有别"
+        "员工内外有别",
+        "再招员工",
+        "善待员工"
       ],
       "description": "受控主题词；由 2209 条独立新闻的关键词规则命中。",
       "extraction": {
@@ -21832,13 +21925,14 @@
         "戒网瘾",
         "成瘾性物质",
         "生物制药",
-        "村医"
+        "村医",
+        "精神障碍"
       ],
-      "description": "受控主题词；由 1868 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1869 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1868
+        "eventCount": 1869
       }
     },
     {
@@ -21872,56 +21966,6 @@
         "method": "controlled_vocabulary",
         "confidence": 1,
         "eventCount": 1460
-      }
-    },
-    {
-      "id": "entity-document-f25c2d65259a",
-      "label": "《中国百年历史人口报告》",
-      "type": "document",
-      "aliases": [],
-      "description": "由书名号与文献类型后缀识别的报告或文献；在 1 条独立新闻中出现。",
-      "extraction": {
-        "method": "named_document",
-        "confidence": 0.98,
-        "eventCount": 1
-      }
-    },
-    {
-      "id": "entity-organization-db7dda819461",
-      "label": "成都海威华芯科技",
-      "type": "organization",
-      "aliases": [
-        "华芯科技"
-      ],
-      "description": "由经审查的组织名称或别名识别的主体；在 2 条独立新闻中出现。",
-      "extraction": {
-        "method": "organization_alias",
-        "confidence": 0.84,
-        "eventCount": 2
-      }
-    },
-    {
-      "id": "entity-organization-00adfbd5bbfd",
-      "label": "海特高新",
-      "type": "organization",
-      "aliases": [],
-      "description": "由经审查的组织名称或别名识别的主体；在 2 条独立新闻中出现。",
-      "extraction": {
-        "method": "organization_alias",
-        "confidence": 0.84,
-        "eventCount": 2
-      }
-    },
-    {
-      "id": "entity-organization-47eaad2f8871",
-      "label": "星宇股份",
-      "type": "organization",
-      "aliases": [],
-      "description": "由经审查的组织名称或别名识别的主体；在 2 条独立新闻中出现。",
-      "extraction": {
-        "method": "organization_alias",
-        "confidence": 0.84,
-        "eventCount": 2
       }
     }
   ],
@@ -22159,6 +22203,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-b7f3ca4844c8",
+        "entity-organization-f90b6b846de5",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
         "entity-topic-db818238bf90",
@@ -22425,6 +22470,7 @@
         "entity-topic-09a250abf6ac",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-f90b6b846de5",
         "entity-person-6359c318faf5"
       ]
     },
@@ -22482,7 +22528,8 @@
         "entity-topic-6cf73dbb1b59",
         "entity-topic-9be00a89dec0",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -22576,6 +22623,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-organization-7e0177ade0d8",
+        "entity-organization-6f62d9689460",
         "entity-organization-f8be44d48cf6",
         "entity-organization-8e82e21b66fb"
       ]
@@ -22671,6 +22719,7 @@
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-7f265bfe536b"
       ]
     },
@@ -23018,7 +23067,8 @@
         "entity-topic-d68c099d5b04",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
-        "entity-topic-8427f6313373"
+        "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -23147,6 +23197,7 @@
         "entity-topic-6c34323d1aa3",
         "entity-topic-8e6234a589f6",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-person-6359c318faf5",
         "entity-person-6b7d6c576ba6"
       ]
@@ -23862,6 +23913,7 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-8e6234a589f6",
         "entity-topic-e3a330ceec3c",
+        "entity-organization-6f62d9689460",
         "entity-organization-7226b28a8402",
         "entity-organization-792858387ee2"
       ]
@@ -27570,6 +27622,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-6f62d9689460",
         "entity-topic-da8baac7a56a"
       ]
     },
@@ -28038,6 +28091,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-6f62d9689460",
         "entity-topic-4aec0475249f",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
@@ -29546,6 +29600,7 @@
         "entity-place-a7e2567f856a",
         "entity-place-9f175d2e735a",
         "entity-place-1827868fb625",
+        "entity-place-1aadfce5b98d",
         "entity-topic-da8baac7a56a",
         "entity-topic-1a28a95ca93c",
         "entity-topic-2578a308b835",
@@ -34342,6 +34397,7 @@
         "entity-place-8b3721273072",
         "entity-place-04e20705be02",
         "entity-place-a7e2567f856a",
+        "entity-place-1aadfce5b98d",
         "entity-topic-d68c099d5b04",
         "entity-topic-e3a330ceec3c"
       ]
@@ -39092,7 +39148,8 @@
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -39984,6 +40041,7 @@
         "entity-place-82390768e1b8",
         "entity-place-f44cf800c974",
         "entity-place-a7e2567f856a",
+        "entity-place-1aadfce5b98d",
         "entity-topic-1a28a95ca93c",
         "entity-topic-d68c099d5b04",
         "entity-topic-7826943ffa59",
@@ -40866,6 +40924,7 @@
       "entityIds": [
         "entity-place-2ab0c4fc4585",
         "entity-place-13e5841d337d",
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-8e6234a589f6"
       ]
@@ -47069,6 +47128,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-6f62d9689460",
         "entity-topic-da8baac7a56a"
       ]
     },
@@ -53739,7 +53799,8 @@
         "entity-place-4e9d53c9db1e",
         "entity-place-cc6336fa8eb9",
         "entity-person-1ca117c6171e",
-        "entity-topic-db818238bf90"
+        "entity-topic-db818238bf90",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -53892,6 +53953,7 @@
       "entityIds": [
         "entity-place-231429983435",
         "entity-place-19e3c53de5ee",
+        "entity-organization-6f62d9689460",
         "entity-topic-4aec0475249f",
         "entity-topic-db818238bf90",
         "entity-topic-ba1dbbad6e64",
@@ -61416,6 +61478,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
         "entity-topic-e3a330ceec3c",
@@ -61844,6 +61907,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-6f62d9689460",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-7fe1d89c885d"
@@ -65322,7 +65386,8 @@
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -65702,6 +65767,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-eeffed97b3c4",
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-7fe1d89c885d",
         "entity-topic-d68c099d5b04",
@@ -71767,7 +71833,8 @@
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
         "entity-topic-e3a330ceec3c",
-        "entity-organization-7e0177ade0d8"
+        "entity-organization-7e0177ade0d8",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -72134,6 +72201,7 @@
       "entityIds": [
         "entity-place-6d2e03cac4b3",
         "entity-place-7a49854048c4",
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
         "entity-topic-3619e6a68ba1",
@@ -72284,6 +72352,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-7fe1d89c885d",
         "entity-topic-240a20d1377a",
@@ -73744,6 +73813,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-41a9abcd966c",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-e3a330ceec3c"
       ]
     },
@@ -74675,6 +74745,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-cfc80ed5116d",
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-240a20d1377a"
@@ -77372,6 +77443,7 @@
       "entityIds": [
         "entity-place-cfc80ed5116d",
         "entity-organization-7f265bfe536b",
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-6c34323d1aa3",
         "entity-topic-ba1dbbad6e64",
@@ -82425,6 +82497,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
         "entity-topic-6cf73dbb1b59"
@@ -86737,6 +86810,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-cfc80ed5116d",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-7826943ffa59",
         "entity-topic-240a20d1377a"
       ]
@@ -92897,6 +92971,7 @@
       "entityIds": [
         "entity-place-3b41ac0e7118",
         "entity-place-41a9abcd966c",
+        "entity-organization-6f62d9689460",
         "entity-topic-da8baac7a56a",
         "entity-topic-2578a308b835",
         "entity-topic-9be00a89dec0",
@@ -96333,6 +96408,7 @@
         "entity-place-eeffed97b3c4",
         "entity-place-4d75b89d185b",
         "entity-place-8b3721273072",
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-6c34323d1aa3",
         "entity-topic-5dd0d821b9a8"
@@ -100947,6 +101023,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-8039d52202eb",
+        "entity-topic-1a28a95ca93c",
         "entity-topic-d68c099d5b04",
         "entity-topic-e3a330ceec3c"
       ]
@@ -106843,6 +106920,7 @@
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-e73c3d0c6adb"
       ]
     },
@@ -106906,6 +106984,7 @@
         "entity-topic-4aec0475249f",
         "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-53d167322c77",
         "entity-topic-2578a308b835",
         "entity-topic-18a9a1d4f0e0",
@@ -109081,6 +109160,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-2006576a9e4e",
+        "entity-place-1aadfce5b98d",
         "entity-place-ae019a9e566d",
         "entity-place-4d75b89d185b",
         "entity-place-2a1f489d410a",
@@ -112769,6 +112849,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460",
         "entity-organization-f8be44d48cf6",
         "entity-organization-4e71da55ccf3"
       ]
@@ -113799,6 +113880,7 @@
         "entity-place-a2ef4c813efc",
         "entity-place-4ad5cfd9df5b",
         "entity-place-16cf9c2e50df",
+        "entity-place-1aadfce5b98d",
         "entity-place-1827868fb625",
         "entity-place-1245ee9cc938",
         "entity-policy-00d0b4495744",
@@ -116483,6 +116565,7 @@
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-person-492e76630964",
         "entity-person-63bb233b0f43"
       ]
@@ -116719,7 +116802,8 @@
         "entity-topic-7826943ffa59",
         "entity-topic-8e6234a589f6",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -117243,6 +117327,7 @@
         "entity-topic-7826943ffa59",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-f8be44d48cf6"
       ]
     },
@@ -117288,6 +117373,7 @@
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-d886598c7d23",
         "entity-organization-f8be44d48cf6",
         "entity-organization-f673a257d9e2",
@@ -117949,7 +118035,8 @@
         "entity-topic-d68c099d5b04",
         "entity-topic-8e6234a589f6",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -120960,6 +121047,7 @@
         "entity-place-9f175d2e735a",
         "entity-place-cc6336fa8eb9",
         "entity-place-b323e491e463",
+        "entity-place-1aadfce5b98d",
         "entity-topic-ec064b630b41",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
@@ -121936,6 +122024,7 @@
         "entity-topic-1111de459cd2",
         "entity-topic-6cf73dbb1b59",
         "entity-topic-7fe1d89c885d",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-53d167322c77",
         "entity-topic-1a28a95ca93c",
         "entity-topic-3619e6a68ba1",
@@ -132396,6 +132485,7 @@
       "entityIds": [
         "entity-place-231429983435",
         "entity-topic-1111de459cd2",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-1a28a95ca93c",
         "entity-topic-2578a308b835",
         "entity-topic-09a250abf6ac",
@@ -143622,6 +143712,7 @@
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-8753ddea4e69",
         "entity-organization-5747d48f6f17"
       ]
@@ -143730,7 +143821,8 @@
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
-        "entity-topic-8427f6313373"
+        "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -144447,6 +144539,7 @@
         "entity-topic-8a581a8f5d03",
         "entity-topic-85bc32ad72f0",
         "entity-topic-7fe1d89c885d",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-1a28a95ca93c",
         "entity-topic-5dd0d821b9a8",
         "entity-topic-9be00a89dec0",
@@ -146672,6 +146765,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460",
         "entity-organization-f903cb7d1fa9",
         "entity-organization-250763f2943f",
         "entity-organization-1b29c577332f",
@@ -149013,7 +149107,8 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-8427f6313373"
+        "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -149614,6 +149709,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460",
         "entity-organization-950f60f74eaa",
         "entity-organization-ab5b270d4974",
         "entity-person-6b7d6c576ba6"
@@ -150070,6 +150166,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460",
         "entity-organization-f903cb7d1fa9",
         "entity-organization-1f9e676e15e7",
         "entity-organization-85365e5995c8",
@@ -150410,6 +150507,7 @@
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
         "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460",
         "entity-organization-d886598c7d23",
         "entity-organization-12672ce8201d",
         "entity-organization-723f5f35074a",
@@ -150717,6 +150815,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460",
         "entity-organization-eb2e78bc8b43"
       ]
     },
@@ -151831,6 +151930,7 @@
         "entity-topic-240a20d1377a",
         "entity-topic-8427f6313373",
         "entity-facility-07db5c0417aa",
+        "entity-organization-6f62d9689460",
         "entity-organization-1f9e676e15e7",
         "entity-organization-f8be44d48cf6",
         "entity-organization-c3bf388f5f04"
@@ -152943,6 +153043,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460",
         "entity-person-6359c318faf5"
       ]
     },
@@ -153573,7 +153674,8 @@
         "entity-topic-7826943ffa59",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
-        "entity-topic-8427f6313373"
+        "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -155763,6 +155865,7 @@
         "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
         "entity-topic-85bc32ad72f0",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-1a28a95ca93c",
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
@@ -155972,7 +156075,8 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-organization-f56b9d78f517",
-        "entity-organization-f903cb7d1fa9"
+        "entity-organization-f903cb7d1fa9",
+        "entity-organization-f90b6b846de5"
       ]
     },
     {
@@ -156524,6 +156628,7 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-f8be44d48cf6"
       ]
     },
@@ -159315,6 +159420,7 @@
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-f8be44d48cf6",
         "entity-organization-93d10873bd8a"
       ]
@@ -159724,6 +159830,7 @@
         "entity-place-af58b8f1655f",
         "entity-place-7fad64cf238e",
         "entity-place-4d75b89d185b",
+        "entity-organization-6f62d9689460",
         "entity-policy-9045a5df5ff2",
         "entity-policy-e429ddefe7f0",
         "entity-topic-ec064b630b41",
@@ -160760,6 +160867,7 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-5747d48f6f17"
       ]
     },
@@ -161581,6 +161689,7 @@
         "entity-topic-89169131f716",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-e73c3d0c6adb",
         "entity-organization-8364b521780c"
       ]
@@ -163031,6 +163140,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460",
         "entity-organization-792858387ee2",
         "entity-organization-c3bf388f5f04"
       ]
@@ -164238,6 +164348,7 @@
         "entity-place-fe37c0294292",
         "entity-place-eeffed97b3c4",
         "entity-place-a7e2567f856a",
+        "entity-place-1aadfce5b98d",
         "entity-topic-4aec0475249f",
         "entity-topic-1a28a95ca93c",
         "entity-topic-2578a308b835"
@@ -171854,6 +171965,7 @@
       "entityIds": [
         "entity-place-4d75b89d185b",
         "entity-place-3268b6f7cec4",
+        "entity-organization-6f62d9689460",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
@@ -174082,7 +174194,8 @@
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -175353,6 +175466,7 @@
       "significance": "",
       "entityIds": [
         "entity-organization-2f88e257fa32",
+        "entity-organization-6f62d9689460",
         "entity-policy-87ca0dbc1cd8",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
@@ -178237,6 +178351,7 @@
         "entity-place-9e0fb239c255",
         "entity-place-c51d29311ed6",
         "entity-place-cc6336fa8eb9",
+        "entity-organization-6f62d9689460",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
         "entity-topic-db818238bf90",
@@ -181313,6 +181428,7 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
         "entity-topic-8e6234a589f6",
+        "entity-organization-6f62d9689460",
         "entity-person-246244faaa78"
       ]
     },
@@ -181589,6 +181705,7 @@
         "entity-place-c674750446d2",
         "entity-place-541fa393e0cf",
         "entity-place-fe4ef6525fef",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-2578a308b835",
         "entity-topic-18a9a1d4f0e0",
         "entity-topic-ba1dbbad6e64",
@@ -185616,6 +185733,7 @@
         "entity-place-a7e2567f856a",
         "entity-place-b7f3ca4844c8",
         "entity-place-3b41ac0e7118",
+        "entity-place-1aadfce5b98d",
         "entity-place-9f175d2e735a",
         "entity-policy-9c49abcaa895",
         "entity-topic-ec064b630b41",
@@ -186663,6 +186781,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-4b9243162e46",
+        "entity-organization-6f62d9689460",
         "entity-topic-85bc32ad72f0",
         "entity-topic-6cf73dbb1b59",
         "entity-topic-7fe1d89c885d",
@@ -192622,6 +192741,7 @@
         "entity-place-9f175d2e735a",
         "entity-place-fe37c0294292",
         "entity-place-3268b6f7cec4",
+        "entity-place-1aadfce5b98d",
         "entity-topic-53d167322c77",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04"
@@ -194389,6 +194509,7 @@
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
         "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460",
         "entity-organization-916ba6f45ec5"
       ]
     },
@@ -194408,6 +194529,7 @@
         "entity-place-19e3c53de5ee",
         "entity-place-ae019a9e566d",
         "entity-place-a288904ed8cb",
+        "entity-organization-6f62d9689460",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
@@ -195476,6 +195598,7 @@
         "entity-place-b1a28193f3b3",
         "entity-place-71af1b1e9b48",
         "entity-topic-8a581a8f5d03",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-3619e6a68ba1",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
@@ -195988,7 +196111,8 @@
         "entity-topic-1a28a95ca93c",
         "entity-topic-18a9a1d4f0e0",
         "entity-topic-09a250abf6ac",
-        "entity-topic-ba1dbbad6e64"
+        "entity-topic-ba1dbbad6e64",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -198463,7 +198587,8 @@
         "entity-topic-da8baac7a56a",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
-        "entity-topic-e3a330ceec3c"
+        "entity-topic-e3a330ceec3c",
+        "entity-organization-47eaad2f8871"
       ]
     },
     {
@@ -198602,6 +198727,7 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-8e6234a589f6",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-person-54c0847e548c",
         "entity-person-6359c318faf5"
       ]
@@ -199528,6 +199654,7 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-8e6234a589f6",
         "entity-topic-e3a330ceec3c",
+        "entity-organization-6f62d9689460",
         "entity-organization-3a48af37bea6",
         "entity-person-6359c318faf5"
       ]
@@ -204622,6 +204749,7 @@
       "significance": "",
       "entityIds": [
         "entity-organization-916ba6f45ec5",
+        "entity-organization-6f62d9689460",
         "entity-topic-4aec0475249f",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
@@ -204671,6 +204799,7 @@
         "entity-place-5cadbbb58d0d",
         "entity-place-cc6336fa8eb9",
         "entity-organization-eb3578767461",
+        "entity-organization-6f62d9689460",
         "entity-topic-4aec0475249f",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
@@ -205576,6 +205705,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-b323e491e463",
+        "entity-organization-f90b6b846de5",
         "entity-topic-1a28a95ca93c",
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
@@ -205910,6 +206040,7 @@
         "entity-place-da7f53fa67f7",
         "entity-place-a7e2567f856a",
         "entity-place-9f175d2e735a",
+        "entity-place-1aadfce5b98d",
         "entity-place-2dfb696c17d1",
         "entity-place-3eeb89efd1f3",
         "entity-place-b7368bc5ea60",
@@ -206914,7 +207045,8 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
         "entity-topic-8e6234a589f6",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -211758,6 +211890,7 @@
         "entity-place-9e19703aebe6",
         "entity-place-23983732fc1b",
         "entity-organization-eb3578767461",
+        "entity-organization-6f62d9689460",
         "entity-topic-ec064b630b41",
         "entity-topic-4aec0475249f",
         "entity-topic-db818238bf90",
@@ -212789,6 +212922,7 @@
       "entityIds": [
         "entity-place-a47674a782ef",
         "entity-place-cc6336fa8eb9",
+        "entity-organization-6f62d9689460",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
         "entity-topic-db818238bf90",
@@ -214254,7 +214388,8 @@
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -216567,6 +216702,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-a7e2567f856a",
+        "entity-place-1aadfce5b98d",
         "entity-place-fe37c0294292",
         "entity-topic-da8baac7a56a",
         "entity-topic-1a28a95ca93c",
@@ -219671,6 +219807,7 @@
         "entity-place-a2ef4c813efc",
         "entity-place-da7f53fa67f7",
         "entity-place-675b50cb8d85",
+        "entity-place-1aadfce5b98d",
         "entity-place-231429983435",
         "entity-topic-2578a308b835",
         "entity-topic-e3a330ceec3c",
@@ -220002,6 +220139,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-3eeb89efd1f3",
+        "entity-organization-f90b6b846de5",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
         "entity-topic-18a9a1d4f0e0",
@@ -220105,6 +220243,7 @@
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
+        "entity-organization-f90b6b846de5",
         "entity-organization-d42000bb8975"
       ]
     },
@@ -221021,7 +221160,8 @@
         "entity-topic-5dd0d821b9a8",
         "entity-topic-9be00a89dec0",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -222225,7 +222365,8 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -222666,7 +222807,8 @@
         "entity-topic-53d167322c77",
         "entity-topic-9be00a89dec0",
         "entity-topic-d68c099d5b04",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -223276,7 +223418,8 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
         "entity-topic-8e6234a589f6",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -224614,6 +224757,7 @@
         "entity-place-ae019a9e566d",
         "entity-place-da7f53fa67f7",
         "entity-place-3268b6f7cec4",
+        "entity-place-1aadfce5b98d",
         "entity-topic-8a581a8f5d03",
         "entity-topic-7fe1d89c885d",
         "entity-topic-6c34323d1aa3",
@@ -224776,7 +224920,8 @@
         "entity-topic-09a250abf6ac",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
-        "entity-topic-8427f6313373"
+        "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -224935,7 +225080,8 @@
         "entity-topic-09a250abf6ac",
         "entity-topic-e3a330ceec3c",
         "entity-topic-240a20d1377a",
-        "entity-topic-8427f6313373"
+        "entity-topic-8427f6313373",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -225102,7 +225248,8 @@
       "entityIds": [
         "entity-place-b7f3ca4844c8",
         "entity-topic-d68c099d5b04",
-        "entity-topic-e3a330ceec3c"
+        "entity-topic-e3a330ceec3c",
+        "entity-organization-f90b6b846de5"
       ]
     },
     {
@@ -229508,6 +229655,7 @@
       "entityIds": [
         "entity-place-41a9abcd966c",
         "entity-topic-7fe1d89c885d",
+        "entity-topic-6c34323d1aa3",
         "entity-topic-18a9a1d4f0e0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
@@ -230430,6 +230578,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-19e3c53de5ee",
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-85bc32ad72f0",
         "entity-topic-6c34323d1aa3",
@@ -230607,7 +230756,8 @@
         "entity-topic-6cf73dbb1b59",
         "entity-topic-1a28a95ca93c",
         "entity-topic-18a9a1d4f0e0",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -230950,6 +231100,7 @@
       "entityIds": [
         "entity-place-b323e491e463",
         "entity-place-2a1f489d410a",
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-1a28a95ca93c",
         "entity-topic-3619e6a68ba1",
@@ -233047,6 +233198,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-6f62d9689460",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
@@ -233076,6 +233228,7 @@
         "entity-place-1827868fb625",
         "entity-place-b323e491e463",
         "entity-place-6d2e03cac4b3",
+        "entity-organization-6f62d9689460",
         "entity-policy-62fb44595656",
         "entity-topic-db818238bf90",
         "entity-topic-8a581a8f5d03",
@@ -234252,7 +234405,8 @@
         "entity-topic-6cf73dbb1b59",
         "entity-topic-6c34323d1aa3",
         "entity-topic-5dd0d821b9a8",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -234493,6 +234647,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-a7e2567f856a",
+        "entity-place-1aadfce5b98d",
         "entity-place-17f0ef645826",
         "entity-place-231429983435",
         "entity-place-3268b6f7cec4",
@@ -238216,6 +238371,7 @@
       "entityIds": [
         "entity-place-b7f3ca4844c8",
         "entity-place-b2c91f7ebc91",
+        "entity-organization-f90b6b846de5",
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
         "entity-topic-9be00a89dec0",
@@ -239987,7 +240143,8 @@
         "entity-topic-9be00a89dec0",
         "entity-topic-ba1dbbad6e64",
         "entity-topic-e3a330ceec3c",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-f90b6b846de5"
       ]
     },
     {
@@ -243104,6 +243261,7 @@
         "entity-topic-ba1dbbad6e64",
         "entity-topic-d68c099d5b04",
         "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460",
         "entity-organization-f903cb7d1fa9"
       ]
     },
@@ -243125,7 +243283,8 @@
         "entity-topic-db818238bf90",
         "entity-topic-6cf73dbb1b59",
         "entity-topic-ba1dbbad6e64",
-        "entity-topic-240a20d1377a"
+        "entity-topic-240a20d1377a",
+        "entity-organization-6f62d9689460"
       ]
     },
     {
@@ -244401,6 +244560,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-231429983435",
+        "entity-organization-6f62d9689460",
         "entity-policy-62fb44595656",
         "entity-topic-da8baac7a56a",
         "entity-topic-db818238bf90",
@@ -250462,6 +250622,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-9be00a89dec0"
       ]
@@ -250956,6 +251117,7 @@
       "entityIds": [
         "entity-place-6d2e03cac4b3",
         "entity-place-5b189ee537e5",
+        "entity-organization-6f62d9689460",
         "entity-topic-db818238bf90",
         "entity-topic-9be00a89dec0"
       ]
@@ -253251,6 +253413,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-organization-f90b6b846de5",
         "entity-topic-9be00a89dec0"
       ]
     },
@@ -255445,23 +255608,6 @@
       ]
     },
     {
-      "id": "event-bcf677ff48d3",
-      "newsId": "news-107e28383559",
-      "title": "短视频试验",
-      "date": "2023-03-10",
-      "datePrecision": "day",
-      "type": "science_technology",
-      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
-      "sourceIds": [
-        "page-6b7afe80df35"
-      ],
-      "significance": "",
-      "entityIds": [
-        "entity-topic-8a581a8f5d03",
-        "entity-topic-e3a330ceec3c"
-      ]
-    },
-    {
       "id": "event-3b94552be13b",
       "newsId": "news-c28bcfc70961",
       "title": "多地查处严重超载面包车，都是暑假到父母工作地探望父母的“小候鸟”",
@@ -256704,6 +256850,23 @@
       "entityIds": [
         "entity-place-19e3c53de5ee",
         "entity-topic-7826943ffa59"
+      ]
+    },
+    {
+      "id": "event-bcf677ff48d3",
+      "newsId": "news-107e28383559",
+      "title": "短视频试验",
+      "date": "2023-03-10",
+      "datePrecision": "day",
+      "type": "science_technology",
+      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
+      "sourceIds": [
+        "page-6b7afe80df35"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-8a581a8f5d03",
+        "entity-topic-e3a330ceec3c"
       ]
     }
   ],
@@ -260789,6 +260952,756 @@
       "sourceId": "page-a93a026b29a8"
     },
     {
+      "id": "relation-2d2e6e203efc",
+      "from": "event-71ea2ce3c132",
+      "to": "event-35a259b59aba",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-cc4039a84f81"
+    },
+    {
+      "id": "relation-6fb9d24e1198",
+      "from": "event-35a259b59aba",
+      "to": "event-414773c849ce",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-968e71d830e0"
+    },
+    {
+      "id": "relation-7b9297801876",
+      "from": "event-414773c849ce",
+      "to": "event-de2fadc1c08b",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-f20ca3b11733"
+    },
+    {
+      "id": "relation-0ac784ef5b0e",
+      "from": "event-de2fadc1c08b",
+      "to": "event-eb0e6f490904",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-06289586d9e9"
+    },
+    {
+      "id": "relation-d9b5b2d9e148",
+      "from": "event-eb0e6f490904",
+      "to": "event-0fc1aab201fa",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-1fc6ebd6b1fc"
+    },
+    {
+      "id": "relation-076adebc8a87",
+      "from": "event-0fc1aab201fa",
+      "to": "event-e617b2b8448a",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-ba9c13a46562"
+    },
+    {
+      "id": "relation-4a65f3f500e4",
+      "from": "event-e617b2b8448a",
+      "to": "event-02f584ec947c",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-eec44ad675d5"
+    },
+    {
+      "id": "relation-42b90a383f12",
+      "from": "event-02f584ec947c",
+      "to": "event-510c06766183",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-454d61b27550"
+    },
+    {
+      "id": "relation-fc381e505a9a",
+      "from": "event-510c06766183",
+      "to": "event-6e9e053fd99e",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-2eaa97a9c314"
+    },
+    {
+      "id": "relation-98cd8b786842",
+      "from": "event-6e9e053fd99e",
+      "to": "event-47d18a1b0f2f",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-a0c0a3417d6d"
+    },
+    {
+      "id": "relation-531cbc77ad04",
+      "from": "event-47d18a1b0f2f",
+      "to": "event-7ea6c7e36773",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-203e3b9d4de6"
+    },
+    {
+      "id": "relation-bdb9a106f0c8",
+      "from": "event-7ea6c7e36773",
+      "to": "event-3a0a8612e7d2",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-64579ebae1d9"
+    },
+    {
+      "id": "relation-bd80e0f1605c",
+      "from": "event-3a0a8612e7d2",
+      "to": "event-c6de70c4926b",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-d87672aa3687"
+    },
+    {
+      "id": "relation-52e1dfff8d87",
+      "from": "event-c6de70c4926b",
+      "to": "event-e8baf6b7b4f5",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-2196cffae3d5"
+    },
+    {
+      "id": "relation-84d9df84aaa3",
+      "from": "event-e8baf6b7b4f5",
+      "to": "event-5161a0a7d5e8",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-ee52b15d48f4"
+    },
+    {
+      "id": "relation-4aeff2a73d3a",
+      "from": "event-5161a0a7d5e8",
+      "to": "event-96dbaa19d8e3",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-acac1ca95bbd"
+    },
+    {
+      "id": "relation-b732d03333b3",
+      "from": "event-96dbaa19d8e3",
+      "to": "event-1152d0d15ad5",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-a58f20d912cf"
+    },
+    {
+      "id": "relation-a2ab4ea06a3e",
+      "from": "event-65239e236029",
+      "to": "event-adf3cd5be1da",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-5a106f62ce8f"
+    },
+    {
+      "id": "relation-ec7cfe1914bb",
+      "from": "event-adf3cd5be1da",
+      "to": "event-ca2883fd2dea",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-bd62d5f26b84"
+    },
+    {
+      "id": "relation-2ed813d1990c",
+      "from": "event-ca2883fd2dea",
+      "to": "event-2bc8f2489a8d",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-dc8f7b064af1"
+    },
+    {
+      "id": "relation-8c76256b5469",
+      "from": "event-2bc8f2489a8d",
+      "to": "event-7d279dbe8a0f",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-10b8b847ae49"
+    },
+    {
+      "id": "relation-212fe797665c",
+      "from": "event-7d279dbe8a0f",
+      "to": "event-cfc45462e5be",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-b6d09bb9e622"
+    },
+    {
+      "id": "relation-5c20ba0cbc9a",
+      "from": "event-cfc45462e5be",
+      "to": "event-226ed8a50be6",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-794ec7e080c3"
+    },
+    {
+      "id": "relation-a444f2a3931e",
+      "from": "event-2905d3afe1f6",
+      "to": "event-9e69c429d250",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-5ca2a3517fb4"
+    },
+    {
+      "id": "relation-d4a44132974d",
+      "from": "event-9e69c429d250",
+      "to": "event-808d7fdb6549",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-8781568d7b41"
+    },
+    {
+      "id": "relation-51e5f5bcb278",
+      "from": "event-808d7fdb6549",
+      "to": "event-1934250b845e",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-abffa9707b30"
+    },
+    {
+      "id": "relation-bf7623817301",
+      "from": "event-1934250b845e",
+      "to": "event-1e2aa9737881",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-07afb4a525c4"
+    },
+    {
+      "id": "relation-6af5bfdca3f9",
+      "from": "event-1e2aa9737881",
+      "to": "event-1272c3d15e38",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-8d533e35c968"
+    },
+    {
+      "id": "relation-604b39a4fb76",
+      "from": "event-1272c3d15e38",
+      "to": "event-91d5ed1ce81c",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-6b37675bcd67"
+    },
+    {
+      "id": "relation-61a059c8b6bc",
+      "from": "event-91d5ed1ce81c",
+      "to": "event-64a299ab4909",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-eb170492662d"
+    },
+    {
+      "id": "relation-6a5c53820467",
+      "from": "event-64a299ab4909",
+      "to": "event-3fbedc85b550",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-c3ce7a203214"
+    },
+    {
+      "id": "relation-1708fe6ec795",
+      "from": "event-3fbedc85b550",
+      "to": "event-cdaa803898b2",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-fe9e325d834c"
+    },
+    {
+      "id": "relation-3572d24a4e23",
+      "from": "event-cdaa803898b2",
+      "to": "event-94890d4a80d2",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-0db1627d0723"
+    },
+    {
+      "id": "relation-233fedcabdc5",
+      "from": "event-94890d4a80d2",
+      "to": "event-9654f44d3769",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-40ea23069b04"
+    },
+    {
+      "id": "relation-fee2c8cd475f",
+      "from": "event-9654f44d3769",
+      "to": "event-a7463778f11c",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-50ce8f3d3fad"
+    },
+    {
+      "id": "relation-c3567bdc2cee",
+      "from": "event-bc26819db491",
+      "to": "event-febebec47068",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-3770e9748249"
+    },
+    {
+      "id": "relation-70239c37ccdc",
+      "from": "event-febebec47068",
+      "to": "event-adf98351b3c4",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-079de2a9161e"
+    },
+    {
+      "id": "relation-1d09b6cbe55a",
+      "from": "event-adf98351b3c4",
+      "to": "event-42dc1416eb71",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-7b3b21d50d4f"
+    },
+    {
+      "id": "relation-6b0a7d6f811f",
+      "from": "event-42dc1416eb71",
+      "to": "event-3279d97531e0",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-12b12e7f4fa6"
+    },
+    {
+      "id": "relation-286ae6c96437",
+      "from": "event-92e157a165f8",
+      "to": "event-9494a7d9b4f8",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-8fbece78f312"
+    },
+    {
+      "id": "relation-bb9f8f1ce1db",
+      "from": "event-9494a7d9b4f8",
+      "to": "event-7bb7defb0f4b",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-0ca5f05726b5"
+    },
+    {
+      "id": "relation-837f89f54f40",
+      "from": "event-7bb7defb0f4b",
+      "to": "event-a35d9ea79d9e",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-994b5ccb91a3"
+    },
+    {
+      "id": "relation-70712a6dbeb1",
+      "from": "event-a35d9ea79d9e",
+      "to": "event-bf3b6f53dace",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-8bbff164f1a9"
+    },
+    {
+      "id": "relation-ab9b530f3f96",
+      "from": "event-bf3b6f53dace",
+      "to": "event-fdb5fb9c5909",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-2ea6f79efeb9"
+    },
+    {
+      "id": "relation-b295195db391",
+      "from": "event-fdb5fb9c5909",
+      "to": "event-7de72ea24272",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-8d43fe7da44d"
+    },
+    {
+      "id": "relation-1d91d0f413b0",
+      "from": "event-7de72ea24272",
+      "to": "event-504dc67c2b1e",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-b1a4e04d49b1"
+    },
+    {
+      "id": "relation-1328d2aaf96e",
+      "from": "event-504dc67c2b1e",
+      "to": "event-9f397a03481c",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-65badff7908e"
+    },
+    {
+      "id": "relation-a6281705f449",
+      "from": "event-9f397a03481c",
+      "to": "event-08c1c705d1b6",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-b251c6a35388"
+    },
+    {
+      "id": "relation-fe2b84835133",
+      "from": "event-08c1c705d1b6",
+      "to": "event-e3dde4176f03",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-b2c103f6d43f"
+    },
+    {
+      "id": "relation-fe7e1187e5d0",
+      "from": "event-e3dde4176f03",
+      "to": "event-be69aa6ad5fe",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-0ba60df39ce4"
+    },
+    {
+      "id": "relation-b581135111bc",
+      "from": "event-be69aa6ad5fe",
+      "to": "event-6cf0f9f1f3e7",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-873e92c5241b"
+    },
+    {
+      "id": "relation-4d7fe225c33b",
+      "from": "event-6cf0f9f1f3e7",
+      "to": "event-c65fa233eedc",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-83733825e3cb"
+    },
+    {
+      "id": "relation-a4c17e278c1b",
+      "from": "event-c65fa233eedc",
+      "to": "event-276f37655860",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-f0a3d3ff377d"
+    },
+    {
+      "id": "relation-b7cd88fd2ae8",
+      "from": "event-87851e4f2a29",
+      "to": "event-c5568e37bd87",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-f8733e8a8ab8"
+    },
+    {
+      "id": "relation-56beee3f707e",
+      "from": "event-c5568e37bd87",
+      "to": "event-85a209d31b3f",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-1d62332f0c6b"
+    },
+    {
+      "id": "relation-13522b59b580",
+      "from": "event-85a209d31b3f",
+      "to": "event-6147265c8577",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-29dbabedc0a9"
+    },
+    {
+      "id": "relation-d6bf6556b11f",
+      "from": "event-6147265c8577",
+      "to": "event-2ddc6af1645b",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-86694e14f19d"
+    },
+    {
+      "id": "relation-3372b5719c68",
+      "from": "event-2ddc6af1645b",
+      "to": "event-78bd0743aa18",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-9e2edce30eb9"
+    },
+    {
+      "id": "relation-d97c6fbdd3ff",
+      "from": "event-78bd0743aa18",
+      "to": "event-e45ce0f8615b",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-162b41446a0b"
+    },
+    {
+      "id": "relation-428faebdff54",
+      "from": "event-e45ce0f8615b",
+      "to": "event-8f7ff58fbd03",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-0b94066a4e62"
+    },
+    {
+      "id": "relation-986bc31553ed",
+      "from": "event-8f7ff58fbd03",
+      "to": "event-1af1b1819b8c",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-a42c3cd261e1"
+    },
+    {
+      "id": "relation-7257ec8ca131",
+      "from": "event-aebd686eae62",
+      "to": "event-15ac87080250",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-fd3b3486f4d1"
+    },
+    {
+      "id": "relation-b4a835e9d1c9",
+      "from": "event-15ac87080250",
+      "to": "event-e64178c5ee22",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-6bb2f634d491"
+    },
+    {
+      "id": "relation-21b50ef643ca",
+      "from": "event-e64178c5ee22",
+      "to": "event-01782abe6d34",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-dbc79dc1ab8c"
+    },
+    {
+      "id": "relation-a1abdb4279a0",
+      "from": "event-01782abe6d34",
+      "to": "event-9a93a9aa7a70",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-a5de7ccae138"
+    },
+    {
+      "id": "relation-c9a8ca93d04d",
+      "from": "event-d42a35754da5",
+      "to": "event-005c1d0f8896",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-d3c940015058"
+    },
+    {
+      "id": "relation-3356f3fae645",
+      "from": "event-005c1d0f8896",
+      "to": "event-a34957352111",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-7a4b51fd28d2"
+    },
+    {
+      "id": "relation-bca4306557cf",
+      "from": "event-a34957352111",
+      "to": "event-49d1278ff2e0",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-0f32a1dc3eec"
+    },
+    {
+      "id": "relation-5f80c1f6e6a4",
+      "from": "event-49d1278ff2e0",
+      "to": "event-402b21906228",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-5e71b2ab3b24"
+    },
+    {
+      "id": "relation-a3453db777e9",
+      "from": "event-402b21906228",
+      "to": "event-ceb8c0b27048",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-9104f9a5dde9"
+    },
+    {
+      "id": "relation-4881a216b7a3",
+      "from": "event-ceb8c0b27048",
+      "to": "event-9bed7f88a113",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-1325f78f6edb"
+    },
+    {
+      "id": "relation-2cbdbcf133f1",
+      "from": "event-9bed7f88a113",
+      "to": "event-7f4526c82659",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-c21d1f3833d1"
+    },
+    {
+      "id": "relation-29710cde5095",
+      "from": "event-7f4526c82659",
+      "to": "event-06f277708698",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-011d50e1d1f4"
+    },
+    {
+      "id": "relation-28ee811410e9",
+      "from": "event-06f277708698",
+      "to": "event-b9ce40c0f7da",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-829b65e425c9"
+    },
+    {
+      "id": "relation-7f31cb15720c",
+      "from": "event-b9ce40c0f7da",
+      "to": "event-45a461913a80",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-7bb711b24482"
+    },
+    {
       "id": "relation-1e4abccd92b2",
       "from": "event-0517d2a74a99",
       "to": "event-12b963bc292d",
@@ -260797,6 +261710,16 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“沧州银行”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-2253ac12c76c"
+    },
+    {
+      "id": "relation-f16435c4fd15",
+      "from": "event-1997413d3cbb",
+      "to": "event-576feee813e4",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-db7dda819461",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“成都海威华芯科技”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-03bdb1514e47"
     },
     {
       "id": "relation-2e76ab8862a1",
@@ -267309,6 +268232,16 @@
       "sourceId": "page-4eec6e835440"
     },
     {
+      "id": "relation-087f59178128",
+      "from": "event-034e82333b7c",
+      "to": "event-6bb4d5a33f2d",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-723f5f35074a",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“恒大集团”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-4963557c0ca8"
+    },
+    {
       "id": "relation-cc05b5309df9",
       "from": "event-66f865571fc0",
       "to": "event-310af6d8fef1",
@@ -268707,16 +269640,6 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“华为”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-1325f78f6edb"
-    },
-    {
-      "id": "relation-2cbdbcf133f1",
-      "from": "event-9bed7f88a113",
-      "to": "event-7f4526c82659",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-f8be44d48cf6",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“华为”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-c21d1f3833d1"
     },
     {
       "id": "relation-41ca249fdb42",
@@ -274637,6 +275560,96 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“欧盟委员会”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-34745aec89ca"
+    },
+    {
+      "id": "relation-d0cfa9026f99",
+      "from": "event-51378c166729",
+      "to": "event-ff8835a938b9",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-0a910dcb83ec"
+    },
+    {
+      "id": "relation-1d8db8aacb49",
+      "from": "event-ff8835a938b9",
+      "to": "event-c25f4b2b9dfb",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-9d4f2115bf47"
+    },
+    {
+      "id": "relation-4b0dff15f863",
+      "from": "event-c25f4b2b9dfb",
+      "to": "event-955727e9eb61",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-c7d659a9d0c9"
+    },
+    {
+      "id": "relation-c6a7448124c3",
+      "from": "event-955727e9eb61",
+      "to": "event-122f26f24fab",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-f6ce27654bd4"
+    },
+    {
+      "id": "relation-780ce86ba74d",
+      "from": "event-122f26f24fab",
+      "to": "event-a35bfe334547",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-c72b64be1602"
+    },
+    {
+      "id": "relation-c0fd4639d618",
+      "from": "event-a35bfe334547",
+      "to": "event-9b54abadfa80",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-913eb97bb4dc"
+    },
+    {
+      "id": "relation-1b2947c1ee62",
+      "from": "event-9b54abadfa80",
+      "to": "event-fde33f1bfd07",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-2ab7d84cb5de"
+    },
+    {
+      "id": "relation-fc2bf58ca85f",
+      "from": "event-fde33f1bfd07",
+      "to": "event-f6cef5500141",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-8b68ffd943db"
+    },
+    {
+      "id": "relation-b3be00f15f57",
+      "from": "event-f6cef5500141",
+      "to": "event-8016ddcb6d63",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-596f8a537dfa"
     },
     {
       "id": "relation-7f2fbd9f2a17",
@@ -281147,6 +282160,26 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“新西兰最高法院”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-9056c95caf31"
+    },
+    {
+      "id": "relation-0e45333b305a",
+      "from": "event-d6568c751ffd",
+      "to": "event-6ac6c81902e4",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-47eaad2f8871",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“星宇股份”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-4f0fb81d544f"
+    },
+    {
+      "id": "relation-b379df280fe5",
+      "from": "event-6ac6c81902e4",
+      "to": "event-687eabd59d00",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-47eaad2f8871",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“星宇股份”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-ec776b4b1371"
     },
     {
       "id": "relation-ce9978fe97ed",
@@ -291487,6 +292520,16 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“蒋超良”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-40724ad40028"
+    },
+    {
+      "id": "relation-a070964339af",
+      "from": "event-bba2c8d85731",
+      "to": "event-13ee8910a1dd",
+      "type": "precedes",
+      "viaEntityId": "entity-person-9df3c633f211",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“蒋超良”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-1ef7e10db6c0"
     },
     {
       "id": "relation-551d26f6a716",
@@ -310539,6 +311582,136 @@
       "sourceId": "page-7babcf477547"
     },
     {
+      "id": "relation-933f505125f1",
+      "from": "event-4fd050ff2ffb",
+      "to": "event-c41d8b625ff9",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-28de48afce82"
+    },
+    {
+      "id": "relation-afc1939481ab",
+      "from": "event-c41d8b625ff9",
+      "to": "event-730e465967c3",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-b0d9fd108fcd"
+    },
+    {
+      "id": "relation-4fe9f9649065",
+      "from": "event-730e465967c3",
+      "to": "event-7e25f692832d",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-77834d8d850e"
+    },
+    {
+      "id": "relation-d51e7fd3b746",
+      "from": "event-7e25f692832d",
+      "to": "event-e911c7859a52",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-c6c70f579114"
+    },
+    {
+      "id": "relation-de51fdb83d2d",
+      "from": "event-e911c7859a52",
+      "to": "event-76b69ce49cb6",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-a26a1631475d"
+    },
+    {
+      "id": "relation-668da0a4dc73",
+      "from": "event-76b69ce49cb6",
+      "to": "event-a3e995768116",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-5769bb9dec5f"
+    },
+    {
+      "id": "relation-d53d375e7f43",
+      "from": "event-a3e995768116",
+      "to": "event-08e4e74af024",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-4ae6b629aa49"
+    },
+    {
+      "id": "relation-cb1d7ba70513",
+      "from": "event-08e4e74af024",
+      "to": "event-e111e7a20af4",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-e88a9a29a03e"
+    },
+    {
+      "id": "relation-dfcc91449ac1",
+      "from": "event-e111e7a20af4",
+      "to": "event-74cd6d277090",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-46274d16874d"
+    },
+    {
+      "id": "relation-dbe584997357",
+      "from": "event-74cd6d277090",
+      "to": "event-cc257dc2218b",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-4bbe0bfe96aa"
+    },
+    {
+      "id": "relation-0f0006fd5dad",
+      "from": "event-cc257dc2218b",
+      "to": "event-f3720c37e0df",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-a6a1e75d9642"
+    },
+    {
+      "id": "relation-278a9225a144",
+      "from": "event-f3720c37e0df",
+      "to": "event-70487b2a04d7",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-fae76846b627"
+    },
+    {
+      "id": "relation-7cbd080ec172",
+      "from": "event-70487b2a04d7",
+      "to": "event-030ebf4895d7",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-1814aa0aec77"
+    },
+    {
       "id": "relation-6f5d0bec8488",
       "from": "event-f82406ba66a7",
       "to": "event-d92505429c12",
@@ -321027,6 +322200,16 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“南宁市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-4ebacedc4a5d"
+    },
+    {
+      "id": "relation-05349e389313",
+      "from": "event-91963c189c53",
+      "to": "event-5705c480e3d8",
+      "type": "precedes",
+      "viaEntityId": "entity-place-315738ef705c",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“南宁市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-f11e66161d68"
     },
     {
       "id": "relation-3dd4d204fa89",
@@ -331539,6 +332722,16 @@
       "sourceId": "page-7bb711b24482"
     },
     {
+      "id": "relation-edec9d503838",
+      "from": "event-45a461913a80",
+      "to": "event-883b43299761",
+      "type": "precedes",
+      "viaEntityId": "entity-place-5b189ee537e5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“匈牙利”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-ec776b4b1371"
+    },
+    {
       "id": "relation-4d5a3363eec9",
       "from": "event-5bd2629953fa",
       "to": "event-4cb5dcb923bd",
@@ -332947,16 +334140,6 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“义乌市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-cc4039a84f81"
-    },
-    {
-      "id": "relation-6fb9d24e1198",
-      "from": "event-35a259b59aba",
-      "to": "event-414773c849ce",
-      "type": "precedes",
-      "viaEntityId": "entity-place-68120d716411",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“义乌市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-968e71d830e0"
     },
     {
       "id": "relation-572d541c9ac7",
@@ -337017,76 +338200,6 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“《专利法》”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-7e55294d78ed"
-    },
-    {
-      "id": "relation-f16435c4fd15",
-      "from": "event-1997413d3cbb",
-      "to": "event-576feee813e4",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-db7dda819461",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“成都海威华芯科技”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-03bdb1514e47"
-    },
-    {
-      "id": "relation-087f59178128",
-      "from": "event-034e82333b7c",
-      "to": "event-6bb4d5a33f2d",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-723f5f35074a",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“恒大集团”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-4963557c0ca8"
-    },
-    {
-      "id": "relation-0e45333b305a",
-      "from": "event-d6568c751ffd",
-      "to": "event-6ac6c81902e4",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-47eaad2f8871",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“星宇股份”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-4f0fb81d544f"
-    },
-    {
-      "id": "relation-b379df280fe5",
-      "from": "event-6ac6c81902e4",
-      "to": "event-687eabd59d00",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-47eaad2f8871",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“星宇股份”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-ec776b4b1371"
-    },
-    {
-      "id": "relation-a070964339af",
-      "from": "event-bba2c8d85731",
-      "to": "event-13ee8910a1dd",
-      "type": "precedes",
-      "viaEntityId": "entity-person-9df3c633f211",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“蒋超良”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-1ef7e10db6c0"
-    },
-    {
-      "id": "relation-05349e389313",
-      "from": "event-91963c189c53",
-      "to": "event-5705c480e3d8",
-      "type": "precedes",
-      "viaEntityId": "entity-place-315738ef705c",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“南宁市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-f11e66161d68"
-    },
-    {
-      "id": "relation-edec9d503838",
-      "from": "event-45a461913a80",
-      "to": "event-883b43299761",
-      "type": "precedes",
-      "viaEntityId": "entity-place-5b189ee537e5",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“匈牙利”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-ec776b4b1371"
     }
   ],
   "entityRelations": [],
@@ -389279,29 +390392,6 @@
       }
     },
     {
-      "id": "page-6b7afe80df35",
-      "title": "短视频试验",
-      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
-      "repositoryPath": "shorts/test.md",
-      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
-      "publishedAt": "2023-03-10",
-      "dateProvenance": {
-        "observedAt": "2023-03-10",
-        "source": "frontmatter",
-        "resolution": "observed"
-      },
-      "kind": "shorts",
-      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
-      "segmentation": {
-        "strategy": "page_fallback",
-        "confidence": 0.8,
-        "newsCount": 1,
-        "candidateBoundaryCount": 0,
-        "needsReview": false,
-        "reviewReasons": []
-      }
-    },
-    {
       "id": "page-d19446c46444",
       "title": "【参考信息636】“小候鸟”超载；大师头衔作废；银行办结婚证",
       "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/636",
@@ -389599,6 +390689,29 @@
         "reviewReasons": [
           "metadata_only_news_segmentation"
         ]
+      }
+    },
+    {
+      "id": "page-6b7afe80df35",
+      "title": "短视频试验",
+      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
+      "repositoryPath": "shorts/test.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
+      "publishedAt": "2023-03-10",
+      "dateProvenance": {
+        "observedAt": "2023-03-10",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "shorts",
+      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
+      "segmentation": {
+        "strategy": "page_fallback",
+        "confidence": 0.8,
+        "newsCount": 1,
+        "candidateBoundaryCount": 0,
+        "needsReview": false,
+        "reviewReasons": []
       }
     }
   ]
