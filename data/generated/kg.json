@@ -9,7 +9,7 @@
     "newsDatasetSchemaVersion": "1.1.0",
     "segmentationVersion": "1.4.0",
     "newsOverrideVersion": "1.1.0",
-    "extractionVersion": "3.8.0"
+    "extractionVersion": "3.9.0"
   },
   "entities": [
     {
@@ -21959,13 +21959,14 @@
         "房补",
         "住房贷款",
         "法拍房",
-        "房贷"
+        "房贷",
+        "新建住宅"
       ],
-      "description": "受控主题词；由 1460 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1461 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1460
+        "eventCount": 1461
       }
     }
   ],
@@ -173042,6 +173043,7 @@
       "entityIds": [
         "entity-place-231429983435",
         "entity-topic-4aec0475249f",
+        "entity-topic-1111de459cd2",
         "entity-topic-ba1dbbad6e64"
       ]
     },
