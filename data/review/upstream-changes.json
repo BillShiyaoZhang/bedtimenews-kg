@@ -7,19 +7,19 @@
     "renames": "report_only_preserve_existing_records",
     "ontology": "versioned_extraction_rules_require_explicit_reviewed_semantic_rebuild"
   },
-  "upstreamCommit": "06fc723c88b9bc519eba4bb137742408c4f4b33f",
-  "observedAt": "2026-09-08T05:46:11Z",
+  "upstreamCommit": "0a0320403b76ac50fba3e81cbb6d72d655a62248",
+  "observedAt": "2026-09-21T15:34:36Z",
   "bootstrap": false,
-  "semanticRebuild": true,
+  "semanticRebuild": false,
   "extractionVersion": "3.9.0",
   "segmentationVersion": "1.4.0",
   "newsOverrideVersion": "1.1.0",
   "summary": {
-    "ingestedFiles": 2101,
-    "appendedPages": 2071,
-    "appendedNews": 9602,
-    "appendedEntities": 1762,
-    "appendedRelations": 8133,
+    "ingestedFiles": 6,
+    "appendedPages": 6,
+    "appendedNews": 36,
+    "appendedEntities": 2,
+    "appendedRelations": 6,
     "modifiedFilesAwaitingReview": 0,
     "deletedFilesAwaitingReview": 0,
     "possibleRenamesAwaitingReview": 0,
@@ -27,7 +27,14 @@
     "appliedSourceRevisions": 0
   },
   "appliedSourceRevisions": [],
-  "ingestedPaths": [],
+  "ingestedPaths": [
+    "reference/601-700/648.md",
+    "reference/601-700/649.md",
+    "reference/601-700/650.md",
+    "reference/601-700/651.md",
+    "reference/601-700/652.md",
+    "reference/601-700/653.md"
+  ],
   "pendingReview": {
     "modified": [],
     "deleted": [],

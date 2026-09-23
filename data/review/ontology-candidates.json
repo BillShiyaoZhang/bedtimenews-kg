@@ -1,88 +1,88 @@
 {
   "schemaVersion": 4,
-  "upstreamCommit": "06fc723c88b9bc519eba4bb137742408c4f4b33f",
-  "observedAt": "2026-09-08T05:46:11Z",
+  "upstreamCommit": "0a0320403b76ac50fba3e81cbb6d72d655a62248",
+  "observedAt": "2026-09-21T15:34:36Z",
   "ontologyVersion": "2.1.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.4.0",
   "extractionVersion": "3.9.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
-    "totalNews": 9602,
-    "totalKnownEntities": 1762,
-    "newsWithKnownEntities": 9602,
+    "totalNews": 9638,
+    "totalKnownEntities": 1764,
+    "newsWithKnownEntities": 9638,
     "newsWithoutKnownEntities": 0,
     "entityCoveragePercent": 100,
-    "specificallyClassifiedNews": 9602,
+    "specificallyClassifiedNews": 9638,
     "eventTypeCoveragePercent": 100,
-    "averageEntitiesPerNews": 9.46,
+    "averageEntitiesPerNews": 9.44,
     "requiredCoverage": {
       "semanticEntity": {
-        "covered": 9602,
-        "total": 9602,
+        "covered": 9638,
+        "total": 9638,
         "percent": 100
       },
       "specificEventType": {
-        "covered": 9602,
-        "total": 9602,
+        "covered": 9638,
+        "total": 9638,
         "percent": 100
       },
       "sourceTraceability": {
-        "covered": 9602,
-        "total": 9602,
+        "covered": 9638,
+        "total": 9638,
         "percent": 100
       },
       "searchability": {
-        "covered": 9602,
-        "total": 9602,
+        "covered": 9638,
+        "total": 9638,
         "percent": 100
       }
     },
     "facetPresence": {
       "subject": {
-        "news": 3088,
-        "percent": 32.16
+        "news": 3093,
+        "percent": 32.09
       },
       "place": {
-        "news": 7966,
-        "percent": 82.96
+        "news": 7977,
+        "percent": 82.77
       },
       "topic": {
-        "news": 9371,
-        "percent": 97.59
+        "news": 9403,
+        "percent": 97.56
       },
       "named_object": {
-        "news": 1169,
-        "percent": 12.17
+        "news": 1170,
+        "percent": 12.14
       }
     },
     "entityTypeCounts": {
       "person": 48,
-      "organization": 243,
+      "organization": 244,
       "place": 271,
       "facility": 29,
-      "policy": 983,
+      "policy": 984,
       "document": 161,
       "topic": 27
     },
     "eventTypeCounts": {
-      "policy_governance": 1231,
-      "economy_business": 2467,
-      "infrastructure_transport": 302,
-      "science_technology": 592,
-      "law_justice": 869,
+      "policy_governance": 1238,
+      "economy_business": 2473,
+      "infrastructure_transport": 304,
+      "science_technology": 594,
+      "law_justice": 872,
       "conflict_security": 553,
       "disaster_accident": 390,
-      "public_health": 291,
-      "environment_energy": 275,
-      "education_culture": 1322,
-      "society_livelihood": 943,
+      "public_health": 292,
+      "environment_energy": 276,
+      "education_culture": 1330,
+      "society_livelihood": 949,
       "international_relations": 367,
       "other": 0
     }
   },
   "currentIncrement": {
-    "newNews": 9602,
+    "newNews": 36,
     "newNewsWithoutKnownEntities": 0,
     "otherTypeNews": 0,
     "untypedReviewSample": [],

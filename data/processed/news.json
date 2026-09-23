@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1.0",
-  "generatedAt": "2026-09-08T05:46:11Z",
+  "generatedAt": "2026-09-21T15:34:36Z",
   "source": {
     "name": "bedtimenews/bedtimenews-archive-contents",
     "url": "https://github.com/bedtimenews/bedtimenews-archive-contents",
@@ -52520,6 +52520,156 @@
         "candidateBoundaryCount": 0,
         "needsReview": false,
         "reviewReasons": []
+      }
+    },
+    {
+      "id": "page-2a0a36204320",
+      "title": "【参考信息648】期满高速继续收费；火车站降格乘降所",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/648",
+      "repositoryPath": "reference/601-700/648.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/648.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "4b27e43b782bf2f999c408bd1d743020d7d016699fc793844ca50b308e9b4dfb",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 5,
+        "candidateBoundaryCount": 5,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-63932843ed45",
+      "title": "【参考信息649】前人欠债凭啥我还；全球青少年学业下降",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/649",
+      "repositoryPath": "reference/601-700/649.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/649.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "5a786e8ba354a0ea79bfd4f644de0eb5172f9684b3018d9414c3b41fc2224388",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-beec2da175b6",
+      "title": "【参考信息650】AI截胡人类成果；K型分化用错地方？",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/650",
+      "repositoryPath": "reference/601-700/650.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/650.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "001656ae0f8f97e9e9c4b7e92097ecbb8f466120319afbb3a1e727bbfd2e7fbb",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 7,
+        "candidateBoundaryCount": 7,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-7e26d9ec4c6c",
+      "title": "【参考信息651】管家偷副省长家茅台；并非“北大严选”",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/651",
+      "repositoryPath": "reference/601-700/651.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/651.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "6a1772bb7d5ed75105c5ccd32ded47f5763264d2e8aa56a4596649e49253a10e",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 5,
+        "candidateBoundaryCount": 5,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-3a6fb492c364",
+      "title": "【参考信息652】宣扬“23年不回家”；为何信“只批三天假”？",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/652",
+      "repositoryPath": "reference/601-700/652.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/652.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "1be302e4e9bca01df60d5803d49003835ac6fdfdbce8cdb27dd9a9b8dc4212c2",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-8715a9a6f884",
+      "title": "【参考信息653】生而不养，判给保姆；无手机课堂&小时租机",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/653",
+      "repositoryPath": "reference/601-700/653.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/653.md",
+      "publishedAt": "2026-09-21",
+      "dateProvenance": {
+        "observedAt": "2026-09-21",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "0a271adbee8d0cc7948b7856819ae315ae7f79b2ed220ee64639b45a65ad494c",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 7,
+        "candidateBoundaryCount": 7,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
       }
     }
   ],
@@ -217052,6 +217202,690 @@
         "endLine": 15,
         "marker": "page",
         "contentHash": "82f00b37a16ad6bb5d449fd21b4f18776ad794d296bd9c0ddc9444e7baaaccdd"
+      }
+    },
+    {
+      "id": "news-804c13892b87",
+      "title": "《公路法》拟修订，高速公路、独立桥梁、隧道的收费期满后由政府统一管理，养护资金可采用收取通行费等办法筹集",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "《公路法》拟修订，高速公路、独立桥梁、隧道的收费期满后由政府统一管理，养护资金可采用收取通行费等办法筹集。",
+      "pageId": "page-2a0a36204320",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 66,
+        "marker": "《公路法》拟修订，高速公路、独立桥梁、隧道的收费期满后由政府统一管理，养护资金可采用收取通行费等办法筹集。",
+        "contentHash": "f1540bc37472ed510b0f38c2513c6a1d25f7718e0bc98a73f9a8716964e64fae"
+      }
+    },
+    {
+      "id": "news-cf3a9540b27d",
+      "title": "东北多个火车站更为旅客乘降所，不再办理售票，旅客直接上车买票",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "东北多个火车站更为旅客乘降所，不再办理售票，旅客直接上车买票。",
+      "pageId": "page-2a0a36204320",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 67,
+        "endColumn": 97,
+        "marker": "东北多个火车站更为旅客乘降所，不再办理售票，旅客直接上车买票。",
+        "contentHash": "60ab6f00e47598f93fc6dbf82989de8d6c580a606431cd5ecde267eeb4b01015"
+      }
+    },
+    {
+      "id": "news-606398732165",
+      "title": "8月国内乘用车销量同比下跌23.6%，多个月跌幅超过两成，新能源占比近2/3，纯电车型霸榜销量前十",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "8月国内乘用车销量同比下跌23.6%，多个月跌幅超过两成，新能源占比近2/3，纯电车型霸榜销量前十。",
+      "pageId": "page-2a0a36204320",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 98,
+        "endColumn": 147,
+        "marker": "8月国内乘用车销量同比下跌23.6%，多个月跌幅超过两成，新能源占比近2/3，纯电车型霸榜销量前十。",
+        "contentHash": "a068c7e5ea311b64fe88bd9f2ad6badd89bcb29ab911eb76059571b2d37923ee"
+      }
+    },
+    {
+      "id": "news-dd2ab779244d",
+      "title": "一线城市房租连续六个月环比上涨，除了毕业生，还有哪些群体在租房",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "一线城市房租连续六个月环比上涨，除了毕业生，还有哪些群体在租房？",
+      "pageId": "page-2a0a36204320",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 148,
+        "endColumn": 179,
+        "marker": "一线城市房租连续六个月环比上涨，除了毕业生，还有哪些群体在租房？",
+        "contentHash": "45eb50191aecf04b7f6f2fba2c7da729fe52aa7e8d890633496c1d21f7eab054"
+      }
+    },
+    {
+      "id": "news-d9d75c3e038b",
+      "title": "多省鼓励大学购买或者租用存量房当学生宿舍",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "多省鼓励大学购买或者租用存量房当学生宿舍。",
+      "pageId": "page-2a0a36204320",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 180,
+        "endColumn": 200,
+        "marker": "多省鼓励大学购买或者租用存量房当学生宿舍。",
+        "contentHash": "01fe26cdb2b02868c30a5bbc8c4abf26969e629bc8c3f732da5b005ce1633397"
+      }
+    },
+    {
+      "id": "news-19a3d8bd98fa",
+      "title": "毕节原一把手吴胜华被中纪委和财政部联合点名，曾多次发表“债都是前面欠的，凭什么让我还”等错误言论",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "毕节原一把手吴胜华被中纪委和财政部联合点名，曾多次发表“债都是前面欠的，凭什么让我还”等错误言论。",
+      "pageId": "page-63932843ed45",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 62,
+        "marker": "毕节原一把手吴胜华被中纪委和财政部联合点名，曾多次发表“债都是前面欠的，凭什么让我还”等错误言论。",
+        "contentHash": "c82f0f8b9a6c74aebff4c44f15f18704f2dcc74d48f4e6b11bde07054df4f4f8"
+      }
+    },
+    {
+      "id": "news-c138494632f9",
+      "title": "贵州地矿局高晓昀倒台，贵州曾拟推荐6人为全国优秀县委书记，5人已落马",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "贵州地矿局高晓昀倒台，贵州曾拟推荐6人为全国优秀县委书记，5人已落马。",
+      "pageId": "page-63932843ed45",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 63,
+        "endColumn": 97,
+        "marker": "贵州地矿局高晓昀倒台，贵州曾拟推荐6人为全国优秀县委书记，5人已落马。",
+        "contentHash": "87d78146cea8bb5adddf208d3c5e85c573f57ca9cac0de24d11afb92d637b05b"
+      }
+    },
+    {
+      "id": "news-bec01c171582",
+      "title": "香港整体自杀率下降，但青少年上升",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "香港整体自杀率下降，但青少年上升。",
+      "pageId": "page-63932843ed45",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 98,
+        "endColumn": 114,
+        "marker": "香港整体自杀率下降，但青少年上升。",
+        "contentHash": "7b4d92d1cefa6c048ad43a61784b8f67ccdb263d5f92538b4f5dee72c1b91728"
+      }
+    },
+    {
+      "id": "news-f90f66230b9d",
+      "title": "内地精神障碍患病人数30年近乎翻倍",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "内地精神障碍患病人数30年近乎翻倍。",
+      "pageId": "page-63932843ed45",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 115,
+        "endColumn": 132,
+        "marker": "内地精神障碍患病人数30年近乎翻倍。",
+        "contentHash": "e19f8cc3d749579b125c3b3838f59709faa860173ebd040524c9b908a4955f0b"
+      }
+    },
+    {
+      "id": "news-ce4f937aa041",
+      "title": "智能手机、人工智能导致全球青少年阅读量下降、学业水平下滑",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "智能手机、人工智能导致全球青少年阅读量下降、学业水平下滑。",
+      "pageId": "page-63932843ed45",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 133,
+        "endColumn": 161,
+        "marker": "智能手机、人工智能导致全球青少年阅读量下降、学业水平下滑。",
+        "contentHash": "6d8541caa9e959d4159885f949c5eef8831b95097883936c949493f3a1f6a272"
+      }
+    },
+    {
+      "id": "news-df0a53dd8255",
+      "title": "香港控烟更严，要求香烟外包装统一设计",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "香港控烟更严，要求香烟外包装统一设计。",
+      "pageId": "page-63932843ed45",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 162,
+        "endColumn": 180,
+        "marker": "香港控烟更严，要求香烟外包装统一设计。",
+        "contentHash": "21e1d167b8a57defa0bc55b872f4b3815d27fcf58afa870b385f064ff1292b88"
+      }
+    },
+    {
+      "id": "news-b617f4594e26",
+      "title": "世界顶尖数学家警告AI巨头“截胡”人研究成果；AI大佬连发“末日预警”",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "世界顶尖数学家警告AI巨头“截胡”人研究成果；AI大佬连发“末日预警”。",
+      "pageId": "page-beec2da175b6",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 49,
+        "marker": "世界顶尖数学家警告AI巨头“截胡”人研究成果；AI大佬连发“末日预警”。",
+        "contentHash": "1b96ecc92f13bc1473508f19961d5b778c93d880d998d805d259f51d9d0e4059"
+      }
+    },
+    {
+      "id": "news-892c69ff9612",
+      "title": "人民日报客户端发文称K型分化是西方尺子，度量中国经济是生搬硬套",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "人民日报客户端发文称K型分化是西方尺子，度量中国经济是生搬硬套。",
+      "pageId": "page-beec2da175b6",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 50,
+        "endColumn": 81,
+        "marker": "人民日报客户端发文称K型分化是西方尺子，度量中国经济是生搬硬套。",
+        "contentHash": "335097f68ebf81fd6e7fa92238818ddad1a3dab8e1754a3746c642c0a03feb10"
+      }
+    },
+    {
+      "id": "news-2237ca65d62e",
+      "title": "胖东来称再招员工都是学员，合同四年、不续签、走向社会、努力为社会培养更多优秀人才",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "胖东来称再招员工都是学员，合同四年、不续签、走向社会、努力为社会培养更多优秀人才。",
+      "pageId": "page-beec2da175b6",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 82,
+        "endColumn": 122,
+        "marker": "胖东来称再招员工都是学员，合同四年、不续签、走向社会、努力为社会培养更多优秀人才。",
+        "contentHash": "629fa4bcc720754983bd48f35ddef8f0a9c44f7082a9d93863fc61c716415c0b"
+      }
+    },
+    {
+      "id": "news-e1151d0abac2",
+      "title": "比亚迪今年利润奖还没有动静",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "比亚迪今年利润奖还没有动静。",
+      "pageId": "page-beec2da175b6",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 123,
+        "endColumn": 136,
+        "marker": "比亚迪今年利润奖还没有动静。",
+        "contentHash": "d58b86aa4caa687410d20d0ce00474fcc85d7e69637a3d1bcd24ff05f36dbe0b"
+      }
+    },
+    {
+      "id": "news-cf61b67ab16e",
+      "title": "石材工人得了尘肺病，举报派单的建材公司，却被罚款5万",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "石材工人得了尘肺病，举报派单的建材公司，却被罚款5万。",
+      "pageId": "page-beec2da175b6",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 137,
+        "endColumn": 163,
+        "marker": "石材工人得了尘肺病，举报派单的建材公司，却被罚款5万。",
+        "contentHash": "032fef6256f37694a506b3aad99bfcfb46149736b1fac1aa4bdcbd0ffeca162b"
+      }
+    },
+    {
+      "id": "news-3c4857b1a184",
+      "title": "星宇事件、China GT起火事件激发善待员工大讨论",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "星宇事件、China GT起火事件激发善待员工大讨论。",
+      "pageId": "page-beec2da175b6",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 164,
+        "endColumn": 190,
+        "marker": "星宇事件、China GT起火事件激发善待员工大讨论。",
+        "contentHash": "e41d2256f4d25fb5d80b928a27b23e5f3d393cdb6ffb6b3324fd126ad8a5c98d"
+      }
+    },
+    {
+      "id": "news-ca7a1beb9b11",
+      "title": "江西低保家庭女孩去香港看演唱会，该不该被取消低保",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "江西低保家庭女孩去香港看演唱会，该不该被取消低保。",
+      "pageId": "page-beec2da175b6",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 7,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 191,
+        "endColumn": 215,
+        "marker": "江西低保家庭女孩去香港看演唱会，该不该被取消低保。",
+        "contentHash": "a8af2afc6a4546b15f5c70137fa95795c3f72d6593e83a19df9ce4ddc2e4eda2"
+      }
+    },
+    {
+      "id": "news-e9cf115663eb",
+      "title": "山东前副省长和女儿家里被管家偷了200多万的茅台、茶叶、珠宝等，管家被判10年半，举报副省长职务犯罪线索尚未查证属实",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "山东前副省长和女儿家里被管家偷了200多万的茅台、茶叶、珠宝等，管家被判10年半，举报副省长职务犯罪线索尚未查证属实。",
+      "pageId": "page-7e26d9ec4c6c",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 72,
+        "marker": "山东前副省长和女儿家里被管家偷了200多万的茅台、茶叶、珠宝等，管家被判10年半，举报副省长职务犯罪线索尚未查证属实。",
+        "contentHash": "7b992488a575a3b20b1e14dbd278dd860fec87ad2277585d7569f3a670c6616d"
+      }
+    },
+    {
+      "id": "news-85ceeca04a1a",
+      "title": "菏泽某烧烤园店主网络实名举报文物遗失后，短短两个月被5个部门检查15次",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "菏泽某烧烤园店主网络实名举报文物遗失后，短短两个月被5个部门检查15次。",
+      "pageId": "page-7e26d9ec4c6c",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 73,
+        "endColumn": 108,
+        "marker": "菏泽某烧烤园店主网络实名举报文物遗失后，短短两个月被5个部门检查15次。",
+        "contentHash": "5301ece1f56537c1126277386d36478e539a5ae924bd090cb6cd2a41576ff2bf"
+      }
+    },
+    {
+      "id": "news-189ca23f5428",
+      "title": "北大过紧日子通知要求不到21个景区开会，并非北大严选，而是中央统一规定",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "北大过紧日子通知要求不到21个景区开会，并非北大严选，而是中央统一规定。",
+      "pageId": "page-7e26d9ec4c6c",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 109,
+        "endColumn": 144,
+        "marker": "北大过紧日子通知要求不到21个景区开会，并非北大严选，而是中央统一规定。",
+        "contentHash": "b9c9efd9e981dc285b74cbf033275e05080d41957794c031547734a6e4181f9d"
+      }
+    },
+    {
+      "id": "news-3efa5387eed1",
+      "title": "“新型研究型大学”疑似缺钱了",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "“新型研究型大学”疑似缺钱了。",
+      "pageId": "page-7e26d9ec4c6c",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 145,
+        "endColumn": 159,
+        "marker": "“新型研究型大学”疑似缺钱了。",
+        "contentHash": "6f2b8d7b21f2b14425b98a31887d109529ffdd76c80a9ee3510d4ecd8c03c2ac"
+      }
+    },
+    {
+      "id": "news-82d6f93e8c1d",
+      "title": "广州多个区出现小学合同教师被提前解聘，东莞招聘公办学校“课时服务人员”引发质疑",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "广州多个区出现小学合同教师被提前解聘，东莞招聘公办学校“课时服务人员”引发质疑。",
+      "pageId": "page-7e26d9ec4c6c",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 160,
+        "endColumn": 199,
+        "marker": "广州多个区出现小学合同教师被提前解聘，东莞招聘公办学校“课时服务人员”引发质疑。",
+        "contentHash": "03bcc5e2ecdbe9c32bd90fb2c9b28cb31b7749598e1ad2340620441a893b9820"
+      }
+    },
+    {
+      "id": "news-0669be13dc8f",
+      "title": "辽宁阜新市新邱区医院外科夜间门急诊停诊，除了人口趋势，重点是行政区划调整跟不上",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "辽宁阜新市新邱区医院外科夜间门急诊停诊，除了人口趋势，重点是行政区划调整跟不上。",
+      "pageId": "page-3a6fb492c364",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 53,
+        "marker": "辽宁阜新市新邱区医院外科夜间门急诊停诊，除了人口趋势，重点是行政区划调整跟不上。",
+        "contentHash": "830e3d6ae25743b15a3c7ae027ca746332268b084a7b6eee1699d0dee18ac4bf"
+      }
+    },
+    {
+      "id": "news-1b202103bc8a",
+      "title": "30多家药企围猎河北医科大学第二医院，无人站出来举报",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "30多家药企围猎河北医科大学第二医院，无人站出来举报。",
+      "pageId": "page-3a6fb492c364",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 54,
+        "endColumn": 80,
+        "marker": "30多家药企围猎河北医科大学第二医院，无人站出来举报。",
+        "contentHash": "20094153d3aeff1207d7972e1bae019509242cffdc55bf0bad748f8c78db73f3"
+      }
+    },
+    {
+      "id": "news-531a65bc4c88",
+      "title": "居民医保参保人数七连降",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "居民医保参保人数七连降。",
+      "pageId": "page-3a6fb492c364",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 81,
+        "endColumn": 92,
+        "marker": "居民医保参保人数七连降。",
+        "contentHash": "40eb560e6b43746592500d141e8a0780c02749cbc75389b6f6afe6133ea15e2e"
+      }
+    },
+    {
+      "id": "news-4c27f06f2464",
+      "title": "湖北省卫健委制定创新药鼓励应用目录，帮本地药企抢市场，成为市监总局反垄断执法对象",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "湖北省卫健委制定创新药鼓励应用目录，帮本地药企抢市场，成为市监总局反垄断执法对象。",
+      "pageId": "page-3a6fb492c364",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 93,
+        "endColumn": 133,
+        "marker": "湖北省卫健委制定创新药鼓励应用目录，帮本地药企抢市场，成为市监总局反垄断执法对象。",
+        "contentHash": "56b33a873d5f60cfe66064d975c014824473aea170f1ecce2bc0d0ee1656119b"
+      }
+    },
+    {
+      "id": "news-fefcf3656305",
+      "title": "中南大学湘雅医学院教师先进事迹出现“23年未曾回家、未曾见过父母”“每天只睡0—2小时”",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "中南大学湘雅医学院教师先进事迹出现“23年未曾回家、未曾见过父母”“每天只睡0—2小时”。",
+      "pageId": "page-3a6fb492c364",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 134,
+        "endColumn": 178,
+        "marker": "中南大学湘雅医学院教师先进事迹出现“23年未曾回家、未曾见过父母”“每天只睡0—2小时”。",
+        "contentHash": "6ba3603fc10d2875527da68206dc8b2ccd94ae9fb403fb86d2e2acc38f75697c"
+      }
+    },
+    {
+      "id": "news-07cbf48c544a",
+      "title": "南方医科大学8年制学生跳楼，为何公众相信“导师只批准三天假期”的谣言",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "summary": "南方医科大学8年制学生跳楼，为何公众相信“导师只批准三天假期”的谣言？",
+      "pageId": "page-3a6fb492c364",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 179,
+        "endColumn": 213,
+        "marker": "南方医科大学8年制学生跳楼，为何公众相信“导师只批准三天假期”的谣言？",
+        "contentHash": "97fbaa5523e65eb7b8c5a23651ed443b482fca001ffc00878b0b4561dc0e6024"
+      }
+    },
+    {
+      "id": "news-9aef44f30aa4",
+      "title": "我国二手房交易占比突破50%，市场进入存量时代",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "summary": "我国二手房交易占比突破50%，市场进入存量时代。",
+      "pageId": "page-8715a9a6f884",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 37,
+        "marker": "我国二手房交易占比突破50%，市场进入存量时代。",
+        "contentHash": "98bab4e39b21f420566ca78c9c1080aabc489cae2d5db2ca282ef77aaabd05a1"
+      }
+    },
+    {
+      "id": "news-83e0e05dbd12",
+      "title": "统计局首次公布二手房交易数据",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "summary": "统计局首次公布二手房交易数据。",
+      "pageId": "page-8715a9a6f884",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 38,
+        "endColumn": 52,
+        "marker": "统计局首次公布二手房交易数据。",
+        "contentHash": "ec47b0b1d2aaf20618164d3f860742ff385ac58d8425010fdc243df8356ad75a"
+      }
+    },
+    {
+      "id": "news-2d44aa6f8a50",
+      "title": "住建部明确，四层以上新建住宅装电梯的新国标已实施",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "summary": "住建部明确，四层以上新建住宅装电梯的新国标已实施。",
+      "pageId": "page-8715a9a6f884",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 53,
+        "endColumn": 77,
+        "marker": "住建部明确，四层以上新建住宅装电梯的新国标已实施。",
+        "contentHash": "14b4a0e8a3e1bac5b10163abfa49ef35cfd61bb664deb1a2c28f935c26fc6dca"
+      }
+    },
+    {
+      "id": "news-9ed0c7953089",
+      "title": "开学伊始，多所高校推进建设“无手机课堂”，学生上课前调至静音，统一放入教室手机收纳盒",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "summary": "开学伊始，多所高校推进建设“无手机课堂”，学生上课前调至静音，统一放入教室手机收纳盒。",
+      "pageId": "page-8715a9a6f884",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 78,
+        "endColumn": 120,
+        "marker": "开学伊始，多所高校推进建设“无手机课堂”，学生上课前调至静音，统一放入教室手机收纳盒。",
+        "contentHash": "0b00f441a2873d983e18776260241a3d530b111d288910d851ccc6f2582d9bb4"
+      }
+    },
+    {
+      "id": "news-76a70ab2ac3a",
+      "title": "珠海打击中小学周边商户“手机租赁”“小时租机”",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "summary": "珠海打击中小学周边商户“手机租赁”“小时租机”。",
+      "pageId": "page-8715a9a6f884",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 121,
+        "endColumn": 144,
+        "marker": "珠海打击中小学周边商户“手机租赁”“小时租机”。",
+        "contentHash": "b57d58012a8af4cfffe10f6fc80c910d259f6658064a63da437ad4bf1af484cb"
+      }
+    },
+    {
+      "id": "news-3905e29f9d7d",
+      "title": "最高检公布案例，亲生父母对女儿“生而不养”，保姆起诉取消他们的监护资格，自己获得监护权",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "summary": "最高检公布案例，亲生父母对女儿“生而不养”，保姆起诉取消他们的监护资格，自己获得监护权。",
+      "pageId": "page-8715a9a6f884",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 145,
+        "endColumn": 188,
+        "marker": "最高检公布案例，亲生父母对女儿“生而不养”，保姆起诉取消他们的监护资格，自己获得监护权。",
+        "contentHash": "9658e5fd9a9b287fbb2df8daa2009c14d962f8da9a6780f91df9ff0e573d83c1"
+      }
+    },
+    {
+      "id": "news-af565539f18e",
+      "title": "南京一幼儿园被曝幼儿集体呕吐，食堂用炒菜锅洗拖把",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "summary": "南京一幼儿园被曝幼儿集体呕吐，食堂用炒菜锅洗拖把。",
+      "pageId": "page-8715a9a6f884",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 7,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 189,
+        "endColumn": 213,
+        "marker": "南京一幼儿园被曝幼儿集体呕吐，食堂用炒菜锅洗拖把。",
+        "contentHash": "2f2f3c45f39e701394e258ffc32bbe8f79454a15af8b3492b0902b9145a5af4b"
       }
     }
   ]

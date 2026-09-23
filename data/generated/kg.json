@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.1.0",
-  "generatedAt": "2026-09-08T05:46:11Z",
+  "generatedAt": "2026-09-21T15:34:36Z",
   "source": {
     "name": "bedtimenews/bedtimenews-archive-contents",
     "url": "https://github.com/bedtimenews/bedtimenews-archive-contents",
@@ -2561,11 +2561,11 @@
       "label": "比亚迪",
       "type": "organization",
       "aliases": [],
-      "description": "由经审查的组织名称或别名识别的主体；在 83 条独立新闻中出现。",
+      "description": "由经审查的组织名称或别名识别的主体；在 84 条独立新闻中出现。",
       "extraction": {
         "method": "organization_alias",
         "confidence": 0.84,
-        "eventCount": 83
+        "eventCount": 84
       }
     },
     {
@@ -3086,11 +3086,11 @@
         "市场监管总局",
         "市监总局"
       ],
-      "description": "由组织名称后缀规则识别的主体；在 67 条独立新闻中出现。",
+      "description": "由组织名称后缀规则识别的主体；在 68 条独立新闻中出现。",
       "extraction": {
         "method": "organization_suffix",
         "confidence": 0.84,
-        "eventCount": 67
+        "eventCount": 68
       }
     },
     {
@@ -3911,11 +3911,11 @@
       "label": "胖东来",
       "type": "organization",
       "aliases": [],
-      "description": "由经审查的组织名称或别名识别的主体；在 10 条独立新闻中出现。",
+      "description": "由经审查的组织名称或别名识别的主体；在 11 条独立新闻中出现。",
       "extraction": {
         "method": "organization_alias",
         "confidence": 0.84,
-        "eventCount": 10
+        "eventCount": 11
       }
     },
     {
@@ -5075,11 +5075,11 @@
       "label": "中南大学",
       "type": "organization",
       "aliases": [],
-      "description": "由组织名称后缀规则识别的主体；在 18 条独立新闻中出现。",
+      "description": "由组织名称后缀规则识别的主体；在 19 条独立新闻中出现。",
       "extraction": {
         "method": "organization_suffix",
         "confidence": 0.84,
-        "eventCount": 18
+        "eventCount": 19
       }
     },
     {
@@ -6812,11 +6812,11 @@
       "aliases": [
         "广州"
       ],
-      "description": "标准地名；在 408 条独立新闻中出现。",
+      "description": "标准地名；在 409 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 408
+        "eventCount": 409
       }
     },
     {
@@ -6852,11 +6852,11 @@
       "aliases": [
         "贵州"
       ],
-      "description": "标准地名；在 398 条独立新闻中出现。",
+      "description": "标准地名；在 399 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 398
+        "eventCount": 399
       }
     },
     {
@@ -6974,11 +6974,11 @@
       "aliases": [
         "河北"
       ],
-      "description": "标准地名；在 440 条独立新闻中出现。",
+      "description": "标准地名；在 441 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 440
+        "eventCount": 441
       }
     },
     {
@@ -7014,11 +7014,11 @@
       "aliases": [
         "菏泽"
       ],
-      "description": "标准地名；在 14 条独立新闻中出现。",
+      "description": "标准地名；在 15 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 14
+        "eventCount": 15
       }
     },
     {
@@ -7080,11 +7080,11 @@
       "aliases": [
         "湖北"
       ],
-      "description": "标准地名；在 357 条独立新闻中出现。",
+      "description": "标准地名；在 358 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 357
+        "eventCount": 358
       }
     },
     {
@@ -7272,11 +7272,11 @@
       "aliases": [
         "江西"
       ],
-      "description": "标准地名；在 341 条独立新闻中出现。",
+      "description": "标准地名；在 342 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 341
+        "eventCount": 342
       }
     },
     {
@@ -7544,11 +7544,11 @@
       "aliases": [
         "辽宁"
       ],
-      "description": "标准地名；在 232 条独立新闻中出现。",
+      "description": "标准地名；在 233 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 232
+        "eventCount": 233
       }
     },
     {
@@ -7915,11 +7915,11 @@
       "aliases": [
         "南京"
       ],
-      "description": "标准地名；在 289 条独立新闻中出现。",
+      "description": "标准地名；在 290 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 289
+        "eventCount": 290
       }
     },
     {
@@ -8269,11 +8269,11 @@
       "aliases": [
         "山东"
       ],
-      "description": "标准地名；在 596 条独立新闻中出现。",
+      "description": "标准地名；在 597 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 596
+        "eventCount": 597
       }
     },
     {
@@ -8841,11 +8841,11 @@
       "aliases": [
         "香港特别行政区"
       ],
-      "description": "标准地名；在 421 条独立新闻中出现。",
+      "description": "标准地名；在 424 条独立新闻中出现。",
       "extraction": {
         "method": "gazetteer",
         "confidence": 1,
-        "eventCount": 421
+        "eventCount": 424
       }
     },
     {
@@ -21085,11 +21085,11 @@
         "三支一扶",
         "富人税"
       ],
-      "description": "受控主题词；由 1884 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1885 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1884
+        "eventCount": 1885
       }
     },
     {
@@ -21122,11 +21122,11 @@
         "限产",
         "车企"
       ],
-      "description": "受控主题词；由 2742 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 2746 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 2742
+        "eventCount": 2746
       }
     },
     {
@@ -21164,11 +21164,11 @@
         "吸毒",
         "遇刺"
       ],
-      "description": "受控主题词；由 3235 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 3238 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 3235
+        "eventCount": 3238
       }
     },
     {
@@ -21277,11 +21277,11 @@
         "经开区",
         "过紧日子通知"
       ],
-      "description": "受控主题词；由 4978 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 4983 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 4978
+        "eventCount": 4983
       }
     },
     {
@@ -21368,11 +21368,11 @@
         "K型分化",
         "增量政策"
       ],
-      "description": "受控主题词；由 1146 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1147 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1146
+        "eventCount": 1147
       }
     },
     {
@@ -21431,11 +21431,11 @@
         "火车站",
         "乘降所"
       ],
-      "description": "受控主题词；由 1755 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1757 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1755
+        "eventCount": 1757
       }
     },
     {
@@ -21469,11 +21469,11 @@
         "休学",
         "本科专业"
       ],
-      "description": "受控主题词；由 2706 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 2717 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 2706
+        "eventCount": 2717
       }
     },
     {
@@ -21563,11 +21563,11 @@
         "再招员工",
         "善待员工"
       ],
-      "description": "受控主题词；由 2209 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 2214 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 2209
+        "eventCount": 2214
       }
     },
     {
@@ -21594,11 +21594,11 @@
         "工程师",
         "研发"
       ],
-      "description": "受控主题词；由 2691 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 2693 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 2691
+        "eventCount": 2693
       }
     },
     {
@@ -21619,11 +21619,11 @@
         "风力",
         "发电机"
       ],
-      "description": "受控主题词；由 1127 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1128 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1127
+        "eventCount": 1128
       }
     },
     {
@@ -21667,11 +21667,11 @@
         "智能化",
         "AIGC"
       ],
-      "description": "受控主题词；由 711 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 713 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 711
+        "eventCount": 713
       }
     },
     {
@@ -21696,11 +21696,11 @@
         "不婚不育",
         "新生儿"
       ],
-      "description": "受控主题词；由 1914 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1915 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1914
+        "eventCount": 1915
       }
     },
     {
@@ -21719,11 +21719,11 @@
         "退休金",
         "困难职工"
       ],
-      "description": "受控主题词；由 864 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 865 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 864
+        "eventCount": 865
       }
     },
     {
@@ -21765,11 +21765,11 @@
         "阿里云",
         "商业模式"
       ],
-      "description": "受控主题词；由 1529 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1530 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1529
+        "eventCount": 1530
       }
     },
     {
@@ -21846,11 +21846,11 @@
         "情书",
         "图书馆"
       ],
-      "description": "受控主题词；由 4230 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 4231 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 4230
+        "eventCount": 4231
       }
     },
     {
@@ -21928,11 +21928,11 @@
         "村医",
         "精神障碍"
       ],
-      "description": "受控主题词；由 1869 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1873 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1869
+        "eventCount": 1873
       }
     },
     {
@@ -21962,11 +21962,35 @@
         "房贷",
         "新建住宅"
       ],
-      "description": "受控主题词；由 1461 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1465 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1461
+        "eventCount": 1465
+      }
+    },
+    {
+      "id": "entity-organization-3cdb796fc8fd",
+      "label": "南方医科大学",
+      "type": "organization",
+      "aliases": [],
+      "description": "由组织名称后缀规则识别的主体；在 1 条独立新闻中出现。",
+      "extraction": {
+        "method": "organization_suffix",
+        "confidence": 0.84,
+        "eventCount": 1
+      }
+    },
+    {
+      "id": "entity-policy-fa5ffb0fb50d",
+      "label": "《公路法》",
+      "type": "policy",
+      "aliases": [],
+      "description": "由书名号与文件类型后缀识别的政策文件；在 1 条独立新闻中出现。",
+      "extraction": {
+        "method": "document_title",
+        "confidence": 0.98,
+        "eventCount": 1
       }
     }
   ],
@@ -256870,6 +256894,613 @@
         "entity-topic-8a581a8f5d03",
         "entity-topic-e3a330ceec3c"
       ]
+    },
+    {
+      "id": "event-ee67365687e5",
+      "newsId": "news-804c13892b87",
+      "title": "《公路法》拟修订，高速公路、独立桥梁、隧道的收费期满后由政府统一管理，养护资金可采用收取通行费等办法筹集",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "infrastructure_transport",
+      "summary": "《公路法》拟修订，高速公路、独立桥梁、隧道的收费期满后由政府统一管理，养护资金可采用收取通行费等办法筹集。",
+      "sourceIds": [
+        "page-2a0a36204320"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-policy-fa5ffb0fb50d",
+        "entity-topic-6c34323d1aa3",
+        "entity-topic-ba1dbbad6e64"
+      ]
+    },
+    {
+      "id": "event-8245114834f6",
+      "newsId": "news-cf3a9540b27d",
+      "title": "东北多个火车站更为旅客乘降所，不再办理售票，旅客直接上车买票",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "infrastructure_transport",
+      "summary": "东北多个火车站更为旅客乘降所，不再办理售票，旅客直接上车买票。",
+      "sourceIds": [
+        "page-2a0a36204320"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-6c34323d1aa3"
+      ]
+    },
+    {
+      "id": "event-2f913d5c04cd",
+      "newsId": "news-606398732165",
+      "title": "8月国内乘用车销量同比下跌23.6%，多个月跌幅超过两成，新能源占比近2/3，纯电车型霸榜销量前十",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "environment_energy",
+      "summary": "8月国内乘用车销量同比下跌23.6%，多个月跌幅超过两成，新能源占比近2/3，纯电车型霸榜销量前十。",
+      "sourceIds": [
+        "page-2a0a36204320"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-db818238bf90",
+        "entity-topic-6cf73dbb1b59"
+      ]
+    },
+    {
+      "id": "event-deeae4a9c6fd",
+      "newsId": "news-dd2ab779244d",
+      "title": "一线城市房租连续六个月环比上涨，除了毕业生，还有哪些群体在租房",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "society_livelihood",
+      "summary": "一线城市房租连续六个月环比上涨，除了毕业生，还有哪些群体在租房？",
+      "sourceIds": [
+        "page-2a0a36204320"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-1111de459cd2",
+        "entity-topic-3619e6a68ba1",
+        "entity-topic-9be00a89dec0"
+      ]
+    },
+    {
+      "id": "event-f8796c837766",
+      "newsId": "news-d9d75c3e038b",
+      "title": "多省鼓励大学购买或者租用存量房当学生宿舍",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "education_culture",
+      "summary": "多省鼓励大学购买或者租用存量房当学生宿舍。",
+      "sourceIds": [
+        "page-2a0a36204320"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-3619e6a68ba1"
+      ]
+    },
+    {
+      "id": "event-4396500f9cf4",
+      "newsId": "news-19a3d8bd98fa",
+      "title": "毕节原一把手吴胜华被中纪委和财政部联合点名，曾多次发表“债都是前面欠的，凭什么让我还”等错误言论",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "policy_governance",
+      "summary": "毕节原一把手吴胜华被中纪委和财政部联合点名，曾多次发表“债都是前面欠的，凭什么让我还”等错误言论。",
+      "sourceIds": [
+        "page-63932843ed45"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-4aec0475249f"
+      ]
+    },
+    {
+      "id": "event-34aa08acec63",
+      "newsId": "news-c138494632f9",
+      "title": "贵州地矿局高晓昀倒台，贵州曾拟推荐6人为全国优秀县委书记，5人已落马",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "policy_governance",
+      "summary": "贵州地矿局高晓昀倒台，贵州曾拟推荐6人为全国优秀县委书记，5人已落马。",
+      "sourceIds": [
+        "page-63932843ed45"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-900688d89f11",
+        "entity-topic-ba1dbbad6e64"
+      ]
+    },
+    {
+      "id": "event-9d0935653448",
+      "newsId": "news-bec01c171582",
+      "title": "香港整体自杀率下降，但青少年上升",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "society_livelihood",
+      "summary": "香港整体自杀率下降，但青少年上升。",
+      "sourceIds": [
+        "page-63932843ed45"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-a2678e701b27"
+      ]
+    },
+    {
+      "id": "event-475a0ed34d55",
+      "newsId": "news-f90f66230b9d",
+      "title": "内地精神障碍患病人数30年近乎翻倍",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "public_health",
+      "summary": "内地精神障碍患病人数30年近乎翻倍。",
+      "sourceIds": [
+        "page-63932843ed45"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-1a28a95ca93c"
+      ]
+    },
+    {
+      "id": "event-58019184530b",
+      "newsId": "news-ce4f937aa041",
+      "title": "智能手机、人工智能导致全球青少年阅读量下降、学业水平下滑",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "science_technology",
+      "summary": "智能手机、人工智能导致全球青少年阅读量下降、学业水平下滑。",
+      "sourceIds": [
+        "page-63932843ed45"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-db818238bf90",
+        "entity-topic-8a581a8f5d03",
+        "entity-topic-85bc32ad72f0",
+        "entity-topic-e3a330ceec3c"
+      ]
+    },
+    {
+      "id": "event-42e64461b6c9",
+      "newsId": "news-df0a53dd8255",
+      "title": "香港控烟更严，要求香烟外包装统一设计",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "policy_governance",
+      "summary": "香港控烟更严，要求香烟外包装统一设计。",
+      "sourceIds": [
+        "page-63932843ed45"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-a2678e701b27"
+      ]
+    },
+    {
+      "id": "event-f40e14e3387d",
+      "newsId": "news-b617f4594e26",
+      "title": "世界顶尖数学家警告AI巨头“截胡”人研究成果；AI大佬连发“末日预警”",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "science_technology",
+      "summary": "世界顶尖数学家警告AI巨头“截胡”人研究成果；AI大佬连发“末日预警”。",
+      "sourceIds": [
+        "page-beec2da175b6"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-85bc32ad72f0",
+        "entity-topic-3619e6a68ba1",
+        "entity-topic-5dd0d821b9a8"
+      ]
+    },
+    {
+      "id": "event-7837361a3090",
+      "newsId": "news-892c69ff9612",
+      "title": "人民日报客户端发文称K型分化是西方尺子，度量中国经济是生搬硬套",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "economy_business",
+      "summary": "人民日报客户端发文称K型分化是西方尺子，度量中国经济是生搬硬套。",
+      "sourceIds": [
+        "page-beec2da175b6"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-ec064b630b41"
+      ]
+    },
+    {
+      "id": "event-674c82797ee3",
+      "newsId": "news-2237ca65d62e",
+      "title": "胖东来称再招员工都是学员，合同四年、不续签、走向社会、努力为社会培养更多优秀人才",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "society_livelihood",
+      "summary": "胖东来称再招员工都是学员，合同四年、不续签、走向社会、努力为社会培养更多优秀人才。",
+      "sourceIds": [
+        "page-beec2da175b6"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-organization-f90b6b846de5",
+        "entity-topic-9be00a89dec0"
+      ]
+    },
+    {
+      "id": "event-8ca7f7c4bff2",
+      "newsId": "news-e1151d0abac2",
+      "title": "比亚迪今年利润奖还没有动静",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "economy_business",
+      "summary": "比亚迪今年利润奖还没有动静。",
+      "sourceIds": [
+        "page-beec2da175b6"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-organization-6f62d9689460"
+      ]
+    },
+    {
+      "id": "event-35a33012faae",
+      "newsId": "news-cf61b67ab16e",
+      "title": "石材工人得了尘肺病，举报派单的建材公司，却被罚款5万",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "economy_business",
+      "summary": "石材工人得了尘肺病，举报派单的建材公司，却被罚款5万。",
+      "sourceIds": [
+        "page-beec2da175b6"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-9be00a89dec0"
+      ]
+    },
+    {
+      "id": "event-66c37756634e",
+      "newsId": "news-3c4857b1a184",
+      "title": "星宇事件、China GT起火事件激发善待员工大讨论",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "society_livelihood",
+      "summary": "星宇事件、China GT起火事件激发善待员工大讨论。",
+      "sourceIds": [
+        "page-beec2da175b6"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-9be00a89dec0"
+      ]
+    },
+    {
+      "id": "event-86392c8aa510",
+      "newsId": "news-ca7a1beb9b11",
+      "title": "江西低保家庭女孩去香港看演唱会，该不该被取消低保",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "economy_business",
+      "summary": "江西低保家庭女孩去香港看演唱会，该不该被取消低保。",
+      "sourceIds": [
+        "page-beec2da175b6"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-5e59af8f1f5d",
+        "entity-place-a2678e701b27",
+        "entity-topic-09a250abf6ac"
+      ]
+    },
+    {
+      "id": "event-ae846bb3ac28",
+      "newsId": "news-e9cf115663eb",
+      "title": "山东前副省长和女儿家里被管家偷了200多万的茅台、茶叶、珠宝等，管家被判10年半，举报副省长职务犯罪线索尚未查证属实",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "law_justice",
+      "summary": "山东前副省长和女儿家里被管家偷了200多万的茅台、茶叶、珠宝等，管家被判10年半，举报副省长职务犯罪线索尚未查证属实。",
+      "sourceIds": [
+        "page-7e26d9ec4c6c"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-a7e2567f856a",
+        "entity-topic-d68c099d5b04"
+      ]
+    },
+    {
+      "id": "event-d0a3eef94634",
+      "newsId": "news-85ceeca04a1a",
+      "title": "菏泽某烧烤园店主网络实名举报文物遗失后，短短两个月被5个部门检查15次",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "policy_governance",
+      "summary": "菏泽某烧烤园店主网络实名举报文物遗失后，短短两个月被5个部门检查15次。",
+      "sourceIds": [
+        "page-7e26d9ec4c6c"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-1aadfce5b98d"
+      ]
+    },
+    {
+      "id": "event-243452d22ff9",
+      "newsId": "news-189ca23f5428",
+      "title": "北大过紧日子通知要求不到21个景区开会，并非北大严选，而是中央统一规定",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "policy_governance",
+      "summary": "北大过紧日子通知要求不到21个景区开会，并非北大严选，而是中央统一规定。",
+      "sourceIds": [
+        "page-7e26d9ec4c6c"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-ba1dbbad6e64"
+      ]
+    },
+    {
+      "id": "event-2c7683edd061",
+      "newsId": "news-3efa5387eed1",
+      "title": "“新型研究型大学”疑似缺钱了",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "education_culture",
+      "summary": "“新型研究型大学”疑似缺钱了。",
+      "sourceIds": [
+        "page-7e26d9ec4c6c"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-3619e6a68ba1",
+        "entity-topic-5dd0d821b9a8"
+      ]
+    },
+    {
+      "id": "event-2815fb5b5e3c",
+      "newsId": "news-82d6f93e8c1d",
+      "title": "广州多个区出现小学合同教师被提前解聘，东莞招聘公办学校“课时服务人员”引发质疑",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "education_culture",
+      "summary": "广州多个区出现小学合同教师被提前解聘，东莞招聘公办学校“课时服务人员”引发质疑。",
+      "sourceIds": [
+        "page-7e26d9ec4c6c"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-1b67f1862ccf",
+        "entity-topic-3619e6a68ba1",
+        "entity-topic-9be00a89dec0"
+      ]
+    },
+    {
+      "id": "event-df5eedc396ef",
+      "newsId": "news-0669be13dc8f",
+      "title": "辽宁阜新市新邱区医院外科夜间门急诊停诊，除了人口趋势，重点是行政区划调整跟不上",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "policy_governance",
+      "summary": "辽宁阜新市新邱区医院外科夜间门急诊停诊，除了人口趋势，重点是行政区划调整跟不上。",
+      "sourceIds": [
+        "page-3a6fb492c364"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-2dfb696c17d1",
+        "entity-topic-1a28a95ca93c",
+        "entity-topic-18a9a1d4f0e0",
+        "entity-topic-ba1dbbad6e64"
+      ]
+    },
+    {
+      "id": "event-1763dca3b2d1",
+      "newsId": "news-1b202103bc8a",
+      "title": "30多家药企围猎河北医科大学第二医院，无人站出来举报",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "education_culture",
+      "summary": "30多家药企围猎河北医科大学第二医院，无人站出来举报。",
+      "sourceIds": [
+        "page-3a6fb492c364"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-41a9abcd966c",
+        "entity-topic-1a28a95ca93c",
+        "entity-topic-3619e6a68ba1"
+      ]
+    },
+    {
+      "id": "event-f08bbc6c0d6b",
+      "newsId": "news-531a65bc4c88",
+      "title": "居民医保参保人数七连降",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "society_livelihood",
+      "summary": "居民医保参保人数七连降。",
+      "sourceIds": [
+        "page-3a6fb492c364"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-1a28a95ca93c"
+      ]
+    },
+    {
+      "id": "event-bbbf94cea646",
+      "newsId": "news-4c27f06f2464",
+      "title": "湖北省卫健委制定创新药鼓励应用目录，帮本地药企抢市场，成为市监总局反垄断执法对象",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "law_justice",
+      "summary": "湖北省卫健委制定创新药鼓励应用目录，帮本地药企抢市场，成为市监总局反垄断执法对象。",
+      "sourceIds": [
+        "page-3a6fb492c364"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-a43c3dd589f7",
+        "entity-organization-f903cb7d1fa9",
+        "entity-topic-d68c099d5b04"
+      ]
+    },
+    {
+      "id": "event-cf965123eeee",
+      "newsId": "news-fefcf3656305",
+      "title": "中南大学湘雅医学院教师先进事迹出现“23年未曾回家、未曾见过父母”“每天只睡0—2小时”",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "education_culture",
+      "summary": "中南大学湘雅医学院教师先进事迹出现“23年未曾回家、未曾见过父母”“每天只睡0—2小时”。",
+      "sourceIds": [
+        "page-3a6fb492c364"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-3619e6a68ba1",
+        "entity-organization-879b8ad4d0e5"
+      ]
+    },
+    {
+      "id": "event-3930926ed836",
+      "newsId": "news-07cbf48c544a",
+      "title": "南方医科大学8年制学生跳楼，为何公众相信“导师只批准三天假期”的谣言",
+      "date": "2026-09-20",
+      "datePrecision": "day",
+      "type": "education_culture",
+      "summary": "南方医科大学8年制学生跳楼，为何公众相信“导师只批准三天假期”的谣言？",
+      "sourceIds": [
+        "page-3a6fb492c364"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-organization-3cdb796fc8fd",
+        "entity-topic-3619e6a68ba1"
+      ]
+    },
+    {
+      "id": "event-37f4a3cbeca0",
+      "newsId": "news-9aef44f30aa4",
+      "title": "我国二手房交易占比突破50%，市场进入存量时代",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "type": "economy_business",
+      "summary": "我国二手房交易占比突破50%，市场进入存量时代。",
+      "sourceIds": [
+        "page-8715a9a6f884"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-1111de459cd2"
+      ]
+    },
+    {
+      "id": "event-a6e1a28a12bc",
+      "newsId": "news-83e0e05dbd12",
+      "title": "统计局首次公布二手房交易数据",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "type": "society_livelihood",
+      "summary": "统计局首次公布二手房交易数据。",
+      "sourceIds": [
+        "page-8715a9a6f884"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-1111de459cd2"
+      ]
+    },
+    {
+      "id": "event-da945f045508",
+      "newsId": "news-2d44aa6f8a50",
+      "title": "住建部明确，四层以上新建住宅装电梯的新国标已实施",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "type": "policy_governance",
+      "summary": "住建部明确，四层以上新建住宅装电梯的新国标已实施。",
+      "sourceIds": [
+        "page-8715a9a6f884"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-1111de459cd2"
+      ]
+    },
+    {
+      "id": "event-88ab037fc9c3",
+      "newsId": "news-9ed0c7953089",
+      "title": "开学伊始，多所高校推进建设“无手机课堂”，学生上课前调至静音，统一放入教室手机收纳盒",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "type": "education_culture",
+      "summary": "开学伊始，多所高校推进建设“无手机课堂”，学生上课前调至静音，统一放入教室手机收纳盒。",
+      "sourceIds": [
+        "page-8715a9a6f884"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-db818238bf90",
+        "entity-topic-3619e6a68ba1"
+      ]
+    },
+    {
+      "id": "event-4443145719fd",
+      "newsId": "news-76a70ab2ac3a",
+      "title": "珠海打击中小学周边商户“手机租赁”“小时租机”",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "type": "economy_business",
+      "summary": "珠海打击中小学周边商户“手机租赁”“小时租机”。",
+      "sourceIds": [
+        "page-8715a9a6f884"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-db818238bf90",
+        "entity-topic-3619e6a68ba1"
+      ]
+    },
+    {
+      "id": "event-5ea457133d4d",
+      "newsId": "news-3905e29f9d7d",
+      "title": "最高检公布案例，亲生父母对女儿“生而不养”，保姆起诉取消他们的监护资格，自己获得监护权",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "type": "law_justice",
+      "summary": "最高检公布案例，亲生父母对女儿“生而不养”，保姆起诉取消他们的监护资格，自己获得监护权。",
+      "sourceIds": [
+        "page-8715a9a6f884"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-ba1dbbad6e64",
+        "entity-topic-d68c099d5b04"
+      ]
+    },
+    {
+      "id": "event-a27570c6edb4",
+      "newsId": "news-af565539f18e",
+      "title": "南京一幼儿园被曝幼儿集体呕吐，食堂用炒菜锅洗拖把",
+      "date": "2026-09-21",
+      "datePrecision": "day",
+      "type": "education_culture",
+      "summary": "南京一幼儿园被曝幼儿集体呕吐，食堂用炒菜锅洗拖把。",
+      "sourceIds": [
+        "page-8715a9a6f884"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-place-66b01b35c116",
+        "entity-topic-3619e6a68ba1"
+      ]
     }
   ],
   "eventRelations": [
@@ -338202,6 +338833,66 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“《专利法》”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-7e55294d78ed"
+    },
+    {
+      "id": "relation-e267e5ac64ee",
+      "from": "event-45a461913a80",
+      "to": "event-8ca7f7c4bff2",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-beec2da175b6"
+    },
+    {
+      "id": "relation-dd245cec9feb",
+      "from": "event-5a4a28baac05",
+      "to": "event-bbbf94cea646",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f903cb7d1fa9",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“国家市场监督管理总局”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-3a6fb492c364"
+    },
+    {
+      "id": "relation-4c7568ef9b45",
+      "from": "event-51378c166729",
+      "to": "event-3930926ed836",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-3cdb796fc8fd",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“南方医科大学”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-3a6fb492c364"
+    },
+    {
+      "id": "relation-29c522b74035",
+      "from": "event-8016ddcb6d63",
+      "to": "event-674c82797ee3",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-beec2da175b6"
+    },
+    {
+      "id": "relation-1dfe58252e6a",
+      "from": "event-8263c7de377a",
+      "to": "event-cf965123eeee",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-879b8ad4d0e5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“中南大学”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-3a6fb492c364"
+    },
+    {
+      "id": "relation-dd7a183a0aff",
+      "from": "event-030ebf4895d7",
+      "to": "event-d0a3eef94634",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-7e26d9ec4c6c"
     }
   ],
   "entityRelations": [],
@@ -390714,6 +391405,156 @@
         "candidateBoundaryCount": 0,
         "needsReview": false,
         "reviewReasons": []
+      }
+    },
+    {
+      "id": "page-2a0a36204320",
+      "title": "【参考信息648】期满高速继续收费；火车站降格乘降所",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/648",
+      "repositoryPath": "reference/601-700/648.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/648.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "4b27e43b782bf2f999c408bd1d743020d7d016699fc793844ca50b308e9b4dfb",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 5,
+        "candidateBoundaryCount": 5,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-63932843ed45",
+      "title": "【参考信息649】前人欠债凭啥我还；全球青少年学业下降",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/649",
+      "repositoryPath": "reference/601-700/649.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/649.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "5a786e8ba354a0ea79bfd4f644de0eb5172f9684b3018d9414c3b41fc2224388",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-beec2da175b6",
+      "title": "【参考信息650】AI截胡人类成果；K型分化用错地方？",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/650",
+      "repositoryPath": "reference/601-700/650.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/650.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "001656ae0f8f97e9e9c4b7e92097ecbb8f466120319afbb3a1e727bbfd2e7fbb",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 7,
+        "candidateBoundaryCount": 7,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-7e26d9ec4c6c",
+      "title": "【参考信息651】管家偷副省长家茅台；并非“北大严选”",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/651",
+      "repositoryPath": "reference/601-700/651.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/651.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "6a1772bb7d5ed75105c5ccd32ded47f5763264d2e8aa56a4596649e49253a10e",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 5,
+        "candidateBoundaryCount": 5,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-3a6fb492c364",
+      "title": "【参考信息652】宣扬“23年不回家”；为何信“只批三天假”？",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/652",
+      "repositoryPath": "reference/601-700/652.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/652.md",
+      "publishedAt": "2026-09-20",
+      "dateProvenance": {
+        "observedAt": "2026-09-20",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "1be302e4e9bca01df60d5803d49003835ac6fdfdbce8cdb27dd9a9b8dc4212c2",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 6,
+        "candidateBoundaryCount": 6,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-8715a9a6f884",
+      "title": "【参考信息653】生而不养，判给保姆；无手机课堂&小时租机",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/653",
+      "repositoryPath": "reference/601-700/653.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/653.md",
+      "publishedAt": "2026-09-21",
+      "dateProvenance": {
+        "observedAt": "2026-09-21",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "0a271adbee8d0cc7948b7856819ae315ae7f79b2ed220ee64639b45a65ad494c",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 7,
+        "candidateBoundaryCount": 7,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
       }
     }
   ]

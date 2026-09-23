@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-08T05:46:11Z",
+  "generatedAt": "2026-09-21T15:34:36Z",
   "segmentationVersion": "1.4.0",
   "summary": {
-    "pages": 2071,
-    "news": 9602,
-    "multiNewsPages": 1303,
-    "reviewPages": 579,
+    "pages": 2077,
+    "news": 9638,
+    "multiNewsPages": 1309,
+    "reviewPages": 585,
     "pagesByStrategy": {
       "page_fallback": 763,
       "manual_single": 1,
@@ -15,7 +15,7 @@
       "manual_markers": 1,
       "main_interview_topic": 167,
       "reference_numbered_heading": 537,
-      "reference_description_sentence": 111
+      "reference_description_sentence": 117
     },
     "episodeDateResolutions": {
       "observed": 714,
@@ -7345,6 +7345,66 @@
       "repositoryPath": "reference/601-700/647.md",
       "title": "【参考信息647】名校停招学硕；储能也要过剩",
       "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-2a0a36204320",
+      "repositoryPath": "reference/601-700/648.md",
+      "title": "【参考信息648】期满高速继续收费；火车站降格乘降所",
+      "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-63932843ed45",
+      "repositoryPath": "reference/601-700/649.md",
+      "title": "【参考信息649】前人欠债凭啥我还；全球青少年学业下降",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-beec2da175b6",
+      "repositoryPath": "reference/601-700/650.md",
+      "title": "【参考信息650】AI截胡人类成果；K型分化用错地方？",
+      "newsCount": 7,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-7e26d9ec4c6c",
+      "repositoryPath": "reference/601-700/651.md",
+      "title": "【参考信息651】管家偷副省长家茅台；并非“北大严选”",
+      "newsCount": 5,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-3a6fb492c364",
+      "repositoryPath": "reference/601-700/652.md",
+      "title": "【参考信息652】宣扬“23年不回家”；为何信“只批三天假”？",
+      "newsCount": 6,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-8715a9a6f884",
+      "repositoryPath": "reference/601-700/653.md",
+      "title": "【参考信息653】生而不养，判给保姆；无手机课堂&小时租机",
+      "newsCount": 7,
       "strategy": "reference_description_sentence",
       "reasons": [
         "metadata_only_news_segmentation"
