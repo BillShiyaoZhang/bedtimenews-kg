@@ -1,3 +1,4 @@
+import { applyIdentityResolution } from "../lib/identity-projection.mjs";
 import type { Metadata } from "next";
 import { EntityGraphExplorer } from "../components/entity-graph-explorer";
 import knowledgeBaseData from "../../data/generated/kg.json";
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export default function GraphPage() {
   return (
     <EntityGraphExplorer
-      knowledgeBase={knowledgeBaseData as unknown as KnowledgeBase}
+      knowledgeBase={applyIdentityResolution(knowledgeBaseData) as unknown as KnowledgeBase}
       ontology={ontologyData as unknown as Ontology}
     />
   );

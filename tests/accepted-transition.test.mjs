@@ -68,3 +68,18 @@ test("rollback planning retains later tombstones and marks removed newer sources
   assert.equal(plan.sourceStates["daily/new.md"].status, "deleted");
   assert.equal(plan.sourceStates["daily/new.md"].lastHash, sha256("new"));
 });
+
+test("adding the news-scoped identity axis preserves old receipt axes and requires a reviewed migration", async () => {
+  const snapshot = acceptedSemanticSnapshot(await activeSnapshot(root));
+  const previousInputs = { ...snapshot.inputs, runtime: candidateRuntimeBinding(), recipe: { archiveCommit: "a".repeat(40) }, sourceInventory: { sha256: sha256("inventory") }, sourceReview: { sha256: sha256("null\n") } };
+  delete previousInputs.identityRegistry;
+  const identityRegistry = { path: "data/entity-identities.json", sha256: sha256("reviewed identity registry") };
+  const inputs = { ...previousInputs, identityRegistry };
+  const checkpoint = { manifest: { releaseId: "b".repeat(64), candidateBundleId: "c".repeat(64) } };
+  const versions = { node: process.versions.node, icu: process.versions.icu };
+  const expected = migrationReviewBinding({ checkpoint, previous: { manifest: { inputs: previousInputs, versions } }, inputs, versions, diff: { identity: { changed: 0 } } });
+  assert.equal(Object.hasOwn(expected.from.configuration, "identityRegistry"), false);
+  assert.deepEqual(expected.to.configuration.identityRegistry, identityRegistry);
+  assert.notEqual(expected.fromHash, expected.toHash);
+  assert.equal(validateMigrationReview({ ...expected, reviewedAt: time, reason: "Introduce explicit reviewed news-scoped identities" }, expected).kind, "reviewed-semantic-migration");
+});

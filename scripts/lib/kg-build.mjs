@@ -149,7 +149,7 @@ export function buildKnowledgeGraph({ dataset, rawPages, ontology, rules, genera
   return { kg, trace };
 }
 
-function buildChronologyRelations(events, entities, derivations) {
+export function buildChronologyRelations(events, entities, derivations) {
   const relations = [];
   const seenPairs = new Set();
   const eventIdsByEntity = new Map();

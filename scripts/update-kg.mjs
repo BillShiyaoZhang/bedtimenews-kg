@@ -29,6 +29,8 @@ import { applyReviewedSourceRevisions } from "./lib/source-revisions.mjs";
 import { validate } from "./lib/validate.mjs";
 import { assertAcceptedCompilation, compileOntologyFiles } from "./lib/ontology-compiler.mjs";
 import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
+import { readIdentityRegistry } from "./lib/identity-materialization.mjs";
+import { validateEntityIdentities } from "./lib/entity-identities.mjs";
 
 const execFile = promisify(execFileCallback);
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -45,6 +47,11 @@ const hasAcceptedRelease = await readFile(resolve(projectRoot, "data/accepted-re
 });
 if (acceptedState?.schemaVersion === 4 || hasAcceptedRelease || process.env.KG_RELEASE_ACTIVATED === "true") {
   throw new Error("Accepted-release mode requires `npm run kg:release:sync`; legacy update/rebuild/bootstrap cannot bypass its acceptance gates.");
+}
+const identityRegistry = await readIdentityRegistry(projectRoot);
+if (identityRegistry) validateEntityIdentities(identityRegistry);
+if (identityRegistry?.identities.length || identityRegistry?.assignments.length) {
+  throw new Error("Reviewed entity identities require full accepted candidate replay; legacy update/rebuild/bootstrap cannot preserve identity history.");
 }
 await compileOntologyFiles(projectRoot);
 const bootstrap = Boolean(args.bootstrap);

@@ -305,3 +305,17 @@ test("new acceptance requires durable draft read-back and keeps its historical v
   f.options.auditReceipt.schemaVersion = 1;
   assert.throws(() => createAcceptedRelease(f.options), /audit read-back receipt/u);
 });
+
+test("legacy accepted receipts remain byte-stable while optional identity registry is bound exactly", () => {
+  const legacy = createAcceptedRelease(fixture().options);
+  assert.equal(Object.hasOwn(legacy.configuration, "identityRegistry"), false);
+  assert.deepEqual(validateAcceptedReleaseStructure(legacy), legacy);
+  const identityRegistry = { path: "data/entity-identities.json", sha256: sha256("reviewed identity registry") };
+  const next = createAcceptedRelease(fixture({ configChange: { identityRegistry } }).options);
+  assert.deepEqual(next.configuration.identityRegistry, identityRegistry);
+  assert.notEqual(next.epochId, legacy.epochId);
+  assert.throws(() => createAcceptedRelease(fixture({ configChange: { identityRegistry: { ...identityRegistry, path: "data/unbound-identities.json" } } }).options), /configuration path/u);
+  assert.throws(() => createAcceptedRelease(fixture({ configChange: { identityRegistry: { ...identityRegistry, sha256: "unknown" } } }).options), /configuration binding/u);
+  const continuation = fixture({ previous: legacy, configChange: { identityRegistry } });
+  assert.throws(() => createAcceptedRelease(continuation.options), /migration|epoch/u);
+});

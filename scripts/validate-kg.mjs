@@ -11,6 +11,9 @@ import {
 import { validate } from "./lib/validate.mjs";
 import { compileOntologyFiles } from "./lib/ontology-compiler.mjs";
 import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
+import { readIdentityRegistry, validateIdentityRendering } from "./lib/identity-materialization.mjs";
+import { buildKnowledgeGraph, readVerifiedPages } from "./lib/kg-build.mjs";
+import { buildCandidateProvenance } from "./lib/candidate-provenance.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 await compileOntologyFiles(root);
@@ -27,7 +30,15 @@ const [kg, ontology, newsDataset, rules] = await Promise.all([
   readJson(newsPath),
   readJson(resolve(root, "data/extraction-rules.json")),
 ]);
+const identityRegistry = await readIdentityRegistry(root);
+let identityProvenance = null;
+if (kg.identityResolution) {
+  const rawPages = await readVerifiedPages(newsDataset, sourceRoot);
+  const built = buildKnowledgeGraph({ dataset: newsDataset, rawPages, ontology, rules, generatedAt: kg.generatedAt, collectTrace: true });
+  identityProvenance = buildCandidateProvenance({ kg: built.kg, dataset: newsDataset, rawPages, trace: built.trace, sourceInventory: Object.fromEntries(newsDataset.pages.map((page) => [page.repositoryPath, page.contentHash])), bindings: { purpose: "standalone_identity_projection" } });
+}
 const issues = [
+  ...validateIdentityRendering({ kg, news: newsDataset, config: identityRegistry, provenance: identityProvenance }),
   ...validateNewsDataset(newsDataset),
   ...validate(kg, ontology),
   ...(await validateTopicEvidence(kg, newsDataset, rules, sourceRoot)),

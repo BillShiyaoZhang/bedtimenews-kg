@@ -230,8 +230,9 @@ revisions. Ordered news IDs must remain unchanged for every previously effective
 source that remains effective. Source deletion/retraction and explicit restoration
 retain their separate exact source-review rules. A segmentation split, merge or
 reordering fails with `news-boundary identity mapping not implemented`, even if a
-semantic migration review is supplied. Occurrence identity mapping and entity
-merge/split are not implied by this maintenance path.
+semantic migration review is supplied. Reviewed **news-scoped entity assignment**
+merges/splits use the same migration path; see [entity-identities.md](entity-identities.md).
+Occurrence-level identity mapping remains unsupported.
 
 Rollback reviews use `kind: "accepted-rollback"`, the current release/bundle,
 the exact accepted ancestor's commit/release/bundle, `reviewedAt` and `reason`.

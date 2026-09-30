@@ -3,6 +3,7 @@ import { canonicalJson } from "./candidate-bundle.mjs";
 import { buildKnowledgeGraph } from "./kg-build.mjs";
 import { extractExplicitDate } from "./news.mjs";
 import { normalizeExtractionText } from "./extraction.mjs";
+import { attachIdentityResolution } from "./identity-materialization.mjs";
 
 const hash = (value) => createHash("sha256").update(typeof value === "string" ? value : canonicalJson(value)).digest("hex");
 const identity = (prefix, value) => `${prefix}-${hash(value).slice(0, 24)}`;
@@ -195,8 +196,9 @@ export function validateCandidateProvenance(provenance, options) {
   try {
     const { kg, dataset, rawPages, ontology, rules } = options;
     const rebuilt = buildKnowledgeGraph({ dataset, rawPages, ontology, rules, generatedAt: kg.generatedAt, collectTrace: true });
-    ensure(hash(rebuilt.kg) === hash(kg), "candidate KG differs from deterministic materialization");
-    const expected = buildCandidateProvenance({ ...options, trace: rebuilt.trace });
+    const expected = buildCandidateProvenance({ ...options, kg: rebuilt.kg, trace: rebuilt.trace });
+    const expectedKG = attachIdentityResolution({ kg: rebuilt.kg, news: dataset, provenance: expected, config: options.identityRegistry, baselineOverlay: options.baselineOverlay });
+    ensure(hash(expectedKG) === hash(kg), "candidate KG differs from deterministic materialization including identity resolution");
     rebuilt.trace = null;
     ensure(Object.keys(provenance).sort().join(",") === Object.keys(expected).sort().join(","), "stored provenance collections differ");
     for (const key of Object.keys(expected)) ensure(hash(provenance[key]) === hash(expected[key]), `stored provenance ${key} differs from replayed witnesses/supports`);

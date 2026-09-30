@@ -10,6 +10,7 @@ const HASH = /^[a-f0-9]{64}$/u;
 const COMMIT = /^[a-f0-9]{40}$/u;
 const CONFIG_PATHS = { ontologySource: "data/ontology-source.json", ontology: "data/ontology.json", patterns: "data/extraction-patterns.json", rules: "data/extraction-rules.json", newsOverrides: "data/news-overrides.json", compiler: "scripts/lib/ontology-compiler.mjs", segmentation: "scripts/lib/news.mjs" };
 const CONFIG_NAMES = [...Object.keys(CONFIG_PATHS), "generator"];
+const OPTIONAL_CONFIG_PATHS = { identityRegistry: "data/entity-identities.json" };
 const SOURCE_REPLAY_NOTICE = "Restoring accepted outputs does not guarantee raw upstream re-extraction; upstream Git history must be available separately.";
 const ORIGIN_NAMES = ["acceptedState", "acceptedKG", "acceptedNews"];
 const ARTIFACTS = ["diff.json", "kg.json", "lifecycle.json.gz", "news.json", "provenance.json.gz", "source-review.json"];
@@ -60,12 +61,12 @@ function reference(value, label) {
 function configuration(inputs) {
   must(object(inputs), "missing candidate inputs");
   const result = {};
-  for (const name of CONFIG_NAMES) {
+  for (const name of [...CONFIG_NAMES, ...Object.keys(OPTIONAL_CONFIG_PATHS).filter((key) => Object.hasOwn(inputs, key))]) {
     must(object(inputs[name]) && HASH.test(inputs[name].sha256 ?? ""), `missing configuration binding ${name}`);
     // Public receipts carry hashes/paths, not copies of source text or secrets.
     result[name] = { sha256: inputs[name].sha256 };
     if (name !== "generator") {
-      must(inputs[name].path === CONFIG_PATHS[name], `invalid configuration path ${name}`);
+      must(inputs[name].path === (CONFIG_PATHS[name] ?? OPTIONAL_CONFIG_PATHS[name]), `invalid configuration path ${name}`);
       result[name].path = inputs[name].path;
     } else {
       must(object(inputs.generator.files) && Object.keys(inputs.generator.files).length && Object.entries(inputs.generator.files).every(([path, value]) => /^(?:scripts|app\/lib)\/[a-zA-Z0-9_/-]+\.mjs$/u.test(path) && HASH.test(value)), "invalid generator file bindings");
