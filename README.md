@@ -2,7 +2,7 @@
 
 一个面向 [`bedtimenews-archive-contents`](https://github.com/bedtimenews/bedtimenews-archive-contents) 的静态新闻 ontology 与知识图谱。原仓库的一个 Markdown 页面可以包含多条互不相关的新闻；本项目先把页面拆成独立新闻数据集，再以每条新闻为单位生成 KG。首页提供两种入口：
 
-- 关键词搜索：同时检索事件标题、摘要、事件类型、实体名称与别名、来源元数据；统一处理中英文大小写、全半角、标点、行政区简称和经审查的缩写/同义词；
+- 关键词搜索：同时检索事件标题、摘要、事件类型、实体名称与别名、来源元数据；统一处理中英文大小写、全半角、标点、行政区简称和经审查的缩写/同义词，并检索每条新闻片段实际命中的主题触发词；
 - 按条件检索：组合事件类型、主体、地点、主题、命名对象和时间范围。
 
 首页命中的实体会进入独立详情页，联合展示相关新闻时间线、可交互知识图谱和原文证据。Ontology 浏览页展示 facet、实体/事件/关系类型、实例数量和实时覆盖率。
@@ -22,7 +22,7 @@
 4. KG 逐条重新读取并验签原文片段，再抽取主体、地点、设施、政策、命名文献与受控主题；
 5. 仅为共同涉及同一高置信实体、且日期不同的相邻新闻生成 `precedes` 时序关系。
 
-`data/ontology.json` 定义稳定的语义类型与首页 facet；`data/extraction-rules.json` 定义可复现的语义抽取规则；`data/news-overrides.json` 保存经人工审查的页面拆分修正。三者分开版本化。
+`data/ontology.json` 定义稳定的语义类型与首页 facet；`data/extraction-rules.json` 定义可复现的语义抽取规则；`data/news-overrides.json` 保存经人工审查的页面拆分修正。三者分开版本化。主题 `aliases` 只保存真正同义名称，`extractionTriggers` 只负责抽取；生成的 `event.topicEvidence` 保存每条新闻独立验签片段的实际命中词，避免把一个主题的全部相关词扩散到每条新闻。维护与迁移见 [名称与抽取证据](docs/ontology.md)。
 
 `data/review/news-segmentation.json` 报告拆分策略、每页新闻数、待审页面，以及正式节目期号时间轴中的日期插值和异常校正。标题中的期号越大，最终发布日期保证不会更早；原始观测日期及其来源仍保留在 processed dataset 中。语义覆盖质量写入 `data/review/ontology-candidates.json`，包括：
 
