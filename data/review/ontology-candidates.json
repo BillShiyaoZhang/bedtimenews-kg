@@ -5,7 +5,7 @@
   "ontologyVersion": "2.1.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.4.0",
-  "extractionVersion": "3.9.0",
+  "extractionVersion": "3.10.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
     "totalNews": 9638,
@@ -40,8 +40,8 @@
     },
     "facetPresence": {
       "subject": {
-        "news": 3093,
-        "percent": 32.09
+        "news": 3094,
+        "percent": 32.1
       },
       "place": {
         "news": 7977,
@@ -82,7 +82,7 @@
     }
   },
   "currentIncrement": {
-    "newNews": 36,
+    "newNews": 9638,
     "newNewsWithoutKnownEntities": 0,
     "otherTypeNews": 0,
     "untypedReviewSample": [],

@@ -9,7 +9,7 @@
     "newsDatasetSchemaVersion": "1.1.0",
     "segmentationVersion": "1.4.0",
     "newsOverrideVersion": "1.1.0",
-    "extractionVersion": "3.9.0"
+    "extractionVersion": "3.10.0"
   },
   "entities": [
     {
@@ -3856,6 +3856,18 @@
         "method": "organization_suffix",
         "confidence": 0.84,
         "eventCount": 8
+      }
+    },
+    {
+      "id": "entity-organization-3cdb796fc8fd",
+      "label": "南方医科大学",
+      "type": "organization",
+      "aliases": [],
+      "description": "由组织名称后缀规则识别的主体；在 4 条独立新闻中出现。",
+      "extraction": {
+        "method": "organization_suffix",
+        "confidence": 0.84,
+        "eventCount": 4
       }
     },
     {
@@ -11382,6 +11394,18 @@
     {
       "id": "entity-policy-be380efae1b2",
       "label": "《公路安全保护条例》",
+      "type": "policy",
+      "aliases": [],
+      "description": "由书名号与文件类型后缀识别的政策文件；在 1 条独立新闻中出现。",
+      "extraction": {
+        "method": "document_title",
+        "confidence": 0.98,
+        "eventCount": 1
+      }
+    },
+    {
+      "id": "entity-policy-fa5ffb0fb50d",
+      "label": "《公路法》",
       "type": "policy",
       "aliases": [],
       "description": "由书名号与文件类型后缀识别的政策文件；在 1 条独立新闻中出现。",
@@ -21366,13 +21390,15 @@
         "宏观经济论坛",
         "供强需弱",
         "K型分化",
-        "增量政策"
+        "增量政策",
+        "投资拉动",
+        "居民部门"
       ],
-      "description": "受控主题词；由 1147 条独立新闻的关键词规则命中。",
+      "description": "受控主题词；由 1151 条独立新闻的关键词规则命中。",
       "extraction": {
         "method": "controlled_vocabulary",
         "confidence": 1,
-        "eventCount": 1147
+        "eventCount": 1151
       }
     },
     {
@@ -21561,7 +21587,9 @@
         "配送时间",
         "员工内外有别",
         "再招员工",
-        "善待员工"
+        "善待员工",
+        "排班",
+        "休息质量"
       ],
       "description": "受控主题词；由 2214 条独立新闻的关键词规则命中。",
       "extraction": {
@@ -21967,30 +21995,6 @@
         "method": "controlled_vocabulary",
         "confidence": 1,
         "eventCount": 1465
-      }
-    },
-    {
-      "id": "entity-organization-3cdb796fc8fd",
-      "label": "南方医科大学",
-      "type": "organization",
-      "aliases": [],
-      "description": "由组织名称后缀规则识别的主体；在 1 条独立新闻中出现。",
-      "extraction": {
-        "method": "organization_suffix",
-        "confidence": 0.84,
-        "eventCount": 1
-      }
-    },
-    {
-      "id": "entity-policy-fa5ffb0fb50d",
-      "label": "《公路法》",
-      "type": "policy",
-      "aliases": [],
-      "description": "由书名号与文件类型后缀识别的政策文件；在 1 条独立新闻中出现。",
-      "extraction": {
-        "method": "document_title",
-        "confidence": 0.98,
-        "eventCount": 1
       }
     }
   ],
@@ -38638,6 +38642,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-topic-ec064b630b41",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-240a20d1377a"
@@ -66156,7 +66161,8 @@
         "entity-policy-e6ec0a6c9ee4",
         "entity-topic-3619e6a68ba1",
         "entity-topic-5dd0d821b9a8",
-        "entity-topic-e3a330ceec3c"
+        "entity-topic-e3a330ceec3c",
+        "entity-organization-3cdb796fc8fd"
       ]
     },
     {
@@ -88632,6 +88638,7 @@
         "entity-place-a2ef4c813efc",
         "entity-topic-1a28a95ca93c",
         "entity-topic-3619e6a68ba1",
+        "entity-organization-3cdb796fc8fd",
         "entity-organization-5747d48f6f17"
       ]
     },
@@ -131391,6 +131398,7 @@
         "entity-place-a7e2567f856a",
         "entity-place-cc6336fa8eb9",
         "entity-policy-c82e65ae3702",
+        "entity-topic-ec064b630b41",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
@@ -144894,6 +144902,7 @@
         "entity-place-9652164ccd71",
         "entity-place-b7f3ca4844c8",
         "entity-place-a2ef4c813efc",
+        "entity-topic-ec064b630b41",
         "entity-topic-4aec0475249f",
         "entity-topic-da8baac7a56a",
         "entity-topic-1111de459cd2",
@@ -205731,6 +205740,7 @@
       "significance": "",
       "entityIds": [
         "entity-place-b323e491e463",
+        "entity-organization-3cdb796fc8fd",
         "entity-organization-f90b6b846de5",
         "entity-topic-1a28a95ca93c",
         "entity-topic-3619e6a68ba1",
@@ -247513,6 +247523,7 @@
       ],
       "significance": "",
       "entityIds": [
+        "entity-topic-ec064b630b41",
         "entity-topic-da8baac7a56a"
       ]
     },
@@ -256879,23 +256890,6 @@
       ]
     },
     {
-      "id": "event-bcf677ff48d3",
-      "newsId": "news-107e28383559",
-      "title": "短视频试验",
-      "date": "2023-03-10",
-      "datePrecision": "day",
-      "type": "science_technology",
-      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
-      "sourceIds": [
-        "page-6b7afe80df35"
-      ],
-      "significance": "",
-      "entityIds": [
-        "entity-topic-8a581a8f5d03",
-        "entity-topic-e3a330ceec3c"
-      ]
-    },
-    {
       "id": "event-ee67365687e5",
       "newsId": "news-804c13892b87",
       "title": "《公路法》拟修订，高速公路、独立桥梁、隧道的收费期满后由政府统一管理，养护资金可采用收取通行费等办法筹集",
@@ -257500,6 +257494,23 @@
       "entityIds": [
         "entity-place-66b01b35c116",
         "entity-topic-3619e6a68ba1"
+      ]
+    },
+    {
+      "id": "event-bcf677ff48d3",
+      "newsId": "news-107e28383559",
+      "title": "短视频试验",
+      "date": "2023-03-10",
+      "datePrecision": "day",
+      "type": "science_technology",
+      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
+      "sourceIds": [
+        "page-6b7afe80df35"
+      ],
+      "significance": "",
+      "entityIds": [
+        "entity-topic-8a581a8f5d03",
+        "entity-topic-e3a330ceec3c"
       ]
     }
   ],
@@ -262335,6 +262346,16 @@
       "sourceId": "page-7bb711b24482"
     },
     {
+      "id": "relation-e267e5ac64ee",
+      "from": "event-45a461913a80",
+      "to": "event-8ca7f7c4bff2",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-6f62d9689460",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-beec2da175b6"
+    },
+    {
       "id": "relation-1e4abccd92b2",
       "from": "event-0517d2a74a99",
       "to": "event-12b963bc292d",
@@ -266333,6 +266354,16 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“国家市场监督管理总局”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-1082df31791d"
+    },
+    {
+      "id": "relation-dd245cec9feb",
+      "from": "event-5a4a28baac05",
+      "to": "event-bbbf94cea646",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f903cb7d1fa9",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“国家市场监督管理总局”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-3a6fb492c364"
     },
     {
       "id": "relation-ca6b39667448",
@@ -275625,6 +275656,36 @@
       "sourceId": "page-b9fe5da1146f"
     },
     {
+      "id": "relation-502f4b7bed68",
+      "from": "event-71d53a68f439",
+      "to": "event-375fc57854ce",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-3cdb796fc8fd",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“南方医科大学”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-1882bf6ee37d"
+    },
+    {
+      "id": "relation-6dbc4bbfc624",
+      "from": "event-375fc57854ce",
+      "to": "event-51378c166729",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-3cdb796fc8fd",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“南方医科大学”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-02afc18813c2"
+    },
+    {
+      "id": "relation-4c7568ef9b45",
+      "from": "event-51378c166729",
+      "to": "event-3930926ed836",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-3cdb796fc8fd",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“南方医科大学”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-3a6fb492c364"
+    },
+    {
       "id": "relation-a5b5f236801e",
       "from": "event-48a2db8e5d3c",
       "to": "event-087e461c10d0",
@@ -276283,6 +276344,16 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-596f8a537dfa"
+    },
+    {
+      "id": "relation-29c522b74035",
+      "from": "event-8016ddcb6d63",
+      "to": "event-674c82797ee3",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-f90b6b846de5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-beec2da175b6"
     },
     {
       "id": "relation-7f2fbd9f2a17",
@@ -290953,6 +291024,16 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“中南大学”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-db4f2b99a971"
+    },
+    {
+      "id": "relation-1dfe58252e6a",
+      "from": "event-8263c7de377a",
+      "to": "event-cf965123eeee",
+      "type": "precedes",
+      "viaEntityId": "entity-organization-879b8ad4d0e5",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“中南大学”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-3a6fb492c364"
     },
     {
       "id": "relation-f9d47831e307",
@@ -312343,6 +312424,16 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-1814aa0aec77"
+    },
+    {
+      "id": "relation-dd7a183a0aff",
+      "from": "event-030ebf4895d7",
+      "to": "event-d0a3eef94634",
+      "type": "precedes",
+      "viaEntityId": "entity-place-1aadfce5b98d",
+      "confidence": 1,
+      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+      "sourceId": "page-7e26d9ec4c6c"
     },
     {
       "id": "relation-6f5d0bec8488",
@@ -338833,66 +338924,6 @@
       "confidence": 1,
       "evidence": "两条新闻均明确涉及“《专利法》”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
       "sourceId": "page-7e55294d78ed"
-    },
-    {
-      "id": "relation-e267e5ac64ee",
-      "from": "event-45a461913a80",
-      "to": "event-8ca7f7c4bff2",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-6f62d9689460",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“比亚迪”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-beec2da175b6"
-    },
-    {
-      "id": "relation-dd245cec9feb",
-      "from": "event-5a4a28baac05",
-      "to": "event-bbbf94cea646",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-f903cb7d1fa9",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“国家市场监督管理总局”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-3a6fb492c364"
-    },
-    {
-      "id": "relation-4c7568ef9b45",
-      "from": "event-51378c166729",
-      "to": "event-3930926ed836",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-3cdb796fc8fd",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“南方医科大学”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-3a6fb492c364"
-    },
-    {
-      "id": "relation-29c522b74035",
-      "from": "event-8016ddcb6d63",
-      "to": "event-674c82797ee3",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-f90b6b846de5",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“胖东来”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-beec2da175b6"
-    },
-    {
-      "id": "relation-1dfe58252e6a",
-      "from": "event-8263c7de377a",
-      "to": "event-cf965123eeee",
-      "type": "precedes",
-      "viaEntityId": "entity-organization-879b8ad4d0e5",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“中南大学”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-3a6fb492c364"
-    },
-    {
-      "id": "relation-dd7a183a0aff",
-      "from": "event-030ebf4895d7",
-      "to": "event-d0a3eef94634",
-      "type": "precedes",
-      "viaEntityId": "entity-place-1aadfce5b98d",
-      "confidence": 1,
-      "evidence": "两条新闻均明确涉及“菏泽市”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
-      "sourceId": "page-7e26d9ec4c6c"
     }
   ],
   "entityRelations": [],
@@ -391385,29 +391416,6 @@
       }
     },
     {
-      "id": "page-6b7afe80df35",
-      "title": "短视频试验",
-      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
-      "repositoryPath": "shorts/test.md",
-      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
-      "publishedAt": "2023-03-10",
-      "dateProvenance": {
-        "observedAt": "2023-03-10",
-        "source": "frontmatter",
-        "resolution": "observed"
-      },
-      "kind": "shorts",
-      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
-      "segmentation": {
-        "strategy": "page_fallback",
-        "confidence": 0.8,
-        "newsCount": 1,
-        "candidateBoundaryCount": 0,
-        "needsReview": false,
-        "reviewReasons": []
-      }
-    },
-    {
       "id": "page-2a0a36204320",
       "title": "【参考信息648】期满高速继续收费；火车站降格乘降所",
       "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/648",
@@ -391555,6 +391563,29 @@
         "reviewReasons": [
           "metadata_only_news_segmentation"
         ]
+      }
+    },
+    {
+      "id": "page-6b7afe80df35",
+      "title": "短视频试验",
+      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
+      "repositoryPath": "shorts/test.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
+      "publishedAt": "2023-03-10",
+      "dateProvenance": {
+        "observedAt": "2023-03-10",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "shorts",
+      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
+      "segmentation": {
+        "strategy": "page_fallback",
+        "confidence": 0.8,
+        "newsCount": 1,
+        "candidateBoundaryCount": 0,
+        "needsReview": false,
+        "reviewReasons": []
       }
     }
   ]
