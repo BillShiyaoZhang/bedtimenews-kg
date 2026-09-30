@@ -22,6 +22,43 @@ GitHub 失败邮件不会直接触发 Codex。每日任务必须同时检查 iss
 通知 API 或 runner 本身仍可能故障，因此每日直接检查 Actions 是必要的兜底。
 覆盖检查本身的 advisory 保持 `coverage-advisory` 标签；所有必需校验仍然阻止发布。
 
+## 提交成功后的 Pages 恢复
+
+同步的“已提交”和 Pages 的“已部署”是两个状态。`GITHUB_TOKEN` 的 push 不会触发
+另一个 push 工作流，所以同步必须保留显式 `workflow_dispatch`；不能只依赖 `push`。
+如果 push 成功但派发失败，下一次同步可能没有新增数据，仍然需要补齐部署。
+
+同步通过全部必需校验和构建后，会在 push 成功或无变化时记录实际 `git rev-parse HEAD`，
+以这个完整 SHA 对账 `.github/workflows/pages.yml` 的运行。不能使用同步运行的
+`GITHUB_SHA` / `head_sha` 代替实际 checkout，尤其是重跑旧运行时。
+
+- 相同 `main` SHA 的任一已完成运行/尝试中，`deploy` job 与 `Deploy to GitHub Pages`
+  步骤都成功：不重复部署；工作流整体成功但部署被跳过不算成功。
+  后来的失败重跑也不会掩盖早先已经成功的部署。
+- 相同 SHA 已排队、运行或等待批准：复用该运行，不再次派发，也不声称部署完成。
+- 没有对应运行，或对应运行失败、取消、超时等：确认远端 `main` 仍等于目标 SHA 后，
+  显式派发 Pages，并传入 `expected_sha`。派发返回的 run ID 还要核实目标 SHA。
+- API 查询、权限、派发或结果核实失败均使同步失败，进入现有 `sync-failure` 通知；
+  不会把“查不到”解释成“已经恢复”。派发的网络错误可能发生在服务端接受以后，
+  同一次对账不会盲目重试；后续同步先查询已有运行，再决定是否需要补派发。
+
+Pages 在构建前验证 `expected_sha` 与该运行的事件 SHA 一致；两者不一致的派发使用
+独立并发组，避免取消有效的新部署。部署前再次确认该运行仍然对应当前 `main`，
+防止旧运行重跑覆盖更新的站点。手动 Pages 运行可以不填 `expected_sha`，但正式部署
+只接受当前 `main`。普通手动/push 运行继续使用原有 `pages` 并发组。
+并发组不取消正在执行的运行，避免旧运行重跑先取消新部署、再被 guard 拒绝。
+GitHub 仍可能替换同组的待运行任务；被取消的当前 SHA 会由下一次同步重新对账。
+
+对账摘要中的“dispatched”只表示已经确认派发的 run ID 和目标，不代表部署完成。
+排查时继续核实该 Pages 运行的 `deploy` job 和部署步骤；只有真正成功才关闭部署故障。
+下一次每 6 小时的同步会再次对账；需要立即恢复时可手动启动一次新的 archive sync。
+修复合并前创建的旧运行仍使用旧工作流定义，不能靠重跑旧定义获得新恢复逻辑。
+本恢复流程复用现有 `actions: write` / `contents: read` 权限，不需要 PAT、密钥或模型调用。
+
+GitHub 官方参考：[工作流触发限制](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow)、
+[工作流运行 API](https://docs.github.com/en/rest/actions/workflow-runs)、
+[派发 API 返回 run ID](https://github.blog/changelog/2026-02-19-workflow-dispatch-api-now-returns-run-ids/)。
+
 ## 复现尚未提交的上游新增
 
 2026-09-08 的故障发生在 `kg:update` 内部的 `build-kg.mjs`：10 条新增新闻没有

@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Expected main commit (set by archive sync; leave blank for manual runs)
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -11,13 +16,25 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  # A raced/stale dispatch must fail without cancelling a valid newer deployment.
+  group: ${{ inputs.expected_sha && inputs.expected_sha != github.sha && format('pages-stale-{0}', github.run_id) || 'pages' }}
+  # Old reruns must not cancel a newer active deployment before being rejected.
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Verify requested deployment commit
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        shell: bash
+        run: |
+          if [[ -n "$EXPECTED_SHA" && "$EXPECTED_SHA" != "$GITHUB_SHA" ]]; then
+            echo "::error::main changed before Pages dispatch. Run archive sync again to reconcile the current commit."
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -52,6 +69,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Refuse superseded deployment
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { data: ref } = await github.rest.git.getRef({
+              ...context.repo, ref: "heads/main",
+            });
+            if (context.ref !== "refs/heads/main" || ref.object?.sha !== context.sha) {
+              throw new Error("This Pages run is no longer current main; refusing to deploy an older or non-main commit.");
+            }
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
