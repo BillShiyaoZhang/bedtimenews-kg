@@ -65,6 +65,9 @@ export function createEventSearchDocument({
         ])
         .join(" "),
     ),
+    topicEvidence: normalizeSearchText(
+      (event.topicEvidence ?? []).flatMap((match) => match.terms).join(" "),
+    ),
     source: normalizeSearchText(
       [source?.title, source?.kind, source?.repositoryPath].join(" "),
     ),
@@ -116,6 +119,7 @@ export function rankEventSearchDocument(document, query) {
   else if (fields.title.includes(phrase)) score += 40;
   if (fields.summary.includes(phrase)) score += 16;
   if (fields.entities.includes(phrase)) score += 12;
+  if (fields.topicEvidence.includes(phrase)) score += 10;
   if (fields.types.includes(phrase)) score += 6;
   if (fields.source.includes(phrase)) score += 3;
   return score;

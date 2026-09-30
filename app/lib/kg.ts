@@ -1,3 +1,5 @@
+import { validateTopicEvidenceStructure } from "./topic-evidence.mjs";
+
 export type EntityType = {
   id: string;
   label: string;
@@ -64,6 +66,12 @@ export type Entity = {
   };
 };
 
+// Each match is backed by this event's newsId and its hash-verified fragment.
+export type TopicEvidence = {
+  entityId: string;
+  terms: string[];
+};
+
 export type Event = {
   id: string;
   newsId: string;
@@ -75,6 +83,7 @@ export type Event = {
   entityIds: string[];
   sourceIds: string[];
   significance: string;
+  topicEvidence: TopicEvidence[];
 };
 
 export type Relation = {
@@ -313,6 +322,10 @@ export function validateKnowledgeBase(
   ontology: Ontology,
 ): ValidationIssue[] {
   const issues = validateOntology(ontology);
+  issues.push(...validateTopicEvidenceStructure(kg));
+  if (kg.schemaVersion !== ontology.version) {
+    issues.push({ level: "error", path: "schemaVersion", message: "KG 与 ontology 版本不一致" });
+  }
   const entityIds = new Set<string>();
   const eventIds = new Set<string>();
   const newsIds = new Set<string>();
