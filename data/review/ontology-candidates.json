@@ -2,10 +2,10 @@
   "schemaVersion": 4,
   "upstreamCommit": "0a0320403b76ac50fba3e81cbb6d72d655a62248",
   "observedAt": "2026-09-21T15:34:36Z",
-  "ontologyVersion": "2.1.0",
+  "ontologyVersion": "2.2.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.4.0",
-  "extractionVersion": "3.10.0",
+  "extractionVersion": "4.0.0",
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
     "totalNews": 9638,
