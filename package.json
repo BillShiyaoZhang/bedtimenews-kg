@@ -24,7 +24,9 @@
     "test:coverage": "node --test --test-name-pattern='^required semantic coverage is 100%$' tests/data.test.mjs",
     "test": "npm run kg:validate && node --test tests/*.test.mjs && npm run build && npm run build:pages",
     "test:pages": "npm run build:pages && node --test tests/data.test.mjs",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "kg:candidate": "node scripts/build-candidate.mjs",
+    "kg:candidate:validate": "node scripts/validate-candidate.mjs"
   },
   "dependencies": {
     "next": "16.2.11",

@@ -1,9 +1,9 @@
-import { validateCompiledHierarchy } from "../../app/lib/ontology-hierarchy.mjs";
+import { sameOntologyCompilation, validateCompiledHierarchy } from "../../app/lib/ontology-hierarchy.mjs";
 import { validateTopicEvidenceStructure } from "../../app/lib/topic-evidence.mjs";
 
 export function validate(kg, ontology) {
   const issues = [...validateTopicEvidenceStructure(kg), ...validateCompiledHierarchy(ontology)];
-  if (JSON.stringify(kg.source?.ontologyCompilation) !== JSON.stringify(ontology.compilation)) {
+  if (!sameOntologyCompilation(kg.source?.ontologyCompilation, ontology.compilation)) {
     issues.push(error("source.ontologyCompilation", "KG 与编译蓝图指纹不一致，必须显式重建"));
   }
   if (kg.schemaVersion !== ontology.version) {

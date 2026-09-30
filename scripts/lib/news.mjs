@@ -618,7 +618,7 @@ function independentNewsTitle(value = "") {
   return withoutPageSeries || cleaned;
 }
 
-export function extractExplicitDate(value) {
+export function extractExplicitDate(value, { includeWitness = false } = {}) {
   const chinese = value.match(
     /((?:18|19|20)\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/u,
   );
@@ -626,6 +626,7 @@ export function extractExplicitDate(value) {
     return {
       date: `${chinese[1]}-${pad(chinese[2])}-${pad(chinese[3])}`,
       precision: "day",
+      ...(includeWitness ? { witness: { start: chinese.index, end: chinese.index + chinese[0].length, text: chinese[0] } } : {}),
     };
   }
   const iso = value.match(/((?:18|19|20)\d{2})-(\d{1,2})-(\d{1,2})/u);
@@ -633,10 +634,11 @@ export function extractExplicitDate(value) {
     return {
       date: `${iso[1]}-${pad(iso[2])}-${pad(iso[3])}`,
       precision: "day",
+      ...(includeWitness ? { witness: { start: iso.index, end: iso.index + iso[0].length, text: iso[0] } } : {}),
     };
   }
   const year = value.match(/((?:18|19|20)\d{2})\s*年/u);
-  if (year) return { date: `${year[1]}-01-01`, precision: "year" };
+  if (year) return { date: `${year[1]}-01-01`, precision: "year", ...(includeWitness ? { witness: { start: year.index, end: year.index + year[0].length, text: year[0] } } : {}) };
   return null;
 }
 
