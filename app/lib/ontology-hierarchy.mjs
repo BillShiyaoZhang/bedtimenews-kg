@@ -1,5 +1,10 @@
 // The same hierarchy contract is used by the compiler, validators and browser.
 // Parents express class subsumption or topic broader terms, never part_of.
+export function sameOntologyCompilation(left, right) {
+  const keys = ["formatVersion", "compilerVersion", "sourceHash", "patternsHash"];
+  return Boolean(left && right && Object.keys(left).length === keys.length && Object.keys(right).length === keys.length && keys.every((key) => Object.hasOwn(left, key) && Object.hasOwn(right, key) && left[key] === right[key]));
+}
+
 /** @returns {Array<{level: "error", path: string, message: string}>} */
 export function validateHierarchy(hierarchy, path = "hierarchy") {
   const issues = [];

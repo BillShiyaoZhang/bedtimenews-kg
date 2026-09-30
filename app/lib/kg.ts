@@ -1,4 +1,4 @@
-import { validateCompiledHierarchy } from "./ontology-hierarchy.mjs";
+import { sameOntologyCompilation, validateCompiledHierarchy } from "./ontology-hierarchy.mjs";
 import { validateTopicEvidenceStructure } from "./topic-evidence.mjs";
 
 export type EntityType = {
@@ -341,7 +341,7 @@ export function validateKnowledgeBase(
   if (kg.schemaVersion !== ontology.version) {
     issues.push({ level: "error", path: "schemaVersion", message: "KG 与 ontology 版本不一致" });
   }
-  if (JSON.stringify(kg.source.ontologyCompilation) !== JSON.stringify(ontology.compilation)) {
+  if (!sameOntologyCompilation(kg.source.ontologyCompilation, ontology.compilation)) {
     issues.push({ level: "error", path: "source.ontologyCompilation", message: "KG 与编译蓝图指纹不一致" });
   }
   const entityIds = new Set<string>();

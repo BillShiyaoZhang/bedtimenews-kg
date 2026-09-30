@@ -80,6 +80,14 @@ npm run ontology:check
 
 修改拆分逻辑、`data/news-overrides.json`、ontology 或抽取规则后，都必须执行显式重建。重建会先确认不存在未解决的上游修改、删除、改名或重复新增，然后才同时替换 processed news 和 KG。版本不一致时，`kg:update` 会拒绝继续，避免把数据边界或语义迁移伪装成普通增量。
 
+## 离线全量候选与审计
+
+`npm run kg:candidate -- --output work/candidates/review` 可生成隔离的完整候选、
+抽取支持账本和稳定 ID 差异报告。`npm run kg:candidate:validate -- work/candidates/review`
+从固定源重新拆分、验签并重放。账本压缩保存于候选目录，不进入 Git 历史或前端。
+这套命令不会更新 accepted 数据，也不放开来源内容修改或删除；普通同步继续使用
+原来的 `kg:update`。完整契约见 [候选与支持账本](docs/candidate-lifecycle.md)。
+
 ## 自动同步
 
 `.github/workflows/sync-archive.yml` 每 6 小时检查一次上游，也支持手动触发与 `archive-updated` repository dispatch。检测到安全新增后会：

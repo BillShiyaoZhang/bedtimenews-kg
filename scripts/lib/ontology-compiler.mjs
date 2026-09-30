@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { hierarchyIndex, validateHierarchy } from "../../app/lib/ontology-hierarchy.mjs";
+import { hierarchyIndex, sameOntologyCompilation, validateHierarchy } from "../../app/lib/ontology-hierarchy.mjs";
 import { assertExtractionRules } from "./extraction-rules.mjs";
 
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
@@ -131,5 +131,5 @@ export async function compileOntologyFiles(root, { write = false } = {}) {
 
 export function assertAcceptedCompilation(kg, state, compilation) {
   const accepted = [kg.source?.ontologyCompilation, state.ontologyCompilation];
-  assert(accepted.every((value) => value && JSON.stringify(value) === JSON.stringify(compilation)), "accepted ontology/rule fingerprints differ; run npm run kg:rebuild explicitly");
+  assert(accepted.every((value) => sameOntologyCompilation(value, compilation)), "accepted ontology/rule fingerprints differ; run npm run kg:rebuild explicitly");
 }

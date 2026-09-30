@@ -273,10 +273,12 @@ export function createExtractionEngine(rules) {
   assertExtractionRules(rules);
   const places = buildPlaceGazetteer(rules);
   const aliasToPlace = new Map();
+  const placeRuleRefs = new Map();
   for (const place of places) {
     for (const alias of [place.label, ...place.aliases]) {
       if (alias.length >= 2 && !aliasToPlace.has(alias)) {
         aliasToPlace.set(alias, place);
+        placeRuleRefs.set(alias, place.ruleRefs.get(alias));
       }
     }
   }
@@ -289,9 +291,13 @@ export function createExtractionEngine(rules) {
   );
   const knownPlaceNames = new Set(placeAliases);
   const organizationAliases = new Map();
-  for (const organization of rules.organizationAliases ?? []) {
-    for (const alias of [organization.label, ...(organization.aliases ?? [])]) {
+  const organizationRuleRefs = new Map();
+  for (const [index, organization] of (rules.organizationAliases ?? []).entries()) {
+    for (const [aliasIndex, alias] of [organization.label, ...(organization.aliases ?? [])].entries()) {
       organizationAliases.set(alias, organization);
+      organizationRuleRefs.set(alias, aliasIndex === 0
+        ? `organizationAliases[${index}].label`
+        : `organizationAliases[${index}].aliases[${aliasIndex - 1}]`);
     }
   }
 
@@ -339,12 +345,36 @@ export function createExtractionEngine(rules) {
   }));
 
   function extractCandidates(text, prominentText = "", context = {}) {
+    return extractCandidateDecisions(text, prominentText, context).candidates;
+  }
+
+  function extractCandidateDecisions(text, prominentText = "", context = {}) {
     const normalizedText = normalizeText(text);
     const normalizedProminent = normalizeText(prominentText);
     const normalizedNamedText = normalizedProminent || normalizedText;
+    const namedInput = normalizedProminent ? "prominent" : "text";
     const candidates = new Map();
-    const add = (candidate) => {
+    const observations = [];
+    const add = (candidate, ruleRef, evidence = []) => {
       if (!candidate || GENERIC_LABELS.has(candidate.label)) return;
+      // Capture accepted derivations before the legacy best-candidate deduplication.
+      // In particular, equal-confidence aliases, triggers and reviewed links remain
+      // separate observations even when they do not change the selected candidate.
+      observations.push({
+        candidateKey: candidate.key,
+        ...(candidate.entityId ? { entityId: candidate.entityId } : {}),
+        type: candidate.type,
+        label: candidate.label,
+        method: candidate.method,
+        confidence: candidate.confidence,
+        prominent: candidate.prominent ??
+          [candidate.label, ...(candidate.aliases ?? [])].some((alias) =>
+            normalizedProminent.includes(alias),
+          ),
+        input: evidence[0]?.input ?? "none",
+        ruleRef,
+        evidence,
+      });
       const existing = candidates.get(candidate.key);
       if (!existing || candidate.confidence > existing.confidence) {
         candidates.set(candidate.key, {
@@ -376,7 +406,7 @@ export function createExtractionEngine(rules) {
         aliases: place.aliases,
         method: "gazetteer",
         confidence: 1,
-      });
+      }, placeRuleRefs.get(match[0]), [matchEvidence("text", match)]);
     }
 
     organizationPattern.lastIndex = 0;
@@ -399,7 +429,7 @@ export function createExtractionEngine(rules) {
         aliases: canonical?.aliases ?? [],
         method: "organization_suffix",
         confidence: 0.84,
-      });
+      }, "patterns.organizationPattern", [matchEvidence(namedInput, match)]);
     }
 
     if (reviewedOrganizationPattern) {
@@ -416,7 +446,7 @@ export function createExtractionEngine(rules) {
           aliases: canonical.aliases ?? [],
           method: "organization_alias",
           confidence: 0.84,
-        });
+        }, organizationRuleRefs.get(match[0]), [matchEvidence(namedInput, match)]);
       }
     }
 
@@ -431,7 +461,7 @@ export function createExtractionEngine(rules) {
         aliases: [],
         method: "facility_suffix",
         confidence: 0.84,
-      });
+      }, "patterns.facilityPattern", [matchEvidence(namedInput, match)]);
     }
 
     policyPattern.lastIndex = 0;
@@ -445,7 +475,7 @@ export function createExtractionEngine(rules) {
         aliases: [],
         method: "document_title",
         confidence: 0.98,
-      });
+      }, "patterns.policyPattern", [matchEvidence("text", match)]);
     }
 
     documentPattern.lastIndex = 0;
@@ -459,7 +489,7 @@ export function createExtractionEngine(rules) {
         aliases: [],
         method: "named_document",
         confidence: 0.98,
-      });
+      }, "patterns.documentPattern", [matchEvidence("text", match)]);
     }
 
     for (const [pattern, method, confidence] of [
@@ -483,20 +513,18 @@ export function createExtractionEngine(rules) {
           aliases: [],
           method,
           confidence,
-        });
+        }, "patterns.personAfterRolePattern", [matchEvidence(namedInput, match)]);
       }
     }
 
-    for (const candidate of topicCandidates) {
-      if (
-        candidate.topic.extractionTriggers.some((keyword) =>
-          normalizedText.includes(keyword),
-        )
-      ) {
-        add(candidate);
+    for (const [topicIndex, candidate] of topicCandidates.entries()) {
+      for (const [triggerIndex, keyword] of candidate.topic.extractionTriggers.entries()) {
+        for (const evidence of keywordEvidence(normalizedText, keyword, "text")) {
+          add(candidate, `topics[${topicIndex}].extractionTriggers[${triggerIndex}]`, [evidence]);
+        }
       }
     }
-    for (const link of rules.reviewedNewsEntityLinks?.[context.newsId] ?? []) {
+    for (const [index, link] of (rules.reviewedNewsEntityLinks?.[context.newsId] ?? []).entries()) {
       const topic = link.type === "topic" ? topicCandidates.find((candidate) => candidate.topic.conceptId === link.conceptId) : undefined;
       const canonical =
         link.type === "organization"
@@ -512,47 +540,71 @@ export function createExtractionEngine(rules) {
         method: "reviewed_news_link",
         confidence: 1,
         prominent: true,
-      });
+      }, `reviewedNewsEntityLinks[${JSON.stringify(context.newsId)}][${index}]`);
     }
-    return [...candidates.values()];
+    return { candidates: [...candidates.values()], observations };
   }
 
   function classifyEvent(text, contextText = "") {
-    const primaryType = classifyEventText(text);
-    if (primaryType !== "other" || !contextText) return primaryType;
-    return classifyEventText(contextText);
+    return classifyEventDecision(text, contextText).type;
   }
 
-  function classifyEventText(text) {
+  function classifyEventDecision(primaryText, contextText = "") {
+    const primary = classifyEventText(primaryText, "primary");
+    const steps = [primary];
+    if (primary.winner !== "other" || !contextText) {
+      return { type: primary.winner, selectedInput: "primary", steps };
+    }
+    const context = classifyEventText(contextText, "context");
+    steps.push(context);
+    return { type: context.winner, selectedInput: "context", steps };
+  }
+
+  function classifyEventText(text, input) {
     const normalized = normalizeText(text);
+    const evidence = [];
     const scores = rules.eventClassification.map((definition, index) => ({
       id: definition.id,
       index,
-      score: definition.keywords.reduce(
-        (total, keyword) =>
-          total + countOccurrences(normalized, keyword) * keyword.length,
-        0,
-      ),
+      score: definition.keywords.reduce((total, keyword) => {
+        const matches = keywordEvidence(normalized, keyword, input);
+        evidence.push(...matches);
+        return total + matches.length * keyword.length;
+      }, 0),
     }));
     scores.sort(
       (left, right) => right.score - left.score || left.index - right.index,
     );
-    if (scores[0]?.score) return scores[0].id;
+    if (scores[0]?.score) {
+      return {
+        input, scores, winner: scores[0].id, stage: "weighted_keywords",
+        ruleRef: `eventClassification[${scores[0].index}]`, evidence,
+      };
+    }
     for (const topic of rules.topics) {
-      if (
-        topic.extractionTriggers.some((keyword) => normalized.includes(keyword)) &&
-        rules.topicEventTypes[topic.id]
-      ) {
-        return rules.topicEventTypes[topic.id];
+      if (!rules.topicEventTypes[topic.id]) continue;
+      const matches = topic.extractionTriggers.flatMap((keyword) =>
+        keywordEvidence(normalized, keyword, input),
+      );
+      if (matches.length) {
+        return {
+          input, scores, winner: rules.topicEventTypes[topic.id], stage: "topic_fallback",
+          ruleRef: `topicEventTypes[${JSON.stringify(topic.id)}]`, evidence: matches,
+        };
       }
     }
-    return "other";
+    return {
+      input, scores, winner: "other", stage: "other",
+      ruleRef: "classification.other", evidence: [],
+    };
   }
 
   return {
     version: rules.version,
     extractCandidates,
+    extractCandidateDecisions,
     classifyEvent,
+    classifyEventDecision,
     matchTopicEvidence(text) {
       const normalized = normalizeText(text);
       return rules.topics.flatMap((topic) => {
@@ -619,10 +671,16 @@ export function entityId(type, label) {
 
 function buildPlaceGazetteer(rules) {
   const entries = new Map();
-  for (const item of rules.placeAliases) {
+  for (const [index, item] of rules.placeAliases.entries()) {
+    const ruleRefs = new Map();
+    ruleRefs.set(item.label, `placeAliases[${index}].label`);
+    for (const [aliasIndex, alias] of (item.aliases ?? []).entries()) {
+      if (!ruleRefs.has(alias)) ruleRefs.set(alias, `placeAliases[${index}].aliases[${aliasIndex}]`);
+    }
     entries.set(item.label, {
       label: item.label,
       aliases: unique(item.aliases ?? []),
+      ruleRefs,
     });
   }
   const displayNames = new Intl.DisplayNames(["zh-CN"], { type: "region" });
@@ -631,7 +689,10 @@ function buildPlaceGazetteer(rules) {
     if (!code || specialCodes.has(code)) continue;
     const label = displayNames.of(code);
     if (!label || label === code || entries.has(label)) continue;
-    entries.set(label, { label, aliases: [] });
+    entries.set(label, {
+      label, aliases: [],
+      ruleRefs: new Map([[label, `isoRegionCodes[${JSON.stringify(code)}]`]]),
+    });
   }
   return [...entries.values()];
 }
@@ -759,19 +820,37 @@ function normalizeIdentifier(value) {
     .replace(/[《》“”"'（）()\s_-]/gu, "");
 }
 
-function normalizeText(value = "") {
+// Offsets in extraction/classification decisions are UTF-16, end-exclusive,
+// relative to this exact normalized input rather than the raw source bytes.
+export function normalizeExtractionText(value = "") {
   return maskHtmlComments(value).replace(/\s+/gu, " ").trim();
 }
 
-function countOccurrences(text, keyword) {
-  if (!keyword) return 0;
-  let count = 0;
+const normalizeText = normalizeExtractionText;
+
+function matchEvidence(input, match) {
+  return textEvidence(input, match.index, match[0]);
+}
+
+function textEvidence(input, start, text) {
+  return {
+    input,
+    normalizationId: "extraction-normalized-v1",
+    start,
+    end: start + text.length,
+    text,
+  };
+}
+
+function keywordEvidence(text, keyword, input) {
+  if (!keyword) return [];
+  const evidence = [];
   let offset = 0;
   while ((offset = text.indexOf(keyword, offset)) !== -1) {
-    count += 1;
+    evidence.push(textEvidence(input, offset, text.slice(offset, offset + keyword.length)));
     offset += keyword.length;
   }
-  return count;
+  return evidence;
 }
 
 function alternativesPattern(values) {
