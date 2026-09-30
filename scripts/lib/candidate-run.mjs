@@ -12,6 +12,7 @@ import { buildCandidateProvenance, validateCandidateProvenance } from "./candida
 import { validateNewsDataset, validateNewsFragments, validateKnowledgeBaseNewsProjection } from "./news.mjs";
 import { validateTopicEvidence } from "./topic-evidence.mjs";
 import { validate } from "./validate.mjs";
+import { attachIdentityResolution, identityDiff } from "./identity-materialization.mjs";
 
 const execFile = promisify(execFileCallback);
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"));
@@ -75,8 +76,10 @@ export function assertCandidateOutput(root, output, sourceRoot, baseline) {
   if (baseline) must(!overlaps(target, resolve(baseline)), "Candidate output must not overlap its baseline bundle");
 }
 
+const optionalConfigPaths = { identityRegistry: "data/entity-identities.json" };
+
 async function generatorBindings(root) {
-  const files = ["scripts/build-news.mjs", "scripts/build-kg.mjs", "scripts/build-candidate.mjs", "scripts/validate-candidate.mjs", "scripts/compile-ontology.mjs", "scripts/build-lifecycle-candidate.mjs", "scripts/validate-lifecycle-candidate.mjs", "app/lib/topic-evidence.mjs", "app/lib/ontology-hierarchy.mjs"];
+  const files = ["scripts/build-news.mjs", "scripts/build-kg.mjs", "scripts/build-candidate.mjs", "scripts/validate-candidate.mjs", "scripts/compile-ontology.mjs", "scripts/build-lifecycle-candidate.mjs", "scripts/validate-lifecycle-candidate.mjs", "app/lib/topic-evidence.mjs", "app/lib/ontology-hierarchy.mjs", "app/lib/identity-projection.mjs"];
   for (const file of (await readdir(resolve(root, "scripts/lib"))).filter((name) => name.endsWith(".mjs")).sort()) files.push(`scripts/lib/${file}`);
   const hashes = {};
   for (const path of files.sort()) hashes[path] = sha256(await readFile(resolve(root, path)));
@@ -87,6 +90,15 @@ export async function activeSnapshot(root) {
   const inputs = {}; const bytes = {};
   for (const [name, path] of Object.entries(configPaths)) {
     const content = await readFile(resolve(root, path));
+    bytes[name] = content;
+    inputs[name] = { path, sha256: sha256(content) };
+  }
+  // Historical accepted checkpoints predate this explicit semantic axis. Only
+  // absence is compatible; malformed or unreadable registry bytes fail closed.
+  for (const [name, path] of Object.entries(optionalConfigPaths)) {
+    let content;
+    try { content = await readFile(resolve(root, path)); }
+    catch (error) { if (error.code === "ENOENT") continue; throw error; }
     bytes[name] = content;
     inputs[name] = { path, sha256: sha256(content) };
   }
@@ -154,7 +166,7 @@ export function provenanceBindings(inputs) {
   return { segmentationHash: inputs.segmentation.sha256, overridesHash: inputs.newsOverrides.sha256, ontologyHash: inputs.ontology.sha256, rulesHash: inputs.rules.sha256, generatorHash: inputs.generator.sha256 };
 }
 
-async function validateArtifacts({ artifacts, expectedDataset, inventory, rawPages, ontology, rules, sourceRoot, bindings, expectedDiff }) {
+async function validateArtifacts({ artifacts, expectedDataset, inventory, rawPages, ontology, rules, sourceRoot, bindings, expectedDiff, identityRegistry, baselineOverlay }) {
   const issues = [];
   if (Object.keys(artifacts).sort().join(",") !== artifactNames.join(",")) throw new Error("Incomplete candidate artifacts");
   const dataset = artifacts["news.json"];
@@ -164,7 +176,7 @@ async function validateArtifacts({ artifacts, expectedDataset, inventory, rawPag
   issues.push(...validateNewsDataset(dataset), ...validate(kg, ontology), ...validateKnowledgeBaseNewsProjection(kg, dataset));
   issues.push(...await validateNewsFragments(dataset, sourceRoot), ...await validateTopicEvidence(kg, dataset, rules, sourceRoot));
   if (issues.length) throw new Error(issues.slice(0, 15).map((issue) => `${issue.path}: ${issue.message}`).join("\n"));
-  const provenanceIssues = validateCandidateProvenance(artifacts["provenance.json.gz"], { kg, dataset, rawPages, ontology, rules, sourceInventory: inventory, bindings });
+  const provenanceIssues = validateCandidateProvenance(artifacts["provenance.json.gz"], { kg, dataset, rawPages, ontology, rules, sourceInventory: inventory, bindings, identityRegistry, baselineOverlay });
   if (provenanceIssues.length) throw new Error(provenanceIssues.map((issue) => issue.message).join("\n"));
   must(canonicalJson(artifacts["diff.json"]) === canonicalJson(expectedDiff), "Candidate diff differs from its baseline");
   return [];
@@ -172,7 +184,7 @@ async function validateArtifacts({ artifacts, expectedDataset, inventory, rawPag
 
 export function candidateDiff(baseline, artifacts) {
   const provenance = artifacts["provenance.json.gz"];
-  return { schemaVersion: "1.0.0", epistemicScope: "extraction_assignment", graph: diffKnowledgeGraphs(baseline.kg, artifacts["kg.json"]), news: diffRecords(baseline.news, artifacts["news.json"], { collections: ["pages", "news"] }), provenance: baseline.provenance ? { available: true, diff: diffRecords(baseline.provenance, provenance, { collections: ["sourceRevisions", "newsRevisions", "observations", "retention", "classifications", "assertions", "supports", "assertionRevisions"] }) } : { available: false, reason: "Accepted KG has no derivation ledger; initial support recording is not newly discovered knowledge" } };
+  return { schemaVersion: "1.0.0", epistemicScope: "extraction_assignment", graph: diffKnowledgeGraphs(baseline.kg, artifacts["kg.json"]), ...identityDiff(baseline.kg, artifacts["kg.json"]), news: diffRecords(baseline.news, artifacts["news.json"], { collections: ["pages", "news"] }), provenance: baseline.provenance ? { available: true, diff: diffRecords(baseline.provenance, provenance, { collections: ["sourceRevisions", "newsRevisions", "observations", "retention", "classifications", "assertions", "supports", "assertionRevisions"] }) } : { available: false, reason: "Accepted KG has no derivation ledger; initial support recording is not newly discovered knowledge" } };
 }
 
 async function baselineData(root, baselinePath, snapshot) {
@@ -208,7 +220,7 @@ async function prepare(root, options, hooks = {}) {
   must(canonicalJson(preparedInventory) === canonicalJson(inventory), "Source inventory changed during candidate preparation");
   must(canonicalJson(await captureInputs(root, preparedInventory, recipe, baseline.manifest)) === canonicalJson(inputs), "Candidate inputs changed during preparation");
   await assertBaselineUnchanged(root, options.baseline, baseline.manifest);
-  return { sourceRoot, ontology, rules, state, inventory, recipe, baseline, inputs, dataset, rawPages, bindings };
+  return { sourceRoot, ontology, rules, state, inventory, recipe, baseline, inputs, dataset, rawPages, bindings, identityRegistry: snapshot.bytes.identityRegistry ? snapshot.json("identityRegistry") : null };
 }
 
 export function candidateVersions({ ontology, rules, dataset }) {
@@ -221,12 +233,12 @@ export async function buildCandidate(root, options = {}, hooks = {}) {
   const report = options.onProgress ?? (() => {});
   report("verify source/configuration and regenerate news");
   const context = await prepare(root, options, hooks);
-  const { dataset, rawPages, ontology, rules, recipe, inventory, bindings, baseline, inputs, sourceRoot } = context;
+  const { dataset, rawPages, ontology, rules, recipe, inventory, bindings, baseline, inputs, sourceRoot, identityRegistry } = context;
   report("materialize graph and normalized support ledger");
   const built = buildKnowledgeGraph({ dataset, rawPages, ontology, rules, generatedAt: recipe.generatedAt, collectTrace: true });
-  const kg = built.kg;
-  const provenance = buildCandidateProvenance({ kg, dataset, sourceInventory: inventory, rawPages, trace: built.trace, bindings });
+  const provenance = buildCandidateProvenance({ kg: built.kg, dataset, sourceInventory: inventory, rawPages, trace: built.trace, bindings });
   built.trace = null;
+  const kg = attachIdentityResolution({ kg: built.kg, news: dataset, provenance, config: identityRegistry, baselineOverlay: baseline.kg.identityResolution?.overlay ?? null });
   const artifacts = { "news.json": dataset, "kg.json": kg, "provenance.json.gz": provenance };
   const diff = candidateDiff(baseline, artifacts);
   artifacts["diff.json"] = diff;
@@ -245,7 +257,7 @@ export async function buildCandidate(root, options = {}, hooks = {}) {
     must(canonicalJson(await captureInputs(root, current, recipe, baseline.manifest)) === canonicalJson(pinned), "Candidate recipe/configuration/accepted baseline changed during build");
     if (verifiedBundleId === manifest.bundleId) { report("readback hashes match the semantically verified bundle"); return []; }
     report("replay graph and every normalized derivation");
-    await validateArtifacts({ artifacts: actual, expectedDataset: dataset, inventory, rawPages, ontology, rules, sourceRoot, bindings, expectedDiff: diff });
+    await validateArtifacts({ artifacts: actual, expectedDataset: dataset, inventory, rawPages, ontology, rules, sourceRoot, bindings, expectedDiff: diff, identityRegistry, baselineOverlay: baseline.kg.identityResolution?.overlay ?? null });
     verifiedBundleId = manifest.bundleId;
     report("semantic replay passed; stage and verify exact artifact bytes");
     return [];
@@ -263,7 +275,7 @@ export async function verifyCandidate(root, directory, options = {}, hooks = {})
   must(canonicalJson(candidateVersions(context)) === canonicalJson(bundle.manifest.versions), "Candidate manifest version labels differ from the active recipe");
   must(canonicalJson(context.inputs) === canonicalJson(bundle.manifest.inputs), "Current pinned recipe/configuration/accepted baseline differs from candidate");
   const expectedDiff = candidateDiff(context.baseline, bundle.artifacts);
-  await validateArtifacts({ artifacts: bundle.artifacts, expectedDataset: context.dataset, inventory: context.inventory, rawPages: context.rawPages, ontology: context.ontology, rules: context.rules, sourceRoot: context.sourceRoot, bindings: context.bindings, expectedDiff });
+  await validateArtifacts({ artifacts: bundle.artifacts, expectedDataset: context.dataset, inventory: context.inventory, rawPages: context.rawPages, ontology: context.ontology, rules: context.rules, sourceRoot: context.sourceRoot, bindings: context.bindings, expectedDiff, identityRegistry: context.identityRegistry, baselineOverlay: context.baseline.kg.identityResolution?.overlay ?? null });
   await hooks.beforeVerifyReturn?.();
   const finalInventory = await sourceInventory(context.sourceRoot, context.recipe.includedRoots);
   must(canonicalJson(finalInventory) === canonicalJson(context.inventory), "Source inventory changed during candidate verification");

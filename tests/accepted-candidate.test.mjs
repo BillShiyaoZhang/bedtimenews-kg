@@ -15,6 +15,7 @@ import { canonicalJson, sha256, verifyCandidateBundle } from "../scripts/lib/can
 import { verifyLifecycleCandidate } from "../scripts/lib/lifecycle-run.mjs";
 import { rollbackReviewBinding } from "../scripts/lib/accepted-transition.mjs";
 import { readVerifiedAcceptedCheckpoint } from "../scripts/lib/accepted-git.mjs";
+import { assignedEntityAssertionId, buildReviewedIdentityInputHash } from "../scripts/lib/entity-identities.mjs";
 
 const execFile = promisify(execFileCallback);
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -371,5 +372,38 @@ test("standalone checkpoint verifier rejects self-rehashed materialization", asy
     await writeFile(resolve(seed.output, "manifest.json"), jsonBytes(manifest));
     assert.equal((await verifyCandidateBundle(seed.output)).manifest.bundleId, manifest.bundleId);
     await assert.rejects(verifyAcceptedCandidate(directory, seed.output, { source: archive, checkpoint: await load(), store }), /lifecycle.json.gz differs from historical replay/u);
+  });
+});
+
+test("legacy checkpoint migrates to explicit news identities and continuation preserves raw support history", async () => {
+  await workspace(async ({ directory, archive, build, accept, load, store }) => {
+    const seed = await build("identity-seed"); const original = await accept(seed);
+    assert.equal(Object.hasOwn(original.manifest.configuration, "identityRegistry"), false);
+    const raw = seed.artifacts["kg.json"]; const news = seed.artifacts["news.json"];
+    const huawei = raw.entities.find((row) => row.label === "华为"); assert.ok(huawei);
+    const event = raw.events.find((row) => row.entityIds.includes(huawei.id));
+    const item = news.news.find((row) => row.id === event.newsId);
+    const config = { schemaVersion: 1, scope: "news_scoped_extraction_assignment", identities: [{ id: "identity-huawei-reviewed", type: huawei.type, label: "华为（审查身份）", status: "active", reason: "Fixture review of selected news subject", reviewedAt: generatedAt }], assignments: [{ id: assignedEntityAssertionId(event.id, huawei.id), newsId: item.id, rawEntityId: huawei.id, fragmentHash: item.fragment.contentHash, inputHash: buildReviewedIdentityInputHash(item), identityId: "identity-huawei-reviewed", reason: "Explicitly reviewed this one news assignment", reviewedAt: generatedAt }] };
+    await writeFile(resolve(directory, "data/entity-identities.json"), jsonBytes(config));
+    const code = await commit(directory, ["data/entity-identities.json"]); await git(directory, ["update-ref", "refs/remotes/origin/main", code]);
+    await assert.rejects(build("identity-unreviewed"), /explicit migration required/u);
+    const preview = await previewAcceptedMigration(directory, { source: archive, checkpoint: await load(), store, generatedAt });
+    assert.equal(Object.hasOwn(preview.reviewBinding.from.configuration, "identityRegistry"), false);
+    assert.ok(preview.reviewBinding.to.configuration.identityRegistry);
+    assert.equal(preview.diff.identity.registry.summary.added, 2);
+    const migrationReview = resolve(directory, "identity.review.json");
+    await writeFile(migrationReview, jsonBytes({ ...preview.reviewBinding, reviewedAt: generatedAt, reason: "Review exact news-scoped identity and resolved chronology diff" }));
+    const next = await build("identity-migrated", { migrationReview });
+    const { identityResolution, ...unmodifiedRaw } = next.artifacts["kg.json"];
+    assert.deepEqual(unmodifiedRaw, raw);
+    assert.equal(identityResolution.overlay.assignments.length, 1);
+    for (const collection of ["assertions", "supports", "observations", "evidence"]) assert.deepEqual(next.artifacts["provenance.json.gz"][collection], seed.artifacts["provenance.json.gz"][collection]);
+    assert.equal((await verifyAcceptedCandidate(directory, next.output, { source: archive, checkpoint: await load(), store })).mode, "migration");
+    await accept(next);
+    assert.equal((await build("identity-noop")).noop, true);
+    await writeFile(resolve(archive, "daily/2026-01-04.md"), sourceText("2026-01-04")); await commit(archive);
+    const added = await build("identity-append");
+    assert.equal(added.artifacts["kg.json"].identityResolution.overlay.assignments.length, 1);
+    assert.equal(added.artifacts["kg.json"].events.length, raw.events.length + 1);
   });
 });

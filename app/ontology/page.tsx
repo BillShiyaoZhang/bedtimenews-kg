@@ -1,3 +1,4 @@
+import { applyIdentityResolution } from "../lib/identity-projection.mjs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import knowledgeBaseData from "../../data/generated/kg.json";
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   description: "浏览以独立新闻为单位的知识本体、实体类型、事件类型、关系约束与覆盖率。",
 };
 
-const knowledgeBase = knowledgeBaseData as unknown as KnowledgeBase;
+const knowledgeBase = applyIdentityResolution(knowledgeBaseData) as unknown as KnowledgeBase;
 const ontology = ontologyData as unknown as Ontology;
 
 function percentage(matched: number, total: number) {

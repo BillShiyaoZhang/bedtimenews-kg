@@ -11,6 +11,8 @@ import {
 import { validate } from "./lib/validate.mjs";
 import { compileOntologyFiles } from "./lib/ontology-compiler.mjs";
 import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
+import { buildCandidateProvenance } from "./lib/candidate-provenance.mjs";
+import { readIdentityRegistry, attachIdentityResolution } from "./lib/identity-materialization.mjs";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 await compileOntologyFiles(projectRoot);
@@ -46,7 +48,11 @@ if (datasetIssues.length) {
 }
 
 const rawPages = await readVerifiedPages(newsDataset, sourceRoot);
-const { kg } = buildKnowledgeGraph({ dataset: newsDataset, rawPages, ontology, rules: extractionRules, generatedAt });
+const identityRegistry = await readIdentityRegistry(projectRoot);
+const needsIdentity = Boolean(identityRegistry?.identities.length || identityRegistry?.assignments.length);
+const built = buildKnowledgeGraph({ dataset: newsDataset, rawPages, ontology, rules: extractionRules, generatedAt, collectTrace: needsIdentity });
+const provenance = needsIdentity ? buildCandidateProvenance({ kg: built.kg, dataset: newsDataset, rawPages, trace: built.trace, sourceInventory: Object.fromEntries(newsDataset.pages.map((page) => [page.repositoryPath, page.contentHash])), bindings: { purpose: "standalone_identity_projection" } }) : null;
+const kg = attachIdentityResolution({ kg: built.kg, news: newsDataset, provenance, config: identityRegistry });
 const { entities, events, eventRelations } = kg;
 
 const issues = [

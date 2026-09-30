@@ -1,5 +1,6 @@
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { entityKey } from "./extraction.mjs";
+import { ENTITY_IDENTITY_SCOPE, assignedEntityAssertionId, validateEntityIdentities, buildReviewedIdentityInputHash } from "./entity-identities.mjs";
 
 const SCOPE = "extraction_assignment";
 const HASH = /^[a-f0-9]{64}$/u;
@@ -162,13 +163,70 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
     records: Object.fromEntries([...hashes].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([name, rows]) => [name, [...rows].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)])),
     supportDerivationHashes: [...ledger("supports").keys()].sort().map((id) => [id, fingerprint("supports", id)]),
     identities,
+    ...(Object.hasOwn(kg, "identityResolution") ? { identityResolution: summarizeIdentityResolution(kg.identityResolution, { get, collections, ledger, assertionIdentities, pathsForNews }) } : {}),
   };
+}
+
+/** Keep reviewed interpretation separate from the unchanged extraction ledger. */
+function summarizeIdentityResolution(wrapper, { get, collections, ledger, assertionIdentities, pathsForNews }) {
+  ensure(wrapper?.schemaVersion === 1 && wrapper.overlay?.schemaVersion === 1 && wrapper.overlay.scope === ENTITY_IDENTITY_SCOPE, "invalid identity resolution scope/version");
+  const overlay = wrapper.overlay;
+  ensure(overlay.supportScope === "current_raw_provenance", "identity support references must use current raw provenance");
+  const registry = recordsById(overlay.identities, "identity registry");
+  const rows = recordsById(overlay.assignments, "identity assignments");
+  const decisions = sorted(rows.values()).map(({ rawEntityType, state, supportIds, ...decision }) => {
+    ensure(typeof rawEntityType === "string" && ["active", "dormant"].includes(state) && Array.isArray(supportIds), `invalid compiled assignment ${decision.id}`);
+    return decision;
+  });
+  const config = { schemaVersion: 1, scope: ENTITY_IDENTITY_SCOPE, identities: sorted(registry.values()), assignments: decisions };
+  validateEntityIdentities(config);
+  ensure(hash(config) === overlay.configHash, "identity registry snapshot/hash differs");
+  const rawIdentities = new Map(assertionIdentities.map((row) => [row.id, row]));
+  const assignments = sorted(rows.values()).map((row) => {
+    const raw = ledger("assertions").get(row.id);
+    const rawIdentity = rawIdentities.get(row.id);
+    const item = collections.get("news.news").get(row.newsId);
+    const entity = collections.get("kg.entities").get(row.rawEntityId);
+    const target = row.identityId === null ? null : registry.get(row.identityId);
+    ensure(["person", "organization", "place", "facility", "policy", "document"].includes(row.rawEntityType), `invalid raw identity type ${row.id}`);
+    ensure(!entity || entity.type === row.rawEntityType, `raw assignment type differs ${row.id}`);
+    ensure(!target || target.type === row.rawEntityType, `identity target type differs ${row.id}`);
+    if (item) ensure(item.fragment?.contentHash === row.fragmentHash && buildReviewedIdentityInputHash(item) === row.inputHash, `reviewed assignment input differs ${row.id}`);
+    if (raw) {
+      const event = get("kg.events", raw.subject);
+      ensure(row.state === "active" && raw.predicate === "assigned_entity" && raw.epistemicScope === SCOPE && raw.object === row.rawEntityId && event.newsId === row.newsId && event.entityIds.includes(row.rawEntityId) && assignedEntityAssertionId(event.id, row.rawEntityId) === row.id, `invalid current identity assignment ${row.id}`);
+      ensure(!target || target.status === "active", `active assignment targets tombstoned identity ${row.id}`);
+      ensure(canonicalJson(row.supportIds) === canonicalJson(rawIdentity.supportIds), `identity support set differs ${row.id}`);
+    } else {
+      ensure(row.state === "dormant" && row.supportIds.length === 0 && (!item || !entity || row.identityId === null), `unsupported identity assignment ${row.id}`);
+    }
+    return { id: row.id, recordHash: hash(row), newsId: row.newsId, rawEntityId: row.rawEntityId, rawEntityType: row.rawEntityType,
+      identityId: row.identityId, state: row.identityId === null ? "cleared" : row.state, rawState: row.state,
+      fragmentHash: row.fragmentHash, inputHash: row.inputHash,
+      revisionId: rawIdentity?.revisionId ?? null, supportIds: rawIdentity?.supportIds ?? [], derivationHash: rawIdentity?.derivationHash ?? null,
+      sourcePaths: item ? pathsForNews([row.newsId]) : [] };
+  });
+  const identities = sorted(registry.values()).map((row) => {
+    ensure(!collections.get("kg.entities").has(row.id), `reviewed identity collides with raw entity ${row.id}`);
+    const assigned = assignments.filter((assignment) => assignment.identityId === row.id);
+    const active = assigned.filter((assignment) => assignment.state === "active");
+    return { id: row.id, type: row.type, registrationStatus: row.status, state: row.status === "tombstoned" ? "tombstoned" : active.length ? "active" : "dormant",
+      recordHash: hash(row), derivationHash: hash(assigned.map((assignment) => [assignment.id, assignment.recordHash, assignment.derivationHash])),
+      assignmentIds: assigned.map((assignment) => assignment.id), activeAssignmentIds: active.map((assignment) => assignment.id),
+      sourcePaths: unique(assigned.flatMap((assignment) => assignment.sourcePaths)) };
+  });
+  return { schemaVersion: 1, scope: ENTITY_IDENTITY_SCOPE, configHash: overlay.configHash, identities, assignments };
 }
 
 function summaryFor(input) {
   const summary = input.summary ?? summarizeCandidateLifecycleInput(input);
   ensure(summary.schemaVersion === 1 && summary.epistemicScope === SCOPE && summary.records && summary.identities && Array.isArray(summary.supportDerivationHashes), "invalid compact input summary");
   for (const kind of KINDS) recordsById(summary.identities[kind], `summary.identities.${kind}`);
+  if (Object.hasOwn(summary, "identityResolution")) {
+    const value = summary.identityResolution;
+    ensure(value?.schemaVersion === 1 && value.scope === ENTITY_IDENTITY_SCOPE && HASH.test(value.configHash ?? ""), "invalid compact identity resolution summary");
+    for (const kind of ["identities", "assignments"]) recordsById(value[kind], `summary.identityResolution.${kind}`);
+  }
   return summary;
 }
 
@@ -227,6 +285,85 @@ function supportChanges(before, after, oldHashes, newHashes, parentBundleId) {
     survivingCount: [...oldIds].filter((id) => newIds.has(id) && oldHashes.get(id) === newHashes.get(id)).length,
     currentCount: newIds.size,
   };
+}
+
+function reviewedState(kind, row, bundleId, previous = null) {
+  const historical = previous ? resolveHistoricalRefs(previous, bundleId) : null;
+  const state = { id: row.id, state: row.state, recordRef: ref(bundleId, row.id),
+    sourcePaths: row.sourcePaths.length ? [...row.sourcePaths] : [...(historical?.sourcePaths ?? [])] };
+  if (kind === "identities") {
+    Object.assign(state, { type: row.type, registrationStatus: row.registrationStatus,
+      assignmentRefs: row.assignmentIds.map((id) => ref(bundleId, id)), activeAssignmentIds: [...row.activeAssignmentIds],
+      lastActiveRef: row.state === "active" ? ref(bundleId, row.id) : historical?.lastActiveRef ?? null });
+  } else {
+    Object.assign(state, { newsId: row.newsId, rawEntityId: row.rawEntityId, rawEntityType: row.rawEntityType,
+      identityId: row.identityId, rawState: row.rawState,
+      rawAssertionRef: row.rawState === "active" ? ref(bundleId, row.id) : null,
+      rawAssertionRevisionRef: row.revisionId ? ref(bundleId, row.revisionId) : null,
+      supportRefs: row.supportIds.map((id) => ref(bundleId, id)) });
+    state.lastActive = row.state === "active" ? { recordRef: state.recordRef, rawAssertionRef: state.rawAssertionRef,
+      rawAssertionRevisionRef: state.rawAssertionRevisionRef, supportRefs: state.supportRefs } : historical?.lastActive ?? null;
+  }
+  return state;
+}
+
+/** Immediate reviewed-interpretation history, never a real-world fact ledger. */
+function buildIdentityResolutionLifecycle({ baseline, oldSummary, newSummary, parentBundleId, decisionPaths, oldSupportHashes, newSupportHashes }) {
+  const before = oldSummary?.identityResolution;
+  const after = newSummary.identityResolution;
+  if (!before && !after) return null;
+  ensure(after, "reviewed identity overlay cannot be dropped; clear assignments explicitly");
+  const states = {}; const transitions = {};
+  for (const kind of ["identities", "assignments"]) {
+    const oldRows = recordsById(before?.[kind] ?? [], `previous reviewed ${kind}`);
+    const newRows = recordsById(after[kind], `current reviewed ${kind}`);
+    const historical = recordsById(baseline?.lifecycle?.identityResolution?.states?.[kind] ?? [], `previous reviewed lifecycle ${kind}`);
+    for (const row of oldRows.values()) {
+      const next = newRows.get(row.id);
+      ensure(next, `reviewed ${kind} identity cannot be removed ${row.id}`);
+      if (kind === "identities") ensure(next.type === row.type, `reviewed identity type cannot be reused ${row.id}`);
+      else ensure(next.newsId === row.newsId && next.rawEntityId === row.rawEntityId && next.rawEntityType === row.rawEntityType, `reviewed assignment anchor cannot be reused ${row.id}`);
+    }
+    const output = []; const changes = [];
+    for (const row of sorted(newRows.values())) {
+      const previous = oldRows.get(row.id);
+      if (kind === "assignments" && row.rawState === "dormant") ensure(previous, `new dormant assignment has no verified predecessor ${row.id}`);
+      const previousState = previous ? reviewedState(kind, previous, parentBundleId, historical.get(row.id)) : null;
+      const state = reviewedState(kind, row, "self", previousState);
+      output.push(state);
+      if (!baseline) continue;
+      let transition; let reason;
+      if (!previous) { transition = "added"; reason = kind === "identities" ? "new_reviewed_registration" : "new_reviewed_assignment"; }
+      else if (kind === "identities" && row.registrationStatus !== previous.registrationStatus) {
+        transition = row.registrationStatus === "tombstoned" ? "tombstoned" : "restored";
+        reason = "reviewed_registration_status_changed";
+      } else if (kind === "assignments" && row.identityId !== previous.identityId) {
+        transition = row.identityId === null ? "cleared" : "reassigned";
+        reason = row.identityId === null ? "reviewed_return_to_raw_assignment" : "reviewed_identity_target_changed";
+      } else if (previous.state === "active" && row.state !== "active") {
+        transition = "deactivated"; reason = kind === "identities" ? "no_current_supported_identity_assignments" : "no_current_raw_support";
+      } else if (previous.state !== "active" && row.state === "active") {
+        transition = "restored"; reason = "same_reviewed_identity_supported_again";
+      } else if (previous.recordHash !== row.recordHash || previous.derivationHash !== row.derivationHash || previous.state !== row.state) {
+        transition = "changed"; reason = "reviewed_record_or_raw_derivation_revised";
+      } else continue;
+      const change = { id: row.id, transition, reason, before: previousState?.recordRef ?? null, after: state.recordRef,
+        oldHash: previous?.recordHash ?? null, newHash: row.recordHash,
+        fromState: previous?.state ?? null, toState: row.state,
+        sourceDecisionPaths: unique([...(previousState?.sourcePaths ?? []), ...state.sourcePaths]).filter((path) => decisionPaths.has(path)) };
+      if (kind === "assignments") Object.assign(change, { fromIdentityId: previous?.identityId ?? null, toIdentityId: row.identityId,
+        beforeRawAssertionRevision: previousState?.rawAssertionRevisionRef ?? previousState?.lastActive?.rawAssertionRevisionRef ?? null,
+        afterRawAssertionRevision: state.rawAssertionRevisionRef,
+        supportChanges: supportChanges(previous, row, oldSupportHashes, newSupportHashes, parentBundleId) });
+      changes.push(change);
+    }
+    states[kind] = output;
+    transitions[kind] = changes;
+  }
+  return { schemaVersion: 1, scope: ENTITY_IDENTITY_SCOPE,
+    semantics: "reviewed_news_scoped_identity_interpretation_raw_extraction_supports_remain_separate",
+    recordSemantics: "registry_records_live_in_kg_identityResolution_overlay_raw_references_in_provenance_of_their_bundle",
+    configHash: after.configHash, initialization: before ? null : { identities: states.identities.length, assignments: states.assignments.length }, states, transitions };
 }
 
 /**
@@ -299,6 +436,7 @@ export function buildCandidateLifecycle({ baseline = null, current, sourcePlan }
     }
     states[kind] = sorted(result.values());
   }
+  const identityResolution = buildIdentityResolutionLifecycle({ baseline, oldSummary, newSummary, parentBundleId, decisionPaths, oldSupportHashes, newSupportHashes });
   const referencedBundleIds = new Set(parentBundleId ? [parentBundleId] : []);
   function collect(value) {
     if (!value || typeof value !== "object") return;
@@ -307,6 +445,7 @@ export function buildCandidateLifecycle({ baseline = null, current, sourcePlan }
   }
   collect(states);
   collect(transitions);
+  collect(identityResolution);
   return {
     schemaVersion: 1,
     epistemicScope: SCOPE,
@@ -321,6 +460,7 @@ export function buildCandidateLifecycle({ baseline = null, current, sourcePlan }
     initialization: baseline ? null : Object.fromEntries(KINDS.map((kind) => [kind, states[kind].length])),
     states,
     transitions,
+    ...(identityResolution ? { identityResolution } : {}),
   };
 }
 

@@ -178,8 +178,8 @@ export function KGExplorer({
           (left, right) =>
             rankEntitySearchDocument(right, search.query) -
               rankEntitySearchDocument(left, search.query) ||
-            (right.entity.extraction?.eventCount ?? 0) -
-              (left.entity.extraction?.eventCount ?? 0) ||
+            (right.entity.identityResolution?.newsCount ?? right.entity.extraction?.eventCount ?? 0) -
+              (left.entity.identityResolution?.newsCount ?? left.entity.extraction?.eventCount ?? 0) ||
             left.entity.label.localeCompare(right.entity.label, "zh-CN"),
         )
         .map(({ entity }) => entity);
@@ -227,8 +227,8 @@ export function KGExplorer({
     if (search.mode !== "keyword") {
       matchingEntities.sort(
         (left, right) =>
-          (right.extraction?.eventCount ?? 0) -
-            (left.extraction?.eventCount ?? 0) ||
+          (right.identityResolution?.newsCount ?? right.extraction?.eventCount ?? 0) -
+            (left.identityResolution?.newsCount ?? left.extraction?.eventCount ?? 0) ||
           left.label.localeCompare(right.label, "zh-CN"),
       );
     }
@@ -565,9 +565,10 @@ function SearchResults({
                     {type?.label ?? entity.type}
                   </span>
                   <strong>{entity.label}</strong>
+                  {entity.identityResolution && <small>经审查的新闻级身份</small>}
                   <small>
                     关联{" "}
-                    {(entity.extraction?.eventCount ?? 0).toLocaleString(
+                    {(entity.identityResolution?.newsCount ?? entity.extraction?.eventCount ?? 0).toLocaleString(
                       "zh-CN",
                     )}{" "}
                     条新闻
@@ -621,6 +622,7 @@ function SearchResults({
                   <h3>{event.title}</h3>
                   {selectedTopicId && <small className="topic-match-reason">主题命中：{topicMatchReason(ontology, event, selectedTopicId).map((match) => `${match.label}（${match.inherited ? "由下级归入" : "直接关联"}）`).join("、")}</small>}
                   <p>{event.summary || "原文未提供摘要，请查看出处。"}</p>
+                  {!!event.identityAssignments?.length && <small>含经审查的新闻级实体归属；原始抽取与证据单独保留</small>}
                   <div className="entity-tags">
                     {entities.slice(0, 8).map((entity) => (
                       <Link

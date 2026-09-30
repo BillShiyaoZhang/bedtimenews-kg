@@ -13,6 +13,7 @@ import { buildCandidateLifecycle, summarizeCandidateLifecycleInput } from "./can
 import { validateNewsDataset, validateNewsFragments, validateKnowledgeBaseNewsProjection } from "./news.mjs";
 import { validateTopicEvidence } from "./topic-evidence.mjs";
 import { validate } from "./validate.mjs";
+import { attachIdentityResolution, identityDiff } from "./identity-materialization.mjs";
 
 const must = (value, message) => { if (!value) throw new Error(`Lifecycle candidate: ${message}`); };
 const names = ["diff.json", "kg.json", "lifecycle.json.gz", "news.json", "provenance.json.gz", "source-review.json"];
@@ -81,8 +82,14 @@ function assertNewsContinuity(baseline, current, plan) {
 }
 
 function diffFor(context, baseline, current, lifecycle) {
+  const reviewed = identityDiff(baseline?.kg ?? context.snapshot.json("acceptedKG"), current.kg);
+  if (reviewed.identity && lifecycle.identityResolution) {
+    reviewed.identity.lifecycleTransitionsHash = hash(lifecycle.identityResolution.transitions);
+    reviewed.identity.transitionCounts = Object.fromEntries(Object.entries(lifecycle.identityResolution.transitions).map(([kind, rows]) => [kind, rows.length]));
+  }
   return { schemaVersion: "2.0.0", epistemicScope: "extraction_assignment",
     graph: diffKnowledgeGraphs(baseline?.kg ?? context.snapshot.json("acceptedKG"), current.kg),
+    ...reviewed,
     news: diffRecords(baseline?.news ?? context.snapshot.json("acceptedNews"), current.news, { collections: ["pages", "news"] }),
     lifecycle: { baselineBundleId: baseline?.manifest.bundleId ?? null, transitionsHash: hash(lifecycle.transitions),
       note: "Each assignment belongs to its own news projection. Withdrawn support never labels a real-world claim false." } };
@@ -107,9 +114,9 @@ async function materialize(context, recipe, plan, inputs, baseline, review) {
     assertNewsContinuity(baseline, dataset, plan);
     const rawPages = new Map(dataset.pages.map((page) => [page.id, texts.get(page.repositoryPath)]));
     const built = buildKnowledgeGraph({ dataset, rawPages, ontology: context.ontology, rules: context.rules, generatedAt: recipe.generatedAt, collectTrace: true });
-    const kg = built.kg;
-    const provenance = buildCandidateProvenance({ kg, dataset, sourceInventory: plan.effectiveInventory, rawPages, trace: built.trace, bindings: provenanceBindings(inputs) });
+    const provenance = buildCandidateProvenance({ kg: built.kg, dataset, sourceInventory: plan.effectiveInventory, rawPages, trace: built.trace, bindings: provenanceBindings(inputs) });
     built.trace = null;
+    const kg = attachIdentityResolution({ kg: built.kg, news: dataset, provenance, config: context.snapshot.bytes.identityRegistry ? context.snapshot.json("identityRegistry") : null, baselineOverlay: baseline?.kg.identityResolution?.overlay ?? null });
     const issues = [...validateNewsDataset(dataset), ...validate(kg, context.ontology), ...validateKnowledgeBaseNewsProjection(kg, dataset), ...await validateNewsFragments(dataset, temporary), ...await validateTopicEvidence(kg, dataset, context.rules, temporary)];
     must(!issues.length, issues.slice(0, 15).map((issue) => `${issue.path}: ${issue.message}`).join("\n"));
     const current = { kg, news: dataset, provenance };

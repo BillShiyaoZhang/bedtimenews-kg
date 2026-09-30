@@ -65,6 +65,9 @@ export function createEventSearchDocument({
         ])
         .join(" "),
     ),
+    identityAssignmentNames: normalizeSearchText(
+      (event.identityAssignments ?? []).map((assignment) => assignment.rawLabel).join(" "),
+    ),
     topicEvidence: normalizeSearchText(
       (event.topicEvidence ?? []).flatMap((match) => match.terms).join(" "),
     ),

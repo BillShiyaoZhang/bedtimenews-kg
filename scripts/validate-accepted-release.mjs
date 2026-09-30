@@ -10,6 +10,7 @@ import { createAuthenticatedGitReader } from "./lib/git-object-integrity.mjs";
 import { sha256 } from "./lib/candidate-bundle.mjs";
 import { validate } from "./lib/validate.mjs";
 import { compileOntologyFiles } from "./lib/ontology-compiler.mjs";
+import { readIdentityRegistry, validateIdentityRendering } from "./lib/identity-materialization.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const parse = (value) => JSON.parse(value.toString("utf8"));
@@ -46,7 +47,7 @@ if (!receipt) {
   await compileOntologyFiles(root);
   const kg = parse(files.get("data/generated/kg.json")); const news = parse(files.get("data/processed/news.json"));
   const ontology = parse(await readFile(resolve(root, "data/ontology.json")));
-  const issues = [...validate(kg, ontology), ...validateNewsDataset(news), ...validateKnowledgeBaseNewsProjection(kg, news)];
+  const issues = [...validateIdentityRendering({ kg, news, config: await readIdentityRegistry(root) }), ...validate(kg, ontology), ...validateNewsDataset(news), ...validateKnowledgeBaseNewsProjection(kg, news)];
   if (issues.length) throw new Error(`Accepted rendering invalid: ${JSON.stringify(issues.slice(0, 20))}`);
   console.log(`Accepted output bindings and rendering valid: ${receipt.releaseId}. No fresh raw-source replay was performed; fresh extraction requires the pinned upstream Git history.`);
 }

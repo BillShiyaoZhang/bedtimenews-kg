@@ -62,8 +62,8 @@ export function EntityGraphExplorer({
     () =>
       [...knowledgeBase.entities].sort(
         (left, right) =>
-          (right.extraction?.eventCount ?? 0) -
-            (left.extraction?.eventCount ?? 0) ||
+          (right.identityResolution?.newsCount ?? right.extraction?.eventCount ?? 0) -
+            (left.identityResolution?.newsCount ?? left.extraction?.eventCount ?? 0) ||
           left.label.localeCompare(right.label, "zh-CN"),
       ),
     [knowledgeBase.entities],
@@ -79,10 +79,10 @@ export function EntityGraphExplorer({
     [locationSearch],
   );
   const requestedEntityId = locationParameters.get("entity");
-  const selectedEntityId =
-    requestedEntityId && entityById.has(requestedEntityId)
-      ? requestedEntityId
-      : defaultEntityId;
+  const requestedRawIdentity = knowledgeBase.identityNavigation?.find((row) => row.rawEntityId === requestedEntityId);
+  const requestedRegistration = knowledgeBase.identityRegistrations?.find((row) => row.id === requestedEntityId);
+  // A historical or unknown URL must never select an unrelated default entity.
+  const selectedEntityId = requestedEntityId || defaultEntityId;
   const requestedEntityType = locationParameters.get("type");
   const initialEntityType =
     requestedEntityType &&
@@ -121,9 +121,7 @@ export function EntityGraphExplorer({
   const selectedSource = selectedEvent
     ? sourceById.get(selectedEvent.sourceIds[0])
     : undefined;
-  const selectedType = selectedEntity
-    ? entityTypeById.get(selectedEntity.type)
-    : undefined;
+  const selectedType = entityTypeById.get(selectedEntity?.type ?? requestedRawIdentity?.type ?? requestedRegistration?.type ?? "");
 
   const pickerEntities = useMemo(() => {
     const query = entityQuery.trim().toLocaleLowerCase("zh-CN");
@@ -191,8 +189,12 @@ export function EntityGraphExplorer({
           >
             {selectedType?.label ?? selectedEntity?.type ?? "实体"}
           </span>
-          <h1>{selectedEntity?.label ?? "选择一个实体"}</h1>
+          <h1>{selectedEntity?.label ?? requestedRawIdentity?.label ?? requestedRegistration?.label ?? (requestedEntityId ? "未找到这个实体" : "选择一个实体")}</h1>
           <p>{selectedEntity?.description}</p>
+          {selectedEntity?.identityResolution && <p>经审查的新闻级身份：{selectedEntity.identityResolution.newsCount} 条新闻、{selectedEntity.identityResolution.rawAssignmentCount} 个原始分配。来源支持分别保留，数量不代表独立证实。</p>}
+          {requestedRegistration && !selectedEntity && <p>{requestedRegistration.state === "tombstoned" ? "该审查身份已停用。" : "该审查身份目前没有有效新闻分配。"}历史身份与证据仍保留在对应版本的审计记录中。</p>}
+          {requestedEntityId && !selectedEntity && !requestedRawIdentity && !requestedRegistration && <p>这个 ID 不在当前版本中；请选择其他实体，不会自动跳转到无关对象。</p>}
+          {requestedRawIdentity && <div className="identity-review-notice"><p>{requestedRawIdentity.state === "cleared" ? "身份审查已恢复原始提取归属。" : requestedRawIdentity.state === "dormant" ? "该历史原始身份的审查分配目前没有有效新闻支持；这不表示对象不存在。" : "这个原始提取名称的部分或全部新闻已有明确的身份归属。"}以下审查记录按新闻分别保留，同名不会自动合并：</p><ul>{requestedRawIdentity.targets.map((target) => <li key={target.id}><Link href={`/graph?entity=${encodeURIComponent(target.id)}`}>{target.label}（{target.newsCount} 条当前新闻）</Link></li>)}</ul></div>}
           {selectedEntity?.aliases.length ? (
             <div className="entity-aliases">
               <span>别名</span>
@@ -258,7 +260,7 @@ export function EntityGraphExplorer({
               <span>{entity.label}</span>
               <small>
                 {entityTypeById.get(entity.type)?.label ?? entity.type} ·{" "}
-                {entity.extraction?.eventCount ?? 0} 条
+                {entity.identityResolution?.newsCount ?? entity.extraction?.eventCount ?? 0} 条
               </small>
             </button>
           ))}
@@ -285,6 +287,7 @@ export function EntityGraphExplorer({
             />
             {selectedEvent ? (
               <article className="selected-event-inspector">
+                {!!selectedEvent.identityAssignments?.length && <p>这条新闻含经审查的身份分配；原始抽取 ID 与来源证据保留在该版本的审计记录中。</p>}
                 <div>
                   <span
                     style={
