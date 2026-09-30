@@ -228,6 +228,185 @@ test("optional older asset digest is accepted only after exact byte readback", a
   assert.equal((await f.store().verifyBundle(optionsFor(f))).readbackVerified, true);
 });
 
+test("successful creation is independently read by ID while draft tag/list visibility lags", async (t) => {
+  const f = await fixture(t);
+  const durable = new Set(); let createConfirmed = false;
+  const gh = fakeGitHub({ onRequest: ({ url, method }, state) => {
+    if (method === "GET" && url.pathname === `${base}/releases` && state.releases.length) return json([]);
+  } });
+  const receipt = await gh.store({
+    onMutationIntent: ({ operation }) => durable.add(operation),
+    onMutationReconciled: ({ operation, action }) => {
+      if (action === "create") {
+        assert.ok(durable.has(operation));
+        assert.ok(gh.state.calls.some(({ url, method }) => method === "GET" && url.pathname === `${base}/releases/${gh.state.releases[0].id}`));
+        assert.equal(gh.state.assets.size, 0);
+        createConfirmed = true;
+      }
+      durable.delete(operation);
+    },
+  }).stageBundle(optionsFor(f));
+  assert.equal(receipt.releaseId, gh.state.releases[0].id);
+  assert.equal(receipt.readbackVerified, true);
+  assert.equal(receipt.visibilityAtReadback, "draft");
+  assert.equal(createConfirmed, true);
+  assert.equal(durable.size, 0);
+  assert.equal(mutations(gh.state).filter(({ url }) => url.origin === "https://api.github.com").length, 1);
+  assert.equal(mutations(gh.state).length, 4);
+});
+
+test("creation readback retries only reads after direct-ID absence or transient failures", async (t) => {
+  for (const failure of [404, 503, "transport", "timeout"]) {
+    const f = await fixture(t); let reads = 0; let createConfirmed = false;
+    const gh = fakeGitHub({ onRequest: ({ url, method }) => {
+      if (!createConfirmed && method === "GET" && /\/releases\/\d+$/u.test(url.pathname)) {
+        reads++;
+        if (reads === 1) {
+          if (failure === "transport") throw new Error(token);
+          if (failure === "timeout") return new Promise(() => {});
+          return json({}, failure);
+        }
+      }
+    } });
+    const receipt = await gh.store({ timeoutMs: failure === "timeout" ? 100 : 30_000, onMutationReconciled: ({ action }) => {
+      if (action === "create") { assert.equal(reads, 2); createConfirmed = true; }
+    } }).stageBundle(optionsFor(f));
+    assert.equal(receipt.readbackVerified, true);
+    assert.equal(mutations(gh.state).length, 4);
+    assert.equal(gh.state.releases.length, 1);
+  }
+});
+
+test("lost creation response tolerates eventual list discovery without a second POST", async (t) => {
+  const f = await fixture(t); let afterCreateLists = 0;
+  const gh = fakeGitHub({ onRequest: ({ url, method }, state) => {
+    if (method === "GET" && url.pathname === `${base}/releases` && state.releases.length && ++afterCreateLists <= 2) return json([]);
+  } });
+  const fetchImpl = async (url, options) => {
+    const response = await gh.fetchImpl(url, options);
+    if (options.method === "POST" && url === `https://api.github.com${base}/releases`) throw new Error(token);
+    return response;
+  };
+  assert.equal((await gh.store({ fetchImpl }).stageBundle(optionsFor(f))).readbackVerified, true);
+  assert.equal(afterCreateLists, 3);
+  assert.equal(gh.state.releases.length, 1);
+  assert.equal(mutations(gh.state).length, 4);
+});
+
+test("exhausted creation readback retains intent and blocks duplicate writes across calls and restart", async (t) => {
+  const f = await fixture(t); const durable = new Set(); let reads = 0;
+  const gh = fakeGitHub({ onRequest: ({ url, method }, state) => {
+    if (method !== "GET" || !state.releases.length) return;
+    if (url.pathname === `${base}/releases`) return json([]);
+    if (/\/releases\/\d+$/u.test(url.pathname)) { reads++; return json({}, 404); }
+  } });
+  const hooks = { onMutationIntent: ({ operation }) => durable.add(operation), onMutationReconciled: ({ operation }) => durable.delete(operation) };
+  const store = gh.store(hooks);
+  await assert.rejects(store.stageBundle(optionsFor(f)), { code: "UNCERTAIN_MUTATION", operation: `${f.tag}:create` });
+  assert.equal(reads, 4);
+  assert.deepEqual([...durable], [`${f.tag}:create`]);
+  await assert.rejects(store.stageBundle(optionsFor(f)), { code: "UNCERTAIN_MUTATION" });
+  const resumed = gh.store({ ...hooks, pendingOperations: [...durable] });
+  await assert.rejects(resumed.stageBundle(optionsFor(f)), { code: "UNCERTAIN_MUTATION" });
+  assert.equal(mutations(gh.state).length, 1);
+  assert.equal(gh.state.assets.size, 0);
+  gh.state.onRequest = undefined;
+  assert.deepEqual((await resumed.reconcilePending(optionsFor(f))).outcomes, [{ operation: `${f.tag}:create`, state: "confirmed" }]);
+  assert.equal(durable.size, 0);
+  assert.equal(mutations(gh.state).length, 1);
+});
+
+test("four transient creation readback failures exhaust the bound without clearing intent", async (t) => {
+  const f = await fixture(t); let reads = 0; const durable = new Set();
+  const gh = fakeGitHub({ onRequest: ({ url, method }) => {
+    if (method === "GET" && /\/releases\/\d+$/u.test(url.pathname)) { reads++; return json({}, 503); }
+  } });
+  await assert.rejects(gh.store({
+    onMutationIntent: ({ operation }) => durable.add(operation),
+    onMutationReconciled: ({ operation }) => durable.delete(operation),
+  }).stageBundle(optionsFor(f)), { code: "UNCERTAIN_MUTATION" });
+  assert.equal(reads, 4);
+  assert.deepEqual([...durable], [`${f.tag}:create`]);
+  assert.equal(mutations(gh.state).length, 1);
+  assert.equal(gh.state.assets.size, 0);
+});
+
+test("malformed or conflicting creation responses never become trusted ID locators", async (t) => {
+  for (const change of [
+    (r) => { r.id = "10/../../outside"; },
+    (r) => { r.id = 0; },
+    (r) => { r.id = Number.MAX_SAFE_INTEGER + 1; },
+    (r) => { r.body = "wrong bundle"; },
+    (r) => { r.target_commitish = "b".repeat(40); },
+    (r) => { r.upload_url = "https://outside.example/upload"; },
+  ]) {
+    const f = await fixture(t); const gh = fakeGitHub(); const durable = new Set();
+    const fetchImpl = async (url, options) => {
+      const response = await gh.fetchImpl(url, options);
+      if (options.method !== "POST" || url !== `https://api.github.com${base}/releases`) return response;
+      const metadata = await response.json(); change(metadata); return json(metadata, 201);
+    };
+    await assert.rejects(gh.store({ fetchImpl, onMutationIntent: ({ operation }) => durable.add(operation), onMutationReconciled: ({ operation }) => durable.delete(operation) }).stageBundle(optionsFor(f)), (error) => ["IMMUTABLE_CONFLICT", "UNSAFE_URL"].includes(error.code));
+    assert.equal(mutations(gh.state).length, 1);
+    assert.deepEqual([...durable], [`${f.tag}:create`]);
+    assert.equal(gh.state.calls.some(({ url }) => /\/releases\/\d+$/u.test(url.pathname)), false);
+    assert.ok(gh.state.calls.every(({ url }) => url.origin === "https://api.github.com"));
+  }
+});
+
+test("direct creation readback rejects changed IDs, metadata, target refs and unsafe URLs without retry", async (t) => {
+  for (const change of [
+    (r) => { r.id++; r.upload_url = `https://uploads.github.com${base}/releases/${r.id}/assets`; },
+    (r) => { r.body = "changed"; },
+    (r) => { r.target_commitish = "b".repeat(40); },
+    (r) => { r.upload_url = "https://outside.example/upload"; },
+    (r, state) => { state.tagObject = { type: "commit", sha: "b".repeat(40) }; },
+  ]) {
+    const f = await fixture(t); let reads = 0; const confirmed = [];
+    const gh = fakeGitHub({ onRequest: ({ url, method }, state) => {
+      if (method === "GET" && /\/releases\/\d+$/u.test(url.pathname)) {
+        reads++; const metadata = structuredClone(state.releases[0]); change(metadata, state); return json(metadata);
+      }
+    } });
+    await assert.rejects(gh.store({ onMutationReconciled: (operation) => confirmed.push(operation) }).stageBundle(optionsFor(f)), (error) => ["IMMUTABLE_CONFLICT", "UNSAFE_URL"].includes(error.code));
+    assert.equal(reads, 1);
+    assert.equal(mutations(gh.state).length, 1);
+    assert.deepEqual(confirmed, []);
+  }
+});
+
+test("successful ID readback cannot bypass a visible conflicting or duplicate tag", async (t) => {
+  for (const duplicate of [false, true]) {
+    const f = await fixture(t);
+    const gh = fakeGitHub({ onRequest: ({ url, method }, state) => {
+      if (method === "GET" && url.pathname === `${base}/releases` && state.releases.length) {
+        const other = { ...state.releases[0], id: 999, upload_url: `https://uploads.github.com${base}/releases/999/assets` };
+        return json(duplicate ? [state.releases[0], other] : [other]);
+      }
+    } });
+    await assert.rejects(gh.store().stageBundle(optionsFor(f)), { code: "IMMUTABLE_CONFLICT" });
+    assert.equal(mutations(gh.state).length, 1);
+  }
+});
+
+test("creation readback does not retry authorization, invalid response or pagination failures", async (t) => {
+  for (const failure of [403, 429, "invalid-json", "pagination"]) {
+    const f = await fixture(t); let reads = 0;
+    const gh = fakeGitHub({ onRequest: ({ url, method }, state) => {
+      if (method !== "GET" || !state.releases.length) return;
+      if (/\/releases\/\d+$/u.test(url.pathname)) {
+        reads++;
+        if (typeof failure === "number") return json({}, failure);
+        if (failure === "invalid-json") return new Response("not JSON");
+      }
+      if (failure === "pagination" && url.pathname === `${base}/releases`) return json(Array.from({ length: 100 }, () => ({ tag_name: "unrelated" })));
+    } });
+    await assert.rejects(gh.store({ limits: { pages: 1 } }).stageBundle(optionsFor(f)), { code: "UNCERTAIN_MUTATION" });
+    assert.equal(reads, 1);
+    assert.equal(mutations(gh.state).length, 1);
+  }
+});
+
 test("uncertain create and upload are reconciled by reads without duplicate mutations", async (t) => {
   const f = await fixture(t);
   const gh = fakeGitHub();

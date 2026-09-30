@@ -14,6 +14,7 @@ const HASH = /^[a-f0-9]{64}$/u;
 const COMMIT = /^[a-f0-9]{40}$/u;
 const FILES = new Set(["diff.json", "kg.json", "lifecycle.json.gz", "news.json", "provenance.json.gz", "source-review.json"]);
 const DOWNLOAD_HOSTS = new Set(["release-assets.githubusercontent.com", "objects.githubusercontent.com", "github-releases.githubusercontent.com"]);
+const CREATE_READBACK_DELAYS_MS = Object.freeze([0, 250, 1000, 2000]);
 export const AUDIT_STORE_LIMITS = Object.freeze({
   manifestBytes: 1024 * 1024,
   fileBytes: 128 * 1024 * 1024,
@@ -121,7 +122,8 @@ export async function prepareAuditBundle(bundleDir, { limits: overrides } = {}) 
  * Call stageBundle only after authorized collaborator-visible storage and semantic validation.
  * Only publishAcceptedBundle may publish, after proving acceptance on remote main.
  * Existing assets are never deleted, edited, or replaced. No settings are changed.
- * Unknown mutation outcomes are reconciled by GET/list; there are no retries.
+ * Unknown mutation outcomes are reconciled by GET/list; mutations are never retried.
+ * Creation readback alone retries bounded absent/transient reads, never the POST.
  * Awaited journal hooks must persist intent before each network mutation and clear
  * it only after verified reconciliation. Restore their operation keys through
  * pendingOperations after a process restart. reconcilePending uses remote reads
@@ -291,17 +293,17 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
     const key = operation.operation;
     // The pending marker survives calls on this adapter. Persist uncertain errors
     // in the orchestration checkpoint before constructing a fresh adapter.
-    let failure;
+    let failure; let response;
     if (!pending.has(key)) {
       await journal(onMutationIntent, operation); // Caller fsync/atomic checkpoint must finish before POST/PATCH.
       pending.add(key);
-      try { await action(); } catch (error) {
+      try { response = await action(); } catch (error) {
         // Safe metadata only; never retain a transport error or response body.
         failure = { requestCode: error.code, ...(error.status ? { requestStatus: error.status } : {}) };
       }
     }
     let result;
-    try { result = await reconcile(); }
+    try { result = await reconcile(response); }
     catch (error) {
       if (error instanceof AuditStoreError && ["IMMUTABLE_CONFLICT", "UNSAFE_URL", "READBACK_MISMATCH"].includes(error.code)) throw error;
       throw new AuditStoreError("UNCERTAIN_MUTATION", "mutation outcome could not be reconciled; do not retry blindly", { operation: key, ...failure });
@@ -309,6 +311,37 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
     if (!result) throw new AuditStoreError("UNCERTAIN_MUTATION", "mutation not confirmed by read-only lookup; do not retry blindly", { operation: key, ...failure });
     await confirmed(operation);
     return result;
+  }
+  async function reconcileCreatedRelease(bundle, targetCommit, response) {
+    const tag = `kg-audit-${bundle.bundleId}`;
+    // A successful POST response is only a locator, never readback evidence.
+    // Validate before constructing a URL; a lost response has no trusted ID.
+    const releaseId = response === undefined ? undefined : validateRelease(response, bundle, targetCommit).id;
+    for (let attempt = 0; attempt < CREATE_READBACK_DELAYS_MS.length; attempt++) {
+      if (CREATE_READBACK_DELAYS_MS[attempt]) await new Promise((resolve) => setTimeout(resolve, CREATE_READBACK_DELAYS_MS[attempt]));
+      try {
+        const current = releaseId === undefined ? await lookup(tag) : await get(`/releases/${releaseId}`, { allow404: true });
+        if (!current) continue;
+        validateRelease(current, bundle, targetCommit);
+        must(releaseId === undefined || current.id === releaseId, "created release ID changed during readback", "IMMUTABLE_CONFLICT");
+        if (releaseId !== undefined) {
+          // Listing may lag behind a confirmed ID read. Visible conflicting or
+          // duplicate tags still fail closed; absence cannot disprove this GET.
+          const listed = await lookup(tag);
+          if (listed) {
+            validateRelease(listed, bundle, targetCommit);
+            must(listed.id === releaseId, "created release tag resolves to another ID", "IMMUTABLE_CONFLICT");
+          }
+        }
+        await checkTarget(targetCommit, tag, !current.draft);
+        return current;
+      } catch (error) {
+        const transient = error instanceof AuditStoreError && (["REQUEST_TIMEOUT", "REQUEST_FAILED"].includes(error.code)
+          || (error.code === "HTTP_ERROR" && error.status >= 500 && error.status <= 599));
+        if (!transient || attempt === CREATE_READBACK_DELAYS_MS.length - 1) throw error;
+      }
+    }
+    return null;
   }
   async function verifyRemote(release, bundle, targetCommit, { published = true } = {}) {
     validateRelease(release, bundle, targetCommit);
@@ -458,11 +491,8 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
         const body = canonicalJson({ tag_name: tag, target_commitish: targetCommit, name: tag,
           body: description(bundle, targetCommit), draft: true, prerelease: true,
           make_latest: "false", generate_release_notes: false });
-        release = await mutate(operationFor(bundle, targetCommit, "create"), () => get("/releases", { method: "POST", body }), async () => {
-          const current = await lookup(tag);
-          if (current) { validateRelease(current, bundle, targetCommit); await checkTarget(targetCommit, tag, !current.draft); }
-          return current;
-        });
+        release = await mutate(operationFor(bundle, targetCommit, "create"), () => get("/releases", { method: "POST", body }),
+          (response) => reconcileCreatedRelease(bundle, targetCommit, response));
       }
       validateRelease(release, bundle, targetCommit);
       if (stage && release.draft) {
