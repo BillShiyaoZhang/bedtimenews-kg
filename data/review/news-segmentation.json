@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-21T15:34:36Z",
+  "generatedAt": "2026-09-29T01:05:06Z",
   "segmentationVersion": "1.4.0",
   "summary": {
-    "pages": 2077,
-    "news": 9638,
-    "multiNewsPages": 1309,
-    "reviewPages": 585,
+    "pages": 2079,
+    "news": 9652,
+    "multiNewsPages": 1311,
+    "reviewPages": 587,
     "pagesByStrategy": {
       "page_fallback": 763,
       "manual_single": 1,
@@ -15,7 +15,7 @@
       "manual_markers": 1,
       "main_interview_topic": 167,
       "reference_numbered_heading": 537,
-      "reference_description_sentence": 117
+      "reference_description_sentence": 119
     },
     "episodeDateResolutions": {
       "observed": 714,
@@ -7404,6 +7404,26 @@
       "pageId": "page-8715a9a6f884",
       "repositoryPath": "reference/601-700/653.md",
       "title": "【参考信息653】生而不养，判给保姆；无手机课堂&小时租机",
+      "newsCount": 7,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-808bab752f47",
+      "repositoryPath": "reference/601-700/654.md",
+      "title": "【参考信息654】再查“不想生不敢生”；车企“去宁德化”？",
+      "newsCount": 7,
+      "strategy": "reference_description_sentence",
+      "reasons": [
+        "metadata_only_news_segmentation"
+      ]
+    },
+    {
+      "pageId": "page-e0ca5fdc4a51",
+      "repositoryPath": "reference/601-700/655.md",
+      "title": "【参考信息655】大开智时代；争论“投资于谁”",
       "newsCount": 7,
       "strategy": "reference_description_sentence",
       "reasons": [

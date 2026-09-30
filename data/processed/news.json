@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1.0",
-  "generatedAt": "2026-09-21T15:34:36Z",
+  "generatedAt": "2026-09-29T01:05:06Z",
   "source": {
     "name": "bedtimenews/bedtimenews-archive-contents",
     "url": "https://github.com/bedtimenews/bedtimenews-archive-contents",
@@ -52670,6 +52670,56 @@
         "candidateBoundaryCount": 0,
         "needsReview": false,
         "reviewReasons": []
+      }
+    },
+    {
+      "id": "page-808bab752f47",
+      "title": "【参考信息654】再查“不想生不敢生”；车企“去宁德化”？",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/654",
+      "repositoryPath": "reference/601-700/654.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/654.md",
+      "publishedAt": "2026-09-29",
+      "dateProvenance": {
+        "observedAt": "2026-09-29",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "eb0f4a4f1f1e597802560ff8b03cb867d72bd8a4343b90a4b3b16a8c2829a25f",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 7,
+        "candidateBoundaryCount": 7,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
+      }
+    },
+    {
+      "id": "page-e0ca5fdc4a51",
+      "title": "【参考信息655】大开智时代；争论“投资于谁”",
+      "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/655",
+      "repositoryPath": "reference/601-700/655.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/reference/601-700/655.md",
+      "publishedAt": "2026-09-29",
+      "dateProvenance": {
+        "observedAt": "2026-09-29",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "reference",
+      "contentHash": "8bed2e8786c45c18a14adddfbac4158b53e1c483dee71df2835bb4e6cc556771",
+      "segmentation": {
+        "strategy": "reference_description_sentence",
+        "confidence": 0.76,
+        "newsCount": 7,
+        "candidateBoundaryCount": 7,
+        "needsReview": true,
+        "reviewReasons": [
+          "metadata_only_news_segmentation"
+        ]
       }
     }
   ],
@@ -217886,6 +217936,272 @@
         "endLine": 15,
         "marker": "page",
         "contentHash": "82f00b37a16ad6bb5d449fd21b4f18776ad794d296bd9c0ddc9444e7baaaccdd"
+      }
+    },
+    {
+      "id": "news-461120478e05",
+      "title": "我国二手房交易占比突破50%，市场进入存量时代",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "我国二手房交易占比突破50%，市场进入存量时代。",
+      "pageId": "page-808bab752f47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 37,
+        "marker": "我国二手房交易占比突破50%，市场进入存量时代。",
+        "contentHash": "98bab4e39b21f420566ca78c9c1080aabc489cae2d5db2ca282ef77aaabd05a1"
+      }
+    },
+    {
+      "id": "news-2cb461773921",
+      "title": "统计局首次公布二手房交易数据",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "统计局首次公布二手房交易数据。",
+      "pageId": "page-808bab752f47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 38,
+        "endColumn": 52,
+        "marker": "统计局首次公布二手房交易数据。",
+        "contentHash": "ec47b0b1d2aaf20618164d3f860742ff385ac58d8425010fdc243df8356ad75a"
+      }
+    },
+    {
+      "id": "news-9810189e9787",
+      "title": "住建部明确，四层以上新建住宅装电梯的新国标已实施",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "住建部明确，四层以上新建住宅装电梯的新国标已实施。",
+      "pageId": "page-808bab752f47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 53,
+        "endColumn": 77,
+        "marker": "住建部明确，四层以上新建住宅装电梯的新国标已实施。",
+        "contentHash": "14b4a0e8a3e1bac5b10163abfa49ef35cfd61bb664deb1a2c28f935c26fc6dca"
+      }
+    },
+    {
+      "id": "news-a29b0e3e92e5",
+      "title": "开学伊始，多所高校推进建设“无手机课堂”，学生上课前调至静音，统一放入教室手机收纳盒",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "开学伊始，多所高校推进建设“无手机课堂”，学生上课前调至静音，统一放入教室手机收纳盒。",
+      "pageId": "page-808bab752f47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 78,
+        "endColumn": 120,
+        "marker": "开学伊始，多所高校推进建设“无手机课堂”，学生上课前调至静音，统一放入教室手机收纳盒。",
+        "contentHash": "0b00f441a2873d983e18776260241a3d530b111d288910d851ccc6f2582d9bb4"
+      }
+    },
+    {
+      "id": "news-38b9beda5af3",
+      "title": "珠海打击中小学周边商户“手机租赁”“小时租机”",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "珠海打击中小学周边商户“手机租赁”“小时租机”。",
+      "pageId": "page-808bab752f47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 121,
+        "endColumn": 144,
+        "marker": "珠海打击中小学周边商户“手机租赁”“小时租机”。",
+        "contentHash": "b57d58012a8af4cfffe10f6fc80c910d259f6658064a63da437ad4bf1af484cb"
+      }
+    },
+    {
+      "id": "news-a3cb359d9d10",
+      "title": "最高检公布案例，亲生父母对女儿“生而不养”，保姆起诉取消他们的监护资格，自己获得监护权",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "最高检公布案例，亲生父母对女儿“生而不养”，保姆起诉取消他们的监护资格，自己获得监护权。",
+      "pageId": "page-808bab752f47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 145,
+        "endColumn": 188,
+        "marker": "最高检公布案例，亲生父母对女儿“生而不养”，保姆起诉取消他们的监护资格，自己获得监护权。",
+        "contentHash": "9658e5fd9a9b287fbb2df8daa2009c14d962f8da9a6780f91df9ff0e573d83c1"
+      }
+    },
+    {
+      "id": "news-a619e6137fb8",
+      "title": "南京一幼儿园被曝幼儿集体呕吐，食堂用炒菜锅洗拖把",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "南京一幼儿园被曝幼儿集体呕吐，食堂用炒菜锅洗拖把。",
+      "pageId": "page-808bab752f47",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 7,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 189,
+        "endColumn": 213,
+        "marker": "南京一幼儿园被曝幼儿集体呕吐，食堂用炒菜锅洗拖把。",
+        "contentHash": "2f2f3c45f39e701394e258ffc32bbe8f79454a15af8b3492b0902b9145a5af4b"
+      }
+    },
+    {
+      "id": "news-340c5c909f15",
+      "title": "中秋假期没调休，但国庆假期有两天调休，影响一个月的排班",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "中秋假期没调休，但国庆假期有两天调休，影响一个月的排班。",
+      "pageId": "page-e0ca5fdc4a51",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 1,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 14,
+        "endColumn": 41,
+        "marker": "中秋假期没调休，但国庆假期有两天调休，影响一个月的排班。",
+        "contentHash": "20a63ab419eeb2b2c50a4116e314822c07626c9a8404fc52f0ae3f0c594852cb"
+      }
+    },
+    {
+      "id": "news-9e76506ce3e4",
+      "title": "经济日报：假期不能只算纸面天数，更要考量真实的休息质量",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "经济日报：假期不能只算纸面天数，更要考量真实的休息质量。",
+      "pageId": "page-e0ca5fdc4a51",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 2,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 42,
+        "endColumn": 69,
+        "marker": "经济日报：假期不能只算纸面天数，更要考量真实的休息质量。",
+        "contentHash": "30334c1ad3ad9afe4c9065eda0e149f64f741ec14f9855619742aa5e9c2d2ae6"
+      }
+    },
+    {
+      "id": "news-72cbb5b42d04",
+      "title": "厂二代的舆论风向变了，被追问五险一金、双休、8小时工作制，网民称之为大开智时代",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "厂二代的舆论风向变了，被追问五险一金、双休、8小时工作制，网民称之为大开智时代。",
+      "pageId": "page-e0ca5fdc4a51",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 3,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 70,
+        "endColumn": 109,
+        "marker": "厂二代的舆论风向变了，被追问五险一金、双休、8小时工作制，网民称之为大开智时代。",
+        "contentHash": "700c874955c64f647d22a304f898e9c13f3754277bebb4663bec9cc85e9627d0"
+      }
+    },
+    {
+      "id": "news-ec3ba5de3ab3",
+      "title": "贵州福泉原书记大造新城搞政绩工程被点名",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "贵州福泉原书记大造新城搞政绩工程被点名。",
+      "pageId": "page-e0ca5fdc4a51",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 4,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 110,
+        "endColumn": 129,
+        "marker": "贵州福泉原书记大造新城搞政绩工程被点名。",
+        "contentHash": "d600d42aef1b77de351019e8cbd710ab14517356d1a966df3988c8514fbedf56"
+      }
+    },
+    {
+      "id": "news-a904d527a896",
+      "title": "印尼雅万高铁对华债务从40年延期到80年",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "印尼雅万高铁对华债务从40年延期到80年。",
+      "pageId": "page-e0ca5fdc4a51",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 5,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 130,
+        "endColumn": 150,
+        "marker": "印尼雅万高铁对华债务从40年延期到80年。",
+        "contentHash": "d3a16428015bd71a39a5ff8142e7a8a3a2779463e0342163bb7a81eabc4d0fd5"
+      }
+    },
+    {
+      "id": "news-15882947407e",
+      "title": "顶流经济学家争论“投资于谁”，继续投资拉动还是直达居民部门",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "顶流经济学家争论“投资于谁”，继续投资拉动还是直达居民部门。",
+      "pageId": "page-e0ca5fdc4a51",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 6,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 151,
+        "endColumn": 180,
+        "marker": "顶流经济学家争论“投资于谁”，继续投资拉动还是直达居民部门。",
+        "contentHash": "ec76b23bfcd4459b58ae0816ab1ab19fda39e6c07edd6869eeeb98909273018d"
+      }
+    },
+    {
+      "id": "news-352f23606c21",
+      "title": "在思考AI时代分配的背景下重审江西低保户看演唱会女孩事件",
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "summary": "在思考AI时代分配的背景下重审江西低保户看演唱会女孩事件。",
+      "pageId": "page-e0ca5fdc4a51",
+      "fragment": {
+        "strategy": "reference_description_sentence",
+        "ordinal": 7,
+        "sourceField": "frontmatter.description",
+        "startLine": 3,
+        "endLine": 3,
+        "startColumn": 181,
+        "endColumn": 209,
+        "marker": "在思考AI时代分配的背景下重审江西低保户看演唱会女孩事件。",
+        "contentHash": "876fea72d3385a5f2dda118d45d5f72485f1673b66f9806d6c753c57185735d0"
       }
     }
   ]
