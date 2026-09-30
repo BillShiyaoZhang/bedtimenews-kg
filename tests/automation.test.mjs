@@ -103,8 +103,8 @@ test("notification reuses an existing advisory issue without dispatch", async (c
 });
 
 test("sync failures are reported independently of checkout, npm, and coverage", () => {
-  assert.match(failureJob, /^    needs: sync$/mu);
-  assert.match(failureJob, /^    if: always\(\) && needs\.sync\.result == 'failure'$/mu);
+  assert.match(failureJob, /^    needs: \[sync, release-sync\]$/mu);
+  assert.match(failureJob, /^    if: always\(\) && \(needs\.sync\.result == 'failure' \|\| needs\.release-sync\.result == 'failure'\)$/mu);
   assert.match(failureJob, /^      actions: read$/mu);
   assert.match(failureJob, /^      issues: write$/mu);
   assert.match(failureJob, /uses: actions\/github-script@v9/u);
@@ -283,3 +283,52 @@ function createMockGithub({ step = "Append safe archive additions", jobs } = {})
     run: () => executeFailureNotification(github, context, { info() {} }, { env: { GITHUB_RUN_ATTEMPT: "2" } }),
   };
 }
+
+test("release mode is explicitly gated and keeps PR tokens read-only", async () => {
+  assert.match(sync, /release-sync:\n    if: vars\.KG_RELEASE_ACTIVATED == 'true'/u);
+  assert.match(sync, /sync:\n    if: vars\.KG_RELEASE_ACTIVATED != 'true'/u);
+  assert.match(sync, /KG_RELEASE_STORAGE_APPROVED: \$\{\{ vars\.KG_RELEASE_STORAGE_APPROVED \}\}/u);
+  assert.match(sync, /npm run kg:release:sync/u);
+  assert.match(sync, /fetch-depth: 0\n          submodules: false/u);
+  assert.match(validate, /permissions:\n  contents: read/u);
+  assert.doesNotMatch(validate, /contents: write|actions: write|issues: write/u);
+  assert.match(validate, /persist-credentials: false/u);
+  assert.match(validate, /GH_TOKEN: \$\{\{ github\.event\.pull_request\.head\.repo\.full_name == github\.repository && github\.token \|\| '' \}\}/u);
+  for (const workflow of [sync, validate, await readText(".github/workflows/pages.yml")]) {
+    assert.match(workflow, /node-version-file: \.node-version/u);
+    assert.match(workflow, /TZ: UTC/u); assert.match(workflow, /LANG: en_US\.UTF-8/u);
+  }
+  assert.equal((await readText(".node-version")).trim(), "22.23.2");
+});
+
+test("semantic maintenance preview and PR preparation are reachable without a main-CAS bypass", async () => {
+  const packageJson = JSON.parse(await readText("package.json"));
+  assert.equal(packageJson.scripts["kg:release:migration:preview"], "node scripts/preview-accepted-migration.mjs");
+  assert.equal(packageJson.scripts["kg:release:migration:prepare"], "node scripts/prepare-migration-pr.mjs");
+  const preview = await readText("scripts/preview-accepted-migration.mjs");
+  assert.match(preview, /previewAcceptedMigration/u);
+  assert.doesNotMatch(preview, /assertReleaseApproval|stageBundle|publishAcceptedBundle|promoteAcceptedCommit|createWorkflowDispatch/u);
+  assert.match(preview, /\["GET", "HEAD"\]/u);
+  const prepare = await readText("scripts/prepare-migration-pr.mjs");
+  assert.match(prepare, /prepareMigrationPullRequest/u);
+  assert.match(prepare, /process\.env\.GITHUB_ACTIONS === "true"/u);
+  assert.doesNotMatch(prepare, /promoteAcceptedCommit|publishAcceptedBundle|createWorkflowDispatch/u);
+  assert.doesNotMatch(sync, /KG_RELEASE_MIGRATION_REVIEW|migration_review:/u);
+});
+
+
+test("PR replay gate pins exact main and uses read-only credentials only for same-repository proposals", async () => {
+  assert.match(validate, /fetch-depth: 0/u);
+  assert.match(validate, /if: github\.event_name == 'pull_request'/u);
+  assert.match(validate, /KG_RELEASE_BASE_COMMIT: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/u);
+  assert.match(validate, /git fetch --no-tags origin refs\/heads\/main:refs\/remotes\/origin\/main/u);
+  assert.ok(validate.indexOf("npm run kg:release:validate-pr") < validate.indexOf("- run: npm run kg:release:validate\n"));
+  const packageJson = JSON.parse(await readText("package.json"));
+  assert.equal(packageJson.scripts["kg:release:validate-pr"], "node scripts/validate-migration-pr.mjs");
+});
+
+test("the ordinary complete test command validates the accepted receipt before tests and builds", async () => {
+  const packageJson = JSON.parse(await readText("package.json"));
+  assert.ok(packageJson.scripts.test.startsWith("npm run kg:release:validate &&"));
+  assert.equal(packageJson.scripts["kg:validate"], "node scripts/validate-kg.mjs");
+});

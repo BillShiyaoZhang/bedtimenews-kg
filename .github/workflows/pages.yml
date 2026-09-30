@@ -21,6 +21,11 @@ concurrency:
   # Old reruns must not cancel a newer active deployment before being rejected.
   cancel-in-progress: false
 
+env:
+  TZ: UTC
+  LANG: en_US.UTF-8
+  LC_ALL: en_US.UTF-8
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,19 +43,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          submodules: recursive
+          submodules: false
+
+      - name: Acquire sources only for legacy validation
+        shell: bash
+        run: |
+          if [[ ! -f data/accepted-release.json ]]; then
+            git submodule update --init --recursive
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
 
       - name: Install
         run: npm ci
 
       - name: Validate knowledge graph
-        run: npm run kg:validate
+        run: npm run kg:release:validate
 
       - name: Build static site
         run: npm run build:pages

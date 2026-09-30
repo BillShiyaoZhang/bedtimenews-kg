@@ -32,8 +32,21 @@ import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
 
 const execFile = promisify(execFileCallback);
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-await compileOntologyFiles(projectRoot);
 const args = parseArgs(process.argv.slice(2));
+// Fail before compilation, source reads, or writes. State4 cannot use the old
+// append/rebuild/bootstrap path, even if its receipt was accidentally removed.
+const acceptedState = await readJson(resolve(projectRoot, "data/archive-state.json")).catch((error) => {
+  if (error.code === "ENOENT") return null;
+  throw error;
+});
+const hasAcceptedRelease = await readFile(resolve(projectRoot, "data/accepted-release.json")).then(() => true).catch((error) => {
+  if (error.code === "ENOENT") return false;
+  throw error;
+});
+if (acceptedState?.schemaVersion === 4 || hasAcceptedRelease || process.env.KG_RELEASE_ACTIVATED === "true") {
+  throw new Error("Accepted-release mode requires `npm run kg:release:sync`; legacy update/rebuild/bootstrap cannot bypass its acceptance gates.");
+}
+await compileOntologyFiles(projectRoot);
 const bootstrap = Boolean(args.bootstrap);
 const rebuild = Boolean(args.rebuild);
 const sourceRoot = resolve(

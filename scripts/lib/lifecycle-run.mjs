@@ -270,3 +270,10 @@ export async function verifyLifecycleCandidate(root, directory, options = {}, ho
   await recheck(context, chain);
   return { manifest: baseline.manifest, historyBundles: chain.length };
 }
+
+// Shared deterministic builders. The offline v1 runner above still replays its
+// entire ancestry and keeps its original fixed-input contract. Production's
+// separately versioned trusted-checkpoint runner only reuses these primitives.
+export { settings as lifecycleCandidateSettings, inputsFor as lifecycleCandidateInputs,
+  planFor as planLifecycleSources, materialize as materializeLifecycleCandidate,
+  assertArtifacts as assertLifecycleArtifacts };

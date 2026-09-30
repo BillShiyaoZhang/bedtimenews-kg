@@ -5,6 +5,7 @@ import { lstat, open, readdir, realpath } from "node:fs/promises";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
+import { createAuthenticatedGitReader } from "./git-object-integrity.mjs";
 import { isSourceReviewTimestamp, validateCandidateSourceInventory, validateCandidateSourcePath } from "./candidate-source-review.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -41,6 +42,7 @@ async function gitRoot(sourceRoot, commit) {
   ensure(typeof commit === "string" && COMMIT.test(commit), "commit must be an exact lowercase 40-hex Git commit");
   const root = await worktreeRoot(sourceRoot);
   ensure(text(await git(root, ["cat-file", "-t", commit])).trim() === "commit", "pinned object is not a Git commit");
+  await authenticatedReader(root).commit(commit);
   return root;
 }
 
@@ -56,18 +58,15 @@ export async function readGitSourceHead({ sourceRoot }) {
   return { commit, committedAt };
 }
 
-function treeRecords(bytes) {
-  const records = [];
-  const value = text(bytes);
-  ensure(value === "" || value.endsWith("\0"), "incomplete Git tree output");
-  for (const line of value.split("\0").filter(Boolean)) {
-    const match = /^(\d{6}) (blob|tree|commit) ([a-f0-9]{40})\t(.+)$/u.exec(line);
-    ensure(match, "invalid Git tree entry");
-    const [, mode, type, oid, path] = match;
-    logicalPath(path);
-    records.push({ mode, type, oid, path });
-  }
-  return records;
+function authenticatedReader(root) {
+  return createAuthenticatedGitReader(async (oid) => {
+    const type = text(await git(root, ["cat-file", "-t", oid])).trim();
+    ensure(["blob", "tree", "commit", "tag"].includes(type), "invalid Git object type");
+    return { type, bytes: await git(root, ["cat-file", type, oid]) };
+  });
+}
+async function authenticatedEntries(root, commit) {
+  return [...await authenticatedReader(root).entries(commit)].map(([path, entry]) => ({ path, ...entry }));
 }
 
 /** Resolve original bytes only from the exact commit, never from the worktree. */
@@ -75,11 +74,11 @@ export async function readVerifiedGitSource({ sourceRoot, commit, path, expected
   logicalPath(path);
   ensure(typeof expectedHash === "string" && HASH.test(expectedHash), "expectedHash must be a SHA-256");
   const root = await gitRoot(sourceRoot, commit);
-  const records = treeRecords(await git(root, ["ls-tree", "-z", "--full-tree", commit, "--", path]));
-  ensure(records.length === 1 && records[0].path === path, `missing exact source blob: ${path}`);
-  const entry = records[0];
+  const reader = authenticatedReader(root);
+  const entry = await reader.entry(commit, path);
+  ensure(entry, `missing exact source blob: ${path}`);
   ensure(entry.type === "blob" && ["100644", "100755"].includes(entry.mode), `source is not a regular Git blob: ${path}`);
-  const bytes = await git(root, ["cat-file", "blob", entry.oid]);
+  const bytes = await reader.blob(entry.oid);
   ensure(sha256(bytes) === expectedHash, `historical source SHA-256 mismatch: ${path}`);
   return bytes;
 }
@@ -127,7 +126,7 @@ async function verifyBlobBatch(root, entries, inventory, collect = false) {
   completed.catch(() => {});
   child.stdin.on("error", () => {});
   child.stdin.end(entries.map((entry) => entry.oid).join("\n") + "\n");
-  let pending = Buffer.alloc(0); let index = 0; let remaining = null; let digest; let chunks;
+  let pending = Buffer.alloc(0); let index = 0; let remaining = null; let digest; let objectDigest; let chunks;
   try {
     for await (const chunk of child.stdout) {
       pending = pending.length ? Buffer.concat([pending, chunk]) : chunk;
@@ -139,18 +138,19 @@ async function verifyBlobBatch(root, entries, inventory, collect = false) {
           const header = text(pending.subarray(0, end));
           const match = /^([a-f0-9]{40}) blob (0|[1-9]\d*)$/u.exec(header);
           ensure(match && match[1] === entries[index].oid && Number.isSafeInteger(Number(match[2])), `missing or invalid historical source blob: ${entries[index].path}`);
-          remaining = Number(match[2]); digest = createHash("sha256"); chunks = [];
+          remaining = Number(match[2]); digest = createHash("sha256"); objectDigest = createHash("sha1").update(`blob ${remaining}\0`); chunks = [];
           pending = pending.subarray(end + 1);
         }
         if (remaining > 0) {
           const count = Math.min(remaining, pending.length);
           const bytes = pending.subarray(0, count);
-          digest.update(bytes); if (collect) chunks.push(bytes);
+          digest.update(bytes); objectDigest.update(bytes); if (collect) chunks.push(bytes);
           pending = pending.subarray(count); remaining -= count;
           if (remaining > 0) break;
         }
         if (!pending.length) break;
         ensure(pending[0] === 10, "invalid Git batch blob delimiter");
+        ensure(objectDigest.digest("hex") === entries[index].oid, "source blob bytes do not match their pinned Git object ID");
         ensure(digest.digest("hex") === inventory[entries[index].path], `Git source SHA-256 differs from observed inventory: ${entries[index].path}`);
         if (collect) blobs.set(entries[index].path, Buffer.concat(chunks));
         pending = pending.subarray(1); index += 1; remaining = null;
@@ -180,7 +180,7 @@ export async function assertGitSourceInventory({ sourceRoot, commit, inventory, 
   ensure(Array.isArray(includedRoots) && includedRoots.length > 0 && includedRoots.every((root) => typeof root === "string" && /^[a-z][a-z0-9_-]*$/u.test(root)) && new Set(includedRoots).size === includedRoots.length, "invalid includedRoots");
   const observed = validateCandidateSourceInventory(inventory, includedRoots);
   const root = await gitRoot(sourceRoot, commit);
-  const records = treeRecords(await git(root, ["ls-tree", "-r", "-z", "--full-tree", commit, "--", ...includedRoots]));
+  const records = (await authenticatedEntries(root, commit)).filter((entry) => includedRoots.includes(entry.path.split("/")[0]));
   const entries = [];
   for (const entry of records) {
     if (entry.path.split("/").some((part) => part.startsWith("."))) continue;
@@ -206,8 +206,7 @@ export async function readVerifiedGitSources({ sourceRoot, commit, inventory }) 
   const root = await gitRoot(sourceRoot, commit);
   const paths = Object.keys(inventory).sort();
   if (!paths.length) return new Map();
-  const roots = [...new Set(paths.map((path) => path.split("/")[0]))].sort();
-  const records = treeRecords(await git(root, ["ls-tree", "-r", "-z", "--full-tree", commit, "--", ...roots]));
+  const records = await authenticatedEntries(root, commit);
   const selected = new Map();
   for (const entry of records) {
     if (!Object.hasOwn(inventory, entry.path)) continue;
