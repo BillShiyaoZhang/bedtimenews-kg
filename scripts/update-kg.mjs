@@ -27,6 +27,7 @@ import {
 } from "./lib/news.mjs";
 import { applyReviewedSourceRevisions } from "./lib/source-revisions.mjs";
 import { validate } from "./lib/validate.mjs";
+import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
 
 const execFile = promisify(execFileCallback);
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -62,11 +63,12 @@ const segmentationReportPath = resolve(
   "data/review/news-segmentation.json",
 );
 
-const [upstreamCommit, observedAt, currentFiles, ontology] = await Promise.all([
+const [upstreamCommit, observedAt, currentFiles, ontology, extractionRules] = await Promise.all([
   gitOutput(["rev-parse", "HEAD"]),
   gitOutput(["show", "-s", "--format=%cI", "HEAD"]),
   buildFileManifest(sourceRoot, includeRoots),
   readJson(resolve(projectRoot, "data/ontology.json")),
+  readJson(resolve(projectRoot, "data/extraction-rules.json")),
 ]);
 
 const tempRoot = await mkdtemp(resolve(tmpdir(), "bedtimenews-kg-"));
@@ -304,6 +306,7 @@ const { kg, appended } = appendNewRecords(
 throwNewsValidationError(validateNewsDataset(newsDataset));
 const issues = validate(kg, ontology);
 issues.push(...validateKnowledgeBaseNewsProjection(kg, newsDataset));
+issues.push(...await validateTopicEvidence(kg, newsDataset, extractionRules, sourceRoot));
 if (issues.length) throwValidationError(issues);
 throwNewsValidationError(await validateNewsFragments(newsDataset, sourceRoot));
 
