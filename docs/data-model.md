@@ -97,7 +97,8 @@ KnowledgeBase
   "summary": "用于检索的事实摘要",
   "entityIds": ["entity-organization-…", "entity-place-…"],
   "sourceIds": ["page-…"],
-  "significance": ""
+  "significance": "",
+  "topicEvidence": []
 }
 ```
 
@@ -108,6 +109,11 @@ KnowledgeBase
 - 标题、日期、摘要必须完全一致；
 - `sourceIds` 必须只有一个，且等于新闻的 `pageId`。
 - `entityIds` 至少包含一个实体；实体类型必须恰好落入 ontology 声明的一个事件语义角色。
+
+`topicEvidence` 保存本条新闻验签片段实际命中的主题抽取词，格式为
+`[{ "entityId": "entity-topic-…", "terms": ["排班"] }]`。证据通过 `newsId`
+定位 processed news 的精确范围和片段哈希；不得借用同一页面的其他新闻或主题的
+全部触发词。无片段命中时为 `[]`；标题/摘要仍可独立支持原有主题关联。
 
 ### Entity
 
@@ -125,6 +131,8 @@ KnowledgeBase
   }
 }
 ```
+
+`aliases` 只表示真正的同义名称，不收录主题的全部 `extractionTriggers`。
 
 实体 ID 由“类型 + 规范化名称”的哈希生成，跨次构建稳定。`eventCount` 为兼容现有 KG schema 保留，语义上表示关联的独立新闻数。
 
