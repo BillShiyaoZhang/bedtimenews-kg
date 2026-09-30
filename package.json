@@ -26,7 +26,9 @@
     "test:pages": "npm run build:pages && node --test tests/data.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "kg:candidate": "node scripts/build-candidate.mjs",
-    "kg:candidate:validate": "node scripts/validate-candidate.mjs"
+    "kg:candidate:validate": "node scripts/validate-candidate.mjs",
+    "kg:lifecycle": "node scripts/build-lifecycle-candidate.mjs",
+    "kg:lifecycle:validate": "node scripts/validate-lifecycle-candidate.mjs"
   },
   "dependencies": {
     "next": "16.2.11",

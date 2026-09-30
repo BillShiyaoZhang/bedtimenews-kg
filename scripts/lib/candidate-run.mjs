@@ -1,6 +1,7 @@
 import { execFile as execFileCallback } from "node:child_process";
-import { mkdtemp, readFile, readdir, rm, lstat, realpath } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, lstat, realpath, open } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { constants } from "node:fs";
 import { extname, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 import { canonicalJson, sha256, diffKnowledgeGraphs, diffRecords, publishCandidateBundle, verifyCandidateBundle } from "./candidate-bundle.mjs";
@@ -31,7 +32,7 @@ export function assertCandidateBudget(manifest) {
   must(Object.values(artifacts).reduce((sum, item) => sum + item.bytes, 0) <= CANDIDATE_STORAGE_BUDGET.maxTotalArtifactBytes, "Candidate artifacts exceed 128 MiB budget");
 }
 
-export async function sourceInventory(sourceRoot, roots) {
+export async function sourceInventory(sourceRoot, roots, { allowEmpty = false } = {}) {
   must(await realpath(sourceRoot) === resolve(sourceRoot), "Candidate source root or ancestor is a symlink; use the canonical source directory");
   const files = [];
   async function walk(path) {
@@ -45,7 +46,7 @@ export async function sourceInventory(sourceRoot, roots) {
     must(/^[a-z][a-z0-9_-]*$/u.test(root), `Invalid included root: ${root}`);
     try { await walk(resolve(sourceRoot, root)); } catch (error) { if (error.code !== "ENOENT") throw error; }
   }
-  must(files.length, "No Markdown source files found");
+  must(files.length || allowEmpty, "No Markdown source files found");
   const entries = [];
   for (const path of files.sort()) entries.push([relative(sourceRoot, path).split(sep).join("/"), sha256(await readFile(path))]);
   return Object.fromEntries(entries);
@@ -75,14 +76,14 @@ export function assertCandidateOutput(root, output, sourceRoot, baseline) {
 }
 
 async function generatorBindings(root) {
-  const files = ["scripts/build-news.mjs", "scripts/build-kg.mjs", "scripts/build-candidate.mjs", "scripts/validate-candidate.mjs", "scripts/compile-ontology.mjs", "app/lib/topic-evidence.mjs", "app/lib/ontology-hierarchy.mjs"];
+  const files = ["scripts/build-news.mjs", "scripts/build-kg.mjs", "scripts/build-candidate.mjs", "scripts/validate-candidate.mjs", "scripts/compile-ontology.mjs", "scripts/build-lifecycle-candidate.mjs", "scripts/validate-lifecycle-candidate.mjs", "app/lib/topic-evidence.mjs", "app/lib/ontology-hierarchy.mjs"];
   for (const file of (await readdir(resolve(root, "scripts/lib"))).filter((name) => name.endsWith(".mjs")).sort()) files.push(`scripts/lib/${file}`);
   const hashes = {};
   for (const path of files.sort()) hashes[path] = sha256(await readFile(resolve(root, path)));
   return { sha256: sha256(canonicalJson(hashes)), files: hashes };
 }
 
-async function activeSnapshot(root) {
+export async function activeSnapshot(root) {
   const inputs = {}; const bytes = {};
   for (const [name, path] of Object.entries(configPaths)) {
     const content = await readFile(resolve(root, path));
@@ -93,29 +94,51 @@ async function activeSnapshot(root) {
   return { inputs, bytes, json: (name) => JSON.parse(bytes[name].toString("utf8")) };
 }
 
-async function captureInputs(root, inventory, recipe, baselineManifest, snapshot) {
-  const inputs = { ...(snapshot ?? await activeSnapshot(root)).inputs };
-  inputs.sourceInventory = { sha256: sha256(canonicalJson(inventory)), fileCount: Object.keys(inventory).length };
-  inputs.recipe = { sha256: sha256(canonicalJson(recipe)), ...recipe };
+export function candidateRuntimeBinding() {
   const locale = new Intl.DateTimeFormat().resolvedOptions();
   const runtime = { node: process.versions.node, icu: process.versions.icu, unicode: process.versions.unicode, v8: process.versions.v8, locale: locale.locale, timeZone: locale.timeZone };
-  inputs.runtime = { sha256: sha256(canonicalJson(runtime)), ...runtime };
+  return { ...runtime, sha256: sha256(canonicalJson(runtime)) };
+}
+
+export async function captureInputs(root, inventory, recipe, baselineManifest, snapshot) {
+  must(!Object.hasOwn(recipe, "sha256"), "Recipe payload must not contain a precomputed hash");
+  const inputs = { ...(snapshot ?? await activeSnapshot(root)).inputs };
+  inputs.sourceInventory = { sha256: sha256(canonicalJson(inventory)), fileCount: Object.keys(inventory).length };
+  inputs.recipe = { ...recipe, sha256: sha256(canonicalJson(recipe)) };
+  inputs.runtime = candidateRuntimeBinding();
   if (baselineManifest) inputs.baselineCandidate = { sha256: sha256(canonicalJson(baselineManifest)), bundleId: baselineManifest.bundleId };
   return inputs;
 }
 
-async function assertBaselineUnchanged(root, path, manifest) {
+export async function assertBaselineUnchanged(root, path, manifest) {
   if (!path) return;
   const directory = resolve(root, path);
-  must(await readFile(resolve(directory, "manifest.json"), "utf8") === `${canonicalJson(manifest)}\n`, "Baseline manifest changed during candidate build");
+  const directoryStat = await lstat(directory);
+  must(directoryStat.isDirectory() && !directoryStat.isSymbolicLink() && await realpath(directory) === directory, "Baseline directory or ancestor became unsafe");
+  async function readRegular(file) {
+    const stat = await lstat(file);
+    must(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1, "Baseline file type changed during candidate operation");
+    const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
+    try {
+      const opened = await handle.stat();
+      must(opened.isFile() && opened.nlink === 1 && opened.ino === stat.ino && opened.dev === stat.dev, "Baseline file changed while opening");
+      const bytes = await handle.readFile();
+      const after = await lstat(file);
+      must(after.isFile() && !after.isSymbolicLink() && after.nlink === 1 && after.ino === opened.ino && after.dev === opened.dev, "Baseline file changed while reading");
+      return bytes;
+    } finally { await handle.close(); }
+  }
+  const manifestPath = resolve(directory, "manifest.json");
+  must((await readRegular(manifestPath)).toString("utf8") === `${canonicalJson(manifest)}\n`, "Baseline manifest changed during candidate build");
   const names = [...Object.keys(manifest.artifacts), "manifest.json"].sort();
   must(canonicalJson((await readdir(directory)).sort()) === canonicalJson(names), "Baseline artifacts changed during candidate build");
   for (const [name, binding] of Object.entries(manifest.artifacts)) {
-    const stat = await lstat(resolve(directory, name));
-    must(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1, "Baseline artifact type changed during candidate build");
-    const content = await readFile(resolve(directory, name));
+    const content = await readRegular(resolve(directory, name));
     must(content.length === binding.bytes && sha256(content) === binding.sha256, "Baseline artifact changed during candidate build");
   }
+  const after = await lstat(directory);
+  must(after.isDirectory() && !after.isSymbolicLink() && after.ino === directoryStat.ino && after.dev === directoryStat.dev && await realpath(directory) === directory, "Baseline directory changed during candidate operation");
+  must((await readRegular(manifestPath)).toString("utf8") === `${canonicalJson(manifest)}\n`, "Baseline manifest changed during candidate operation");
 }
 
 async function regenerateNews(root, sourceRoot, recipe) {
@@ -127,7 +150,7 @@ async function regenerateNews(root, sourceRoot, recipe) {
   } finally { await rm(temporary, { recursive: true, force: true }); }
 }
 
-function provenanceBindings(inputs) {
+export function provenanceBindings(inputs) {
   return { segmentationHash: inputs.segmentation.sha256, overridesHash: inputs.newsOverrides.sha256, ontologyHash: inputs.ontology.sha256, rulesHash: inputs.rules.sha256, generatorHash: inputs.generator.sha256 };
 }
 
@@ -147,7 +170,7 @@ async function validateArtifacts({ artifacts, expectedDataset, inventory, rawPag
   return [];
 }
 
-function candidateDiff(baseline, artifacts) {
+export function candidateDiff(baseline, artifacts) {
   const provenance = artifacts["provenance.json.gz"];
   return { schemaVersion: "1.0.0", epistemicScope: "extraction_assignment", graph: diffKnowledgeGraphs(baseline.kg, artifacts["kg.json"]), news: diffRecords(baseline.news, artifacts["news.json"], { collections: ["pages", "news"] }), provenance: baseline.provenance ? { available: true, diff: diffRecords(baseline.provenance, provenance, { collections: ["sourceRevisions", "newsRevisions", "observations", "retention", "classifications", "assertions", "supports", "assertionRevisions"] }) } : { available: false, reason: "Accepted KG has no derivation ledger; initial support recording is not newly discovered knowledge" } };
 }
@@ -188,7 +211,7 @@ async function prepare(root, options, hooks = {}) {
   return { sourceRoot, ontology, rules, state, inventory, recipe, baseline, inputs, dataset, rawPages, bindings };
 }
 
-function candidateVersions({ ontology, rules, dataset }) {
+export function candidateVersions({ ontology, rules, dataset }) {
   return { candidate: "1.0.0", ontology: ontology.version, extraction: rules.version, news: dataset.schemaVersion, segmentation: dataset.segmentation.version, overrides: dataset.segmentation.overrideVersion, compiler: ontology.compilation.compilerVersion, node: process.versions.node, icu: process.versions.icu };
 }
 

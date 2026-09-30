@@ -3,14 +3,8 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, extname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  buildSegmentationReport,
-  NEWS_DATASET_SCHEMA_VERSION,
-  parseSourcePage,
-  reconcileEpisodeDates,
-  SEGMENTATION_VERSION,
-  validateNewsDataset,
-} from "./lib/news.mjs";
+import { buildSegmentationReport } from "./lib/news.mjs";
+import { buildNewsDataset } from "./lib/news-build.mjs";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const args = parseArgs(process.argv.slice(2));
@@ -59,47 +53,12 @@ if (!markdownFiles.length) {
   );
 }
 
-const pages = [];
-const news = [];
-for (const filePath of markdownFiles) {
-  const repositoryPath = relative(sourceRoot, filePath).replaceAll("\\", "/");
-  const parsed = parseSourcePage(
-    repositoryPath,
-    await readFile(filePath, "utf8"),
-    overrides.pages?.[repositoryPath],
-  );
-  if (!parsed) continue;
-  pages.push(parsed.page);
-  news.push(...parsed.news);
-}
-const episodeDateSummary = reconcileEpisodeDates(pages, news);
-
-const dataset = {
-  schemaVersion: NEWS_DATASET_SCHEMA_VERSION,
-  generatedAt,
-  source: {
-    name: "bedtimenews/bedtimenews-archive-contents",
-    url: "https://github.com/bedtimenews/bedtimenews-archive-contents",
-    licenseNote:
-      "本数据集只保存新闻级索引、摘要、片段哈希与原文位置；完整原文保留在上游仓库。",
-  },
-  segmentation: {
-    version: SEGMENTATION_VERSION,
-    overrideVersion: overrides.version,
-    mode: "deterministic-page-to-news-segmentation",
-  },
-  pages,
-  news,
-};
-const issues = validateNewsDataset(dataset);
-if (issues.length) {
-  for (const issue of issues.slice(0, 30)) {
-    console.error(`[${issue.level}] ${issue.path}: ${issue.message}`);
-  }
-  throw new Error(
-    `Processed news dataset failed validation with ${issues.length} issue(s).`,
-  );
-}
+const { dataset, episodeDateSummary } = await buildNewsDataset({
+  sourceEntries: markdownFiles.map((filePath) => relative(sourceRoot, filePath).replaceAll("\\", "/")),
+  readSource: (repositoryPath) => readFile(resolve(sourceRoot, repositoryPath), "utf8"),
+  overrides, generatedAt,
+});
+const { pages, news } = dataset;
 
 await writeJson(outputPath, dataset);
 if (reportPath) {
