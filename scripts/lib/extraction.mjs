@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { assertExtractionRules } from "./extraction-rules.mjs";
 import { maskHtmlComments } from "./news.mjs";
 
 const GENERIC_LABELS = new Set([
@@ -299,6 +300,7 @@ const PERSON_TRAILING_WORDS = [
 ];
 
 export function createExtractionEngine(rules) {
+  assertExtractionRules(rules);
   const places = buildPlaceGazetteer(rules);
   const aliasToPlace = new Map();
   for (const place of places) {
@@ -359,7 +361,7 @@ export function createExtractionEngine(rules) {
     key: entityKey("topic", topic.label),
     type: "topic",
     label: topic.label,
-    aliases: unique(topic.keywords),
+    aliases: unique(topic.aliases),
     method: "controlled_vocabulary",
     confidence: 1,
     topic,
@@ -516,7 +518,7 @@ export function createExtractionEngine(rules) {
 
     for (const candidate of topicCandidates) {
       if (
-        candidate.topic.keywords.some((keyword) =>
+        candidate.topic.extractionTriggers.some((keyword) =>
           normalizedText.includes(keyword),
         )
       ) {
@@ -565,7 +567,7 @@ export function createExtractionEngine(rules) {
     if (scores[0]?.score) return scores[0].id;
     for (const topic of rules.topics) {
       if (
-        topic.keywords.some((keyword) => normalized.includes(keyword)) &&
+        topic.extractionTriggers.some((keyword) => normalized.includes(keyword)) &&
         TOPIC_EVENT_TYPES[topic.id]
       ) {
         return TOPIC_EVENT_TYPES[topic.id];
@@ -578,6 +580,13 @@ export function createExtractionEngine(rules) {
     version: rules.version,
     extractCandidates,
     classifyEvent,
+    matchTopicEvidence(text) {
+      const normalized = normalizeText(text);
+      return rules.topics.flatMap((topic) => {
+        const terms = topic.extractionTriggers.filter((term) => normalized.includes(term));
+        return terms.length ? [{ entityId: entityId("topic", topic.label), terms }] : [];
+      });
+    },
   };
 }
 

@@ -1,5 +1,10 @@
+import { validateTopicEvidenceStructure } from "../../app/lib/topic-evidence.mjs";
+
 export function validate(kg, ontology) {
-  const issues = [];
+  const issues = validateTopicEvidenceStructure(kg);
+  if (kg.schemaVersion !== ontology.version) {
+    issues.push(error("schemaVersion", "KG 与 ontology 版本不一致"));
+  }
   if (ontology.recordUnit?.id !== "news") {
     issues.push(error("ontology.recordUnit.id", "本体基本单位必须是独立新闻"));
   }
