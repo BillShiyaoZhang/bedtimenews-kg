@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "version": "2.3.0",
+  "version": "2.4.0",
   "label": "睡前消息新闻知识本体",
   "description": "作为新闻知识抽取的蓝图，分别定义实体类、事件行动与议题层级；抽取后的知识图谱是独立的版本化结果。",
   "recordUnit": {
@@ -486,34 +486,34 @@
           "id": "occurrence",
           "label": "发生与变化",
           "aliases": [],
-          "description": "报道所描述的行动或状态变化；不等同于新闻记录。",
+          "description": "新闻片段所描述的行动或状态变化的抽象上位类。分类表达报道内容，不验证现实发生；不能直接赋给新闻。肯定、否定、计划、预测和条件描述必须保留原文限定。",
           "parentIds": [],
           "abstract": true,
-          "status": "draft",
+          "status": "active",
           "primaryParentId": null
         },
         {
           "id": "action",
           "label": "行动",
           "aliases": [],
-          "description": "主体实施的行动；计划、预测或否定不能自动认定已发生。",
+          "description": "新闻片段描述主体实施的行动的抽象上位类。下位分类须有行动谓词和同一范围的语境证据；报道领域、主体名称或抽象讨论不能单独构成行动断言。",
           "parentIds": [
             "occurrence"
           ],
           "abstract": true,
-          "status": "draft",
+          "status": "active",
           "primaryParentId": "occurrence"
         },
         {
           "id": "state-change",
           "label": "状态变化",
           "aliases": [],
-          "description": "自然、事故、健康或数量状态的改变；静态统计属于观察。",
+          "description": "新闻片段描述某种状态从一个值或情形变为另一个的抽象上位类。静态数值、类别与一般观察不构成变化；否定、预测和条件限定随证据保留。",
           "parentIds": [
             "occurrence"
           ],
           "abstract": true,
-          "status": "draft",
+          "status": "active",
           "primaryParentId": "occurrence"
         },
         {
@@ -556,24 +556,24 @@
           "id": "action-legal",
           "label": "法律行动",
           "aliases": [],
-          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "description": "司法机关作出裁判、裁定、刑罚判处或检察机关提起公诉、批准或决定逮捕等法律程序行动。当前抽取仅纳入同一语境中有法院或检察机关背景且符合受支持程序模板的明确谓词；排除仅提及法律、案件、判决书、一般程序知识及无程序主体语境的词语。报道中的否定、拟议或条件性司法行动仍须带相应限定，不表示已依法生效或现实已执行。",
           "parentIds": [
             "action"
           ],
           "abstract": false,
-          "status": "draft",
+          "status": "active",
           "primaryParentId": "action"
         },
         {
           "id": "action-engineering",
           "label": "工程行动",
           "aliases": [],
-          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "description": "建设或生产设施进入开工、建成、竣工、投产、通车等实施阶段的工程行动。纳入同一语境中有具体工程、项目或设施背景的明确阶段谓词；排除项目名称孤立出现、工程学讨论、开工率或竣工面积等统计指标，以及没有阶段行动的投资金额。拟开工、未通车等描述保留计划和否定，不自动推定工程已经完成。",
           "parentIds": [
             "action"
           ],
           "abstract": false,
-          "status": "draft",
+          "status": "active",
           "primaryParentId": "action"
         },
         {
@@ -688,12 +688,12 @@
           "id": "change-quantitative",
           "label": "数量变化",
           "aliases": [],
-          "description": "需要状态改变的证据；观察、计划和预测需保留其限定信息。",
+          "description": "可识别指标在明确比较基准下增加或减少的数量状态变化。当前抽取要求指标语境、同比或环比、方向谓词和非零显式数值共同构成局部证据；排除静态总量、零变化、单独增长率名称、没有比较方向的数字，以及仅谈变化可能性的概念讨论。预测、条件和否定仍可描述数量变化，但必须保留限定且不构成已实现的数值事实。",
           "parentIds": [
             "state-change"
           ],
           "abstract": false,
-          "status": "draft",
+          "status": "active",
           "primaryParentId": "state-change"
         }
       ]
@@ -1393,10 +1393,13 @@
   },
   "semantics": {
     "newsProjection": "one_per_news",
-    "actionAssignments": "not_materialized",
+    "actionAssignments": "news_scoped_evidence_backed_reported_descriptions",
     "legacyEventTypes": "domain_classification_not_action",
     "chronology": "news_publication_order_not_real_world_event_order",
-    "identity": "subClassOf / broaderTopic / instanceOf / partOf are distinct"
+    "identity": "subClassOf / broaderTopic / instanceOf / partOf are distinct",
+    "actionVerification": "never_verified_real_world_occurrences",
+    "actionEvidence": "exact_utf16_spans_in_visible_fragment_v1_bound_to_news_fragment_hash",
+    "actionAssessment": "unmatched_is_undetermined_not_applicable_requires_reviewed_fragment_and_span"
   },
   "legacyEntityTypes": [
     {
@@ -1441,5 +1444,125 @@
       "description": "由受控词表定义、可跨时期稳定复用的议题维度；主题不是原文中的独立行动者。",
       "color": "#a06c25"
     }
-  ]
+  ],
+  "actionAssessment": {
+    "schemaVersion": 1,
+    "normalizationVersion": "visible-fragment-v1",
+    "statuses": [
+      {
+        "id": "applicable",
+        "label": "有证据描述",
+        "description": "新闻片段包含受支持行动或变化描述及可重放的局部证据；不表示已核实现实发生。"
+      },
+      {
+        "id": "not_applicable",
+        "label": "经审查不适用",
+        "description": "针对精确新闻 ID、片段哈希和证据位置作出的显式审查；没有规则命中不能推出不适用。"
+      },
+      {
+        "id": "undetermined",
+        "label": "尚未确定",
+        "description": "没有足够受支持证据，或语境不清；不表示没有行动，也不表示审查完成。"
+      }
+    ],
+    "polarities": [
+      {
+        "id": "affirmative",
+        "label": "肯定描述",
+        "description": "报道在该局部范围肯定描述该行动或变化，仍然只是报道断言。"
+      },
+      {
+        "id": "negated",
+        "label": "否定描述",
+        "description": "原文限定该行动或变化未发生、不会发生或被否定。"
+      },
+      {
+        "id": "undetermined",
+        "label": "极性不确定",
+        "description": "原文极性不明确或存在不能可靠消解的限定。"
+      }
+    ],
+    "modalities": [
+      {
+        "id": "reported",
+        "label": "报道陈述",
+        "description": "局部范围没有命中受支持的计划、预测、条件或不确定限定；不作真实性认证。"
+      },
+      {
+        "id": "planned",
+        "label": "计划或拟议",
+        "description": "原文描述计划、拟议或将要开展的行动，不能当作完成。"
+      },
+      {
+        "id": "predicted",
+        "label": "预测或预期",
+        "description": "原文描述预测或预期结果，不能当作已实现结果。"
+      },
+      {
+        "id": "conditional",
+        "label": "条件描述",
+        "description": "行动或变化依赖尚待满足的条件。"
+      },
+      {
+        "id": "undetermined",
+        "label": "模态不确定",
+        "description": "原文为可能、传闻、规范要求或其他不能确定的限定。"
+      }
+    ],
+    "reasonCodes": [
+      {
+        "id": "supported_description",
+        "label": "命中支持规则",
+        "description": "存在符合当前受支持模板的谓词、语境和限定证据。"
+      },
+      {
+        "id": "reviewed_not_applicable",
+        "label": "明确审查不适用",
+        "description": "精确绑定新闻片段及证据位置的审查已确认不适用。"
+      },
+      {
+        "id": "no_supported_rule",
+        "label": "未命中支持规则",
+        "description": "可见正文未匹配当前受支持的行动或变化规则。"
+      },
+      {
+        "id": "no_visible_body",
+        "label": "无可见正文",
+        "description": "去除元数据和注释后没有可判定的正文。"
+      },
+      {
+        "id": "ambiguous_scope",
+        "label": "语境范围不明确",
+        "description": "疑问或范围边界使当前规则不能作出可靠判断。"
+      },
+      {
+        "id": "insufficient_context",
+        "label": "语境证据不足",
+        "description": "存在候选谓词，但不满足同一局部范围的必要语境。"
+      },
+      {
+        "id": "excluded_context",
+        "label": "命中排除语境",
+        "description": "文本属于规则明确排除的名称、统计或抽象讨论等语境。"
+      }
+    ],
+    "templates": [
+      {
+        "id": "legal_adjudication",
+        "conceptId": "action-legal"
+      },
+      {
+        "id": "legal_prosecution",
+        "conceptId": "action-legal"
+      },
+      {
+        "id": "engineering_lifecycle",
+        "conceptId": "action-engineering"
+      },
+      {
+        "id": "quantitative_change",
+        "conceptId": "change-quantitative"
+      }
+    ]
+  }
 }

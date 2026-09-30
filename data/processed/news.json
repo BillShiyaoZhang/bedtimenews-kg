@@ -52650,29 +52650,6 @@
       }
     },
     {
-      "id": "page-6b7afe80df35",
-      "title": "短视频试验",
-      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
-      "repositoryPath": "shorts/test.md",
-      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
-      "publishedAt": "2023-03-10",
-      "dateProvenance": {
-        "observedAt": "2023-03-10",
-        "source": "frontmatter",
-        "resolution": "observed"
-      },
-      "kind": "shorts",
-      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
-      "segmentation": {
-        "strategy": "page_fallback",
-        "confidence": 0.8,
-        "newsCount": 1,
-        "candidateBoundaryCount": 0,
-        "needsReview": false,
-        "reviewReasons": []
-      }
-    },
-    {
       "id": "page-808bab752f47",
       "title": "【参考信息654】再查“不想生不敢生”；车企“去宁德化”？",
       "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/654",
@@ -52720,6 +52697,29 @@
         "reviewReasons": [
           "metadata_only_news_segmentation"
         ]
+      }
+    },
+    {
+      "id": "page-6b7afe80df35",
+      "title": "短视频试验",
+      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
+      "repositoryPath": "shorts/test.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
+      "publishedAt": "2023-03-10",
+      "dateProvenance": {
+        "observedAt": "2023-03-10",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "shorts",
+      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
+      "segmentation": {
+        "strategy": "page_fallback",
+        "confidence": 0.8,
+        "newsCount": 1,
+        "candidateBoundaryCount": 0,
+        "needsReview": false,
+        "reviewReasons": []
       }
     }
   ],
@@ -217922,23 +217922,6 @@
       }
     },
     {
-      "id": "news-107e28383559",
-      "title": "短视频试验",
-      "date": "2023-03-10",
-      "datePrecision": "day",
-      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
-      "pageId": "page-6b7afe80df35",
-      "fragment": {
-        "strategy": "page_fallback",
-        "ordinal": 1,
-        "sourceField": "body",
-        "startLine": 10,
-        "endLine": 15,
-        "marker": "page",
-        "contentHash": "82f00b37a16ad6bb5d449fd21b4f18776ad794d296bd9c0ddc9444e7baaaccdd"
-      }
-    },
-    {
       "id": "news-461120478e05",
       "title": "我国二手房交易占比突破50%，市场进入存量时代",
       "date": "2026-09-29",
@@ -218202,6 +218185,23 @@
         "endColumn": 209,
         "marker": "在思考AI时代分配的背景下重审江西低保户看演唱会女孩事件。",
         "contentHash": "876fea72d3385a5f2dda118d45d5f72485f1673b66f9806d6c753c57185735d0"
+      }
+    },
+    {
+      "id": "news-107e28383559",
+      "title": "短视频试验",
+      "date": "2023-03-10",
+      "datePrecision": "day",
+      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
+      "pageId": "page-6b7afe80df35",
+      "fragment": {
+        "strategy": "page_fallback",
+        "ordinal": 1,
+        "sourceField": "body",
+        "startLine": 10,
+        "endLine": 15,
+        "marker": "page",
+        "contentHash": "82f00b37a16ad6bb5d449fd21b4f18776ad794d296bd9c0ddc9444e7baaaccdd"
       }
     }
   ]

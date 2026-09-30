@@ -204,5 +204,13 @@ Unicode 兼容归一化，忽略大小写、全半角、空白和标点差异，
 版本和两份输入哈希，用于拒绝增量时混入不同语义版本。
 
 主题父级是检索派生关系，不是 `entityRelations` 或 `topicEvidence` 中的新断言。
-当前 KG 还没有 Assertion/Support 生命周期或原子 Release；它们是后续迁移，不能
-据本阶段字段接受历史新闻修改/删除。详见 [本体与编译](ontology.md)。
+Assertion/Support 生命周期与原子 Release 现已实现，历史新闻修改/删除仍必须经过
+精确来源审查与完整候选回放。详见 [已接受版本](accepted-releases.md)。
+
+## 报道行动评估（schema 2.4）
+
+`event.actionAssessment` 记录三态、具体行动/变化类、极性/模态以及本新闻精确局部证据。
+`source.actionExtractionVersion` 和 `source.actionNormalizationVersion` 绑定语义及坐标版本。
+旧领域 `event.type` 和现有身份保持独立；已分类描述也不是已验证现实事件。
+审计账本的 `actionAssessments` 表与 exact occurrence witness 支持逐新闻修正、撤回和恢复。
+详见 [行动评估](action-assessments.md)。

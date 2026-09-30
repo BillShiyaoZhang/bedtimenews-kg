@@ -4,6 +4,7 @@ import Link from "next/link";
 import knowledgeBaseData from "../../data/generated/kg.json";
 import ontologyData from "../../data/ontology.json";
 import { eventMatchesTopic } from "../lib/ontology-hierarchy.mjs";
+import { actionNewsCount } from "../lib/action-assessment.mjs";
 import type { KnowledgeBase, Ontology, OntologyHierarchy } from "../lib/kg";
 import type { CSSProperties } from "react";
 
@@ -99,6 +100,9 @@ export default function OntologyPage() {
       ).length,
     }),
   );
+  const actionStatusCounts = (ontology.actionAssessment?.statuses ?? []).map((status) => ({ ...status, count: new Set(knowledgeBase.events.filter((event) => event.actionAssessment?.status === status.id).map((event) => event.newsId)).size }));
+  const unassessedNewsCount = new Set(knowledgeBase.events.filter((event) => !event.actionAssessment).map((event) => event.newsId)).size;
+  const actionCounts = new Map(ontology.hierarchies.action.nodes.filter((node) => node.status === "active").map((node) => [node.id, actionNewsCount(ontology, knowledgeBase.events, node.id)]));
 
   return (
     <main className="ontology-page">
@@ -155,9 +159,21 @@ export default function OntologyPage() {
         </div>
         <div className="hierarchy-grid">
           <article><h3>实体类 · subClassOf</h3><p>实体实例通过类型归属到类；不会把实例与类、整体与部分混为一谈。</p><HierarchyTree hierarchy={ontology.hierarchies.entity} /></article>
-          <article><h3>事件行动 · subClassOf</h3><p>这里是待用于抽取的行动定义；本版尚未生成行动实例，不以旧报道领域代替行动证据。</p><HierarchyTree hierarchy={ontology.hierarchies.action} /></article>
+          <article><h3>报道中的行动/变化 · subClassOf</h3><p>仅启用有保守规则和局部原文证据的类别；草案没有进入抽取。上位类用于导航，不接受直接分配。数量是描述此类行动的独立新闻数，不是已核实的现实发生次数。</p><HierarchyTree hierarchy={ontology.hierarchies.action} counts={actionCounts} action /></article>
           <article><h3>议题 · broaderTopic</h3><p>可在首页选择父级或具体议题；抽取证据只属于实际命中的新闻。</p><HierarchyTree hierarchy={ontology.hierarchies.topic} counts={new Map(ontology.hierarchies.topic.nodes.map((node) => [node.id, knowledgeBase.events.filter((event) => eventMatchesTopic(ontology, event, node.id)).length]))} /></article>
         </div>
+      </section>
+
+      <section className="ontology-section coverage-section" aria-label="报道中的行动与变化评估">
+        <div className="ontology-section-heading">
+          <div><span className="eyebrow">Reported descriptions</span><h2>报道中的行动/变化评估</h2></div>
+          <p>评估以新闻片段为单位。未命中受支持规则保留为尚未确定；只有精确绑定新闻、片段哈希和原文位置的明确审查才能标为不适用。极性和模态始终保留，来源支持不代表独立证实。</p>
+        </div>
+        <div className="coverage-grid">
+          {actionStatusCounts.map((status) => <article key={status.id}><div><strong>{status.label}</strong><span>{status.count.toLocaleString("zh-CN")} 条新闻</span></div><p>{status.description}</p></article>)}
+          {unassessedNewsCount > 0 && <article><div><strong>历史版本未记录评估</strong><span>{unassessedNewsCount.toLocaleString("zh-CN")} 条新闻</span></div><p>历史缺项保留为未记录，不视为已评估或不适用。</p></article>}
+        </div>
+        <p>支持的极性：{ontology.actionAssessment?.polarities.map((entry) => entry.label).join("、")}。支持的模态：{ontology.actionAssessment?.modalities.map((entry) => entry.label).join("、")}。</p>
       </section>
 
       <section className="ontology-section coverage-section">
@@ -407,9 +423,10 @@ export default function OntologyPage() {
   );
 }
 
-function HierarchyTree({ hierarchy, parentId = hierarchy.rootId, counts }: { hierarchy: OntologyHierarchy; parentId?: string; counts?: Map<string, number> }) {
+function HierarchyTree({ hierarchy, parentId = hierarchy.rootId, counts, action = false }: { hierarchy: OntologyHierarchy; parentId?: string; counts?: Map<string, number>; action?: boolean }) {
   return <ul className="ontology-tree">{hierarchy.nodes.filter((node) => node.primaryParentId === parentId).map((node) => <li key={node.id}>
-    <span title={`${node.id} · ${node.description}`}>{node.label}{node.status === "draft" && <small> · 草案</small>}{counts && <small> {counts.get(node.id)?.toLocaleString("zh-CN")} 条新闻</small>}</span>
-    {hierarchy.nodes.some((child) => child.primaryParentId === node.id) && <HierarchyTree hierarchy={hierarchy} parentId={node.id} counts={counts} />}
+    <span title={`${node.id} · ${node.description}`}>{node.label}{node.status === "draft" && <small> · 草案，未启用</small>}{action && node.status === "active" && <small> · {node.abstract ? "抽象上位类" : "支持抽取"}</small>}{counts?.has(node.id) && <small> {counts.get(node.id)?.toLocaleString("zh-CN")} 条新闻</small>}</span>
+    {action && node.status === "active" && !node.abstract && <p>{node.description}</p>}
+    {hierarchy.nodes.some((child) => child.primaryParentId === node.id) && <HierarchyTree hierarchy={hierarchy} parentId={node.id} counts={counts} action={action} />}
   </li>)}</ul>;
 }

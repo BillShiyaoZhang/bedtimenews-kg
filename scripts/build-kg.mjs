@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { validateActionEvidenceSources } from "./lib/action-evidence.mjs";
+import { canonicalJson } from "./lib/candidate-bundle.mjs";
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
@@ -57,6 +59,7 @@ const { entities, events, eventRelations } = kg;
 
 const issues = [
   ...validate(kg, ontology),
+  ...(await validateActionEvidenceSources(kg, newsDataset, extractionRules, sourceRoot, { rawPages })),
   ...validateKnowledgeBaseNewsProjection(kg, newsDataset),
   ...(await validateTopicEvidence(kg, newsDataset, extractionRules, sourceRoot)),
 ];
@@ -70,7 +73,7 @@ if (issues.length) {
 }
 
 await mkdir(dirname(outputPath), { recursive: true });
-await writeFile(outputPath, `${JSON.stringify(kg, null, 2)}\n`, "utf8");
+await writeFile(outputPath, `${canonicalJson(kg)}\n`, "utf8");
 const coveredEvents = events.filter((event) => event.entityIds.length).length;
 console.log(
   `Generated ${relative(projectRoot, outputPath)} from ${events.length} independent news ` +

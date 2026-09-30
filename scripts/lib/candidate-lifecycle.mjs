@@ -37,7 +37,7 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
   for (const name of GRAPH_COLLECTIONS) collections.set(`kg.${name}`, recordsById(kg[name], `kg.${name}`));
   collections.set("news.news", recordsById(newsRecords, "news.news"));
   collections.set("news.pages", recordsById(pageRecords, "news.pages"));
-  for (const name of LEDGER_COLLECTIONS) collections.set(`provenance.${name}`, recordsById(provenance[name] ?? [], `provenance.${name}`));
+  for (const name of [...LEDGER_COLLECTIONS, ...(Object.hasOwn(provenance, "actionAssessments") ? ["actionAssessments"] : [])]) collections.set(`provenance.${name}`, recordsById(provenance[name] ?? [], `provenance.${name}`));
   const hashes = new Map([...collections].map(([name, rows]) => [name, new Map([...rows].map(([id, row]) => [id, hash(row)]))]));
   const get = (table, id) => {
     const value = collections.get(table)?.get(id);
@@ -59,6 +59,34 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
     ensure(!revisionByNews.has(revision.newsId), `multiple current revisions for news ${revision.newsId}`);
     revisionByNews.set(revision.newsId, revision);
   }
+  // Frozen history cannot borrow an identical witness from a different news
+  // revision. Source replay remains authoritative, but these references must
+  // also be internally scoped before deriving lifecycle fingerprints.
+  const actionDecisions = ledger("actionAssessments");
+  if (kg.source?.actionExtractionVersion) {
+    ensure(actionDecisions?.size === eventsByNews.size, "missing action assessment decisions");
+    const assessedEvents = new Set();
+    for (const decision of actionDecisions.values()) {
+      const event = get("kg.events", decision.eventId);
+      ensure(!assessedEvents.has(event.id), `duplicate action assessment ${event.id}`); assessedEvents.add(event.id);
+      ensure(revisionByNews.get(event.newsId)?.id === decision.newsRevisionId, `cross-news action decision ${decision.id}`);
+      const input = get("provenance.inputs", decision.inputId);
+      ensure(input.newsRevisionId === decision.newsRevisionId && input.kind === "visible_action_fragment" && input.normalizationId === kg.source.actionNormalizationVersion && input.origin === "verified_fragment", `cross-news or invalid action input ${decision.id}`);
+      const referenced = [];
+      const witness = (id) => {
+        const row = get("provenance.evidence", id); referenced.push(id);
+        ensure(row.inputId === decision.inputId && row.spanPolicy === "exact_action_occurrence" && row.occurrenceCount === 1 && Array.isArray(row.firstRange) && row.firstRange.length === 2, `cross-news or invalid action witness ${id}`);
+        const [start, end] = row.firstRange;
+        ensure(Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && end > start && typeof row.text === "string" && row.text.trim() && row.text.length === end - start, `invalid action witness range ${id}`);
+        return { start, end, text: row.text };
+      };
+      const assignments = decision.assignments.map((assignment) => ({ conceptId: assignment.conceptId, polarity: assignment.polarity, modality: assignment.modality,
+        evidence: assignment.evidence.map((match) => ({ ruleId: match.ruleId, predicate: witness(match.predicateEvidenceId), scope: witness(match.scopeEvidenceId), qualifiers: match.qualifiers.map((row) => ({ kind: row.kind, value: row.value, ...witness(row.evidenceId) })) })) }));
+      const review = decision.review ? { id: decision.review.id, reviewedAt: decision.review.reviewedAt, reason: decision.review.reason, evidence: witness(decision.review.evidenceId) } : null;
+      ensure(canonicalJson(decision.evidenceIds) === canonicalJson(unique(referenced)), `action decision evidence index differs ${decision.id}`);
+      ensure(canonicalJson({ status: decision.status, reasonCode: decision.reasonCode, assignments, review }) === canonicalJson(event.actionAssessment), `action witnesses differ from projection ${decision.id}`);
+    }
+  } else ensure(!actionDecisions, "historical graph has unexpected action decisions");
   const supportIds = new Map();
   for (const support of ledger("supports").values()) {
     get("provenance.assertions", support.assertionId);
@@ -94,7 +122,7 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
     const row = get(`provenance.${table}`, id);
     const dependencies = [];
     const add = (name, ids) => { for (const value of ids ?? []) dependencies.push([name, value, fingerprint(name, value)]); };
-    for (const [field, name] of Object.entries({ sourceRevisionId: "sourceRevisions", newsRevisionId: "newsRevisions", inputId: "inputs", observationId: "observations", decisionId: "classifications", groupId: "chronologyGroups", evidenceId: "evidence" })) {
+    for (const [field, name] of Object.entries({ sourceRevisionId: "sourceRevisions", newsRevisionId: "newsRevisions", inputId: "inputs", observationId: "observations", decisionId: "classifications", actionAssessmentId: "actionAssessments", groupId: "chronologyGroups", evidenceId: "evidence" })) {
       if (row[field]) add(name, [row[field]]);
     }
     for (const [field, name] of Object.entries({ newsRevisionIds: "newsRevisions", evidenceIds: "evidence", observationIds: "observations", dateDerivationIds: "dateDerivations", supportIds: "supports" })) add(name, row[field]);
@@ -122,7 +150,7 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
     const from = get("kg.events", assertion.subject);
     let newsIds = [from.newsId];
     if (assertion.predicate === "news_date_precedes") newsIds.push(get("kg.events", assertion.object).newsId);
-    else ensure(["assigned_entity", "assigned_legacy_domain"].includes(assertion.predicate), `unknown extraction predicate ${assertion.predicate}`);
+    else ensure(["assigned_entity", "assigned_legacy_domain", "action_applicability", "assigned_reported_action"].includes(assertion.predicate), `unknown extraction predicate ${assertion.predicate}`);
     newsIds = unique(newsIds);
     const sourcePaths = pathsForNews(newsIds);
     if (assertion.predicate === "assigned_entity") {
@@ -131,6 +159,8 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
       for (const path of sourcePaths) paths.add(path);
       pathsByEntity.set(assertion.object, paths);
     }
+    if (assertion.predicate === "action_applicability") ensure(from.actionAssessment?.status === assertion.object, `action status differs from projection ${assertion.id}`);
+    if (assertion.predicate === "assigned_reported_action") ensure(from.actionAssessment?.assignments.some((row) => canonicalJson({ conceptId: row.conceptId, polarity: row.polarity, modality: row.modality }) === canonicalJson(assertion.object)), `qualified action differs from projection ${assertion.id}`);
     const revision = revisionByAssertion.get(assertion.id);
     ensure(revision, `missing revision for assertion ${assertion.id}`);
     for (const id of revision.supportIds) {
@@ -138,6 +168,18 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
       const revisionIds = [...(support.newsRevisionIds ?? []), ...(support.newsRevisionId ? [support.newsRevisionId] : [])];
       if (support.observationId) revisionIds.push(get("provenance.observations", support.observationId).newsRevisionId);
       if (support.decisionId) revisionIds.push(get("provenance.classifications", support.decisionId).newsRevisionId);
+      if (["action_applicability", "assigned_reported_action"].includes(assertion.predicate)) ensure(typeof support.actionAssessmentId === "string" && support.actionAssessmentId.length > 0, `action assertion requires its own action assessment support ${id}`);
+      if (support.actionAssessmentId) {
+        const assessment = get("provenance.actionAssessments", support.actionAssessmentId);
+        ensure(assessment.eventId === from.id, `cross-news action assessment ${id}`);
+        revisionIds.push(assessment.newsRevisionId);
+        if (assertion.predicate === "action_applicability") ensure(support.method === "action_assessment" && assessment.status === assertion.object, `incorrect action applicability support ${id}`);
+        else {
+          ensure(assertion.predicate === "assigned_reported_action" && support.method === "fragment_action_rule", `incorrect action support scope ${id}`);
+          const assignment = assessment.assignments.find((row) => canonicalJson({ conceptId: row.conceptId, polarity: row.polarity, modality: row.modality }) === canonicalJson(assertion.object));
+          ensure(assignment?.evidence.some((match) => match.ruleId === support.ruleId && canonicalJson(unique([match.predicateEvidenceId, match.scopeEvidenceId, ...match.qualifiers.map((row) => row.evidenceId)])) === canonicalJson(support.evidenceIds)), `action support is not a qualified assessment witness ${id}`);
+        }
+      }
       const supportedNews = unique(revisionIds.map((newsRevisionId) => get("provenance.newsRevisions", newsRevisionId).newsId));
       ensure(canonicalJson(supportedNews) === canonicalJson(newsIds), `cross-news support ${id}`);
     }

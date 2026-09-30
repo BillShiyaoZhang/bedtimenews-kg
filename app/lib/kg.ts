@@ -1,6 +1,7 @@
 import { sameOntologyCompilation, validateCompiledHierarchy } from "./ontology-hierarchy.mjs";
 import { validateTopicEvidenceStructure } from "./topic-evidence.mjs";
 import { applyIdentityResolution } from "./identity-projection.mjs";
+import { validateActionAssessmentStructure } from "./action-assessment.mjs";
 
 export type EntityType = {
   id: string;
@@ -44,6 +45,22 @@ export type OntologyHierarchy = {
 };
 
 export type OntologyCompilation = { formatVersion: number; compilerVersion: string; sourceHash: string; patternsHash: string };
+export type ActionVocabularyEntry = { id: string; label: string; description: string };
+export type ActionFilter = { conceptId?: string; status?: string; polarity?: string; modality?: string };
+export type ActionSpan = { start: number; end: number; text: string };
+export type ActionQualifier = ActionSpan & { kind: "polarity" | "modality"; value: string };
+export type ActionAssignment = {
+  conceptId: string;
+  polarity: "affirmative" | "negated" | "undetermined";
+  modality: "reported" | "planned" | "predicted" | "conditional" | "undetermined";
+  evidence: { ruleId: string; predicate: ActionSpan; scope: ActionSpan; qualifiers: ActionQualifier[] }[];
+};
+export type ActionAssessment = {
+  status: "applicable" | "not_applicable" | "undetermined";
+  reasonCode: string;
+  assignments: ActionAssignment[];
+  review: null | { id: string; reviewedAt: string; reason: string; evidence: ActionSpan };
+};
 
 export type Ontology = {
   compilation: OntologyCompilation;
@@ -66,6 +83,15 @@ export type Ontology = {
   entityTypes: EntityType[];
   eventTypes: EventType[];
   relationTypes: RelationType[];
+  actionAssessment?: {
+    schemaVersion: number;
+    normalizationVersion: string;
+    statuses: ActionVocabularyEntry[];
+    polarities: ActionVocabularyEntry[];
+    modalities: ActionVocabularyEntry[];
+    reasonCodes: ActionVocabularyEntry[];
+    templates: { id: string; conceptId: string }[];
+  };
 };
 
 export type Entity = {
@@ -100,6 +126,8 @@ export type Event = {
   sourceIds: string[];
   significance: string;
   topicEvidence: TopicEvidence[];
+  // Mandatory for compiler 1.1 data; absent only in retained historical graphs.
+  actionAssessment?: ActionAssessment;
   identityAssignments?: { assignmentId: string; rawEntityId: string; rawLabel: string; identityId: string }[];
 };
 
@@ -164,6 +192,8 @@ export type KnowledgeBase = {
     newsOverrideVersion: string;
     extractionVersion: string;
     ontologyCompilation: OntologyCompilation;
+    actionExtractionVersion?: string;
+    actionNormalizationVersion?: string;
   };
   identityRegistrations?: { id: string; label: string; type: string; state: "active" | "dormant" | "tombstoned" }[];
   identityNavigation?: { rawEntityId: string; label: string; type: string; state: "active" | "dormant" | "cleared"; targets: { id: string; label: string; newsCount: number }[] }[];
@@ -343,6 +373,7 @@ export function validateKnowledgeBase(
 ): ValidationIssue[] {
   const issues = validateOntology(ontology);
   issues.push(...validateTopicEvidenceStructure(kg));
+  issues.push(...validateActionAssessmentStructure(kg, ontology));
   try { applyIdentityResolution(kg); } catch (cause) { issues.push({ level: "error", path: "identityResolution", message: cause instanceof Error ? cause.message : String(cause) }); }
   if (kg.schemaVersion !== ontology.version) {
     issues.push({ level: "error", path: "schemaVersion", message: "KG 与 ontology 版本不一致" });

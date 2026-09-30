@@ -13,6 +13,7 @@ import {
   type Ontology,
 } from "../lib/kg";
 import { KnowledgeGraphCanvas } from "./knowledge-graph-canvas";
+import { ActionAssessmentEvidence } from "./kg-explorer";
 
 const ENTITY_PICKER_LIMIT = 24;
 const NEWS_LIMIT = 80;
@@ -304,6 +305,7 @@ export function EntityGraphExplorer({
                 </div>
                 <h3>{selectedEvent.title}</h3>
                 <p>{selectedEvent.summary || "原文未提供摘要。"}</p>
+                <ActionAssessmentEvidence ontology={ontology} event={selectedEvent} expanded />
                 <div className="inspector-entities">
                   {selectedEvent.entityIds.slice(0, 12).map((entityId) => {
                     const entity = entityById.get(entityId);

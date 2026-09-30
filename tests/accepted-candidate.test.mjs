@@ -407,3 +407,109 @@ test("legacy checkpoint migrates to explicit news identities and continuation pr
     assert.equal(added.artifacts["kg.json"].events.length, raw.events.length + 1);
   });
 });
+
+test("accepted action supports survive qualifier correction, reviewed withdrawal and restoration without fact fusion", async () => {
+  await workspace(async ({ archive, build, accept, review }) => {
+    const path = "daily/2026-01-01.md";
+    const seed = await build("action-seed"); await accept(seed);
+    const oldEvent = seed.artifacts["kg.json"].events.find((event) => event.actionAssessment.assignments.some((row) => row.modality === "planned"));
+    assert.ok(oldEvent);
+    const actionAssertion = (candidate, eventId) => candidate.artifacts["provenance.json.gz"].assertions.find((row) => row.subject === eventId && row.predicate === "assigned_reported_action");
+    const planned = actionAssertion(seed, oldEvent.id); assert.equal(planned.object.modality, "planned");
+    const body = sourceText("2026-01-01", "北京市甲铁路项目已经开工建设，施工方继续介绍劳动与工资安排。");
+    await writeFile(resolve(archive, path), body); await commit(archive);
+    await assert.rejects(build("unreviewed-action-correction"), /review/u);
+    const corrected = await build("action-corrected", await review(seed, "action-correction", [{ path, operation: "revise" }]));
+    const reported = actionAssertion(corrected, oldEvent.id);
+    assert.equal(reported.object.modality, "reported"); assert.notEqual(reported.id, planned.id);
+    assert.equal(corrected.artifacts["lifecycle.json.gz"].states.assertions.find((row) => row.id === planned.id).state, "dormant");
+    assert.deepEqual(corrected.artifacts["diff.json"].actions.changedNewsIds, [oldEvent.newsId]);
+    const report = JSON.parse(corrected.acceptedFiles.get("data/review/ontology-candidates.json"));
+    assert.equal(report.actionAssessments.statusCounts.applicable, 2);
+    assert.equal(report.actionAssessments.directClassNewsCounts["action-engineering"], 2);
+    await accept(corrected);
+    await rm(resolve(archive, path)); await commit(archive);
+    const withdrawn = await build("action-withdrawn", await review(corrected, "withdraw-action", [{ path, operation: "retract" }]));
+    assert.equal(withdrawn.artifacts["lifecycle.json.gz"].states.assertions.find((row) => row.id === reported.id).state, "dormant");
+    assert.equal(withdrawn.artifacts["kg.json"].events.filter((row) => row.actionAssessment.status === "applicable").length, 1);
+    assert.equal(withdrawn.artifacts["provenance.json.gz"].assertions.filter((row) => row.predicate === "assigned_reported_action").length, 1);
+    await accept(withdrawn);
+    await writeFile(resolve(archive, path), body); await commit(archive);
+    const restored = await build("action-restored", await review(withdrawn, "restore-action", [{ path, operation: "restore" }]));
+    assert.equal(actionAssertion(restored, oldEvent.id).id, reported.id);
+    assert.equal(restored.artifacts["lifecycle.json.gz"].states.assertions.find((row) => row.id === reported.id).state, "active");
+    assert.equal(restored.artifacts["provenance.json.gz"].assertions.every((row) => row.epistemicScope === "extraction_assignment"), true);
+  }, async (archive) => {
+    await writeFile(resolve(archive, "daily/2026-01-01.md"), sourceText("2026-01-01", "北京市甲铁路项目计划明年开工建设，施工方继续介绍劳动与工资安排。"));
+    await writeFile(resolve(archive, "daily/2026-01-02.md"), sourceText("2026-01-02", "上海市乙铁路项目已经开工建设，施工方继续介绍劳动与工资安排。"));
+  });
+});
+
+test("action-rule semantic migration binds exact qualifier diff and cannot silently rewrite legacy domains", async () => {
+  await workspace(async ({ directory, archive, build, accept, load, store }) => {
+    const seed = await build("action-migration-seed"); await accept(seed);
+    const patternsPath = resolve(directory, "data/extraction-patterns.json");
+    const patterns = JSON.parse(await readFile(patternsPath, "utf8"));
+    patterns.version = "4.2.1";
+    patterns.actionExtraction.rules.find((rule) => rule.template === "engineering_lifecycle").predicates = ["投产"];
+    await writeFile(patternsPath, `${JSON.stringify(patterns, null, 2)}\n`);
+    await run(directory, process.execPath, ["scripts/compile-ontology.mjs"]);
+    const code = await commit(directory, ["data"]); await git(directory, ["update-ref", "refs/remotes/origin/main", code]);
+    await assert.rejects(build("action-unreviewed-semantic"), /explicit migration required/u);
+    const preview = await previewAcceptedMigration(directory, { source: archive, checkpoint: await load(), store, generatedAt });
+    const migrationReview = resolve(directory, "action-semantic.review.json");
+    await writeFile(migrationReview, jsonBytes({ ...preview.reviewBinding, reviewedAt: generatedAt, reason: "Review narrowing of engineering extraction predicates, preserving legacy domains and raw identity assignments" }));
+    const migrated = await build("action-reviewed-semantic", { migrationReview });
+    assert.equal(migrated.mode, "migration");
+    assert.equal(migrated.artifacts["diff.json"].actions.records.summary.changed, 2);
+    assert.deepEqual(migrated.artifacts["kg.json"].events.map(({ id, type, entityIds, topicEvidence }) => ({ id, type, entityIds, topicEvidence })), seed.artifacts["kg.json"].events.map(({ id, type, entityIds, topicEvidence }) => ({ id, type, entityIds, topicEvidence })));
+    assert.equal(migrated.artifacts["kg.json"].events.every((row) => row.actionAssessment.status === "undetermined"), true);
+    assert.equal((await verifyAcceptedCandidate(directory, migrated.output, { source: archive, checkpoint: await load(), store })).mode, "migration");
+    await accept(migrated); assert.equal((await build("action-migration-noop")).noop, true);
+  }, async (archive) => {
+    for (const day of ["2026-01-01", "2026-01-02"]) await writeFile(resolve(archive, `daily/${day}.md`), sourceText(day, "北京市甲铁路项目计划明年开工建设，施工方继续介绍劳动与工资安排。"));
+  });
+});
+
+test("action qualifier rollback reports the restored assessment and preserves forward support history", async () => {
+  await workspace(async ({ directory, archive, build, accept, load, store, review }) => {
+    const path = "daily/2026-01-01.md";
+    const seed = await build("action-rollback-seed"); const target = await accept(seed);
+    const event = seed.artifacts["kg.json"].events.find((row) => row.actionAssessment.assignments.some((assignment) => assignment.modality === "planned"));
+    assert.ok(event);
+    const assertion = (candidate) => candidate.artifacts["provenance.json.gz"].assertions.find((row) => row.subject === event.id && row.predicate === "assigned_reported_action");
+    await writeFile(resolve(archive, path), sourceText("2026-01-01", "北京市甲铁路项目已经开工建设，施工方继续介绍劳动与工资安排。")); await commit(archive);
+    const corrected = await build("action-rollback-correction", await review(seed, "action-rollback-correction", [{ path, operation: "revise" }]));
+    assert.equal(assertion(corrected).object.modality, "reported"); await accept(corrected);
+    const checkpoint = await load();
+    const rollbackCheckpoint = await loadAcceptedGitCheckpoint({ root: directory, repository, commit: target.commit, allowAncestor: true });
+    const rollbackReview = resolve(directory, "action-rollback.review.json");
+    const binding = rollbackReviewBinding(await readVerifiedAcceptedCheckpoint(checkpoint), await readVerifiedAcceptedCheckpoint(rollbackCheckpoint));
+    await writeFile(rollbackReview, jsonBytes({ ...binding, reviewedAt: generatedAt, reason: "Restore the accepted planned-action qualifier and retain the corrected assertion history" }));
+    const away = `${archive}-unavailable`; await rename(archive, away);
+    try {
+      const options = { checkpoint, rollbackCheckpoint, rollbackReview, store, output: "work/accepted/action-rollback" };
+      const restored = await buildAcceptedRollback(directory, options);
+      const actions = restored.artifacts["diff.json"].actions;
+      assert.deepEqual(actions.changedNewsIds, [event.newsId]);
+      assert.equal(actions.records.summary.changed, 1);
+      assert.deepEqual(actions.before, corrected.artifacts["diff.json"].actions.after);
+      assert.deepEqual(actions.after, seed.artifacts["diff.json"].actions.after);
+      assert.equal(actions.assessmentsHash, seed.artifacts["diff.json"].actions.assessmentsHash);
+      assert.equal(assertion(restored).id, assertion(seed).id);
+      const states = restored.artifacts["lifecycle.json.gz"].states.assertions;
+      assert.equal(states.find((row) => row.id === assertion(seed).id).state, "active");
+      assert.equal(states.find((row) => row.id === assertion(corrected).id).state, "dormant");
+      assert.equal((await verifyAcceptedRollback(directory, restored.output, options)).freshSourceReplay, false);
+      assert.deepEqual(JSON.parse(restored.acceptedFiles.get("data/review/ontology-candidates.json")).actionAssessments, actions.after);
+      await rename(away, archive);
+      await git(archive, ["checkout", "--detach", restored.manifest.inputs.recipe.archiveCommit]);
+      await accept(restored);
+      assert.equal((await build("action-after-rollback-noop")).noop, true);
+    } finally {
+      try { await rename(away, archive); } catch (error) { if (error.code !== "ENOENT") throw error; }
+    }
+  }, async (archive) => {
+    await writeFile(resolve(archive, "daily/2026-01-01.md"), sourceText("2026-01-01", "北京市甲铁路项目计划明年开工建设，施工方继续介绍劳动与工资安排。"));
+  });
+});

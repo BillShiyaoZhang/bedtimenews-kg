@@ -10,16 +10,16 @@
   "upstreamCommit": "907bde68b02b8c2cfd82617ea3555c6d81a9ea43",
   "observedAt": "2026-09-29T01:05:06Z",
   "bootstrap": false,
-  "semanticRebuild": false,
-  "extractionVersion": "4.1.0",
+  "semanticRebuild": true,
+  "extractionVersion": "4.2.0",
   "segmentationVersion": "1.4.0",
   "newsOverrideVersion": "1.1.0",
   "summary": {
-    "ingestedFiles": 2,
-    "appendedPages": 2,
-    "appendedNews": 14,
-    "appendedEntities": 0,
-    "appendedRelations": 0,
+    "ingestedFiles": 2109,
+    "appendedPages": 2079,
+    "appendedNews": 9652,
+    "appendedEntities": 1764,
+    "appendedRelations": 8141,
     "modifiedFilesAwaitingReview": 0,
     "deletedFilesAwaitingReview": 0,
     "possibleRenamesAwaitingReview": 0,
@@ -27,10 +27,7 @@
     "appliedSourceRevisions": 0
   },
   "appliedSourceRevisions": [],
-  "ingestedPaths": [
-    "reference/601-700/654.md",
-    "reference/601-700/655.md"
-  ],
+  "ingestedPaths": [],
   "pendingReview": {
     "modified": [],
     "deleted": [],

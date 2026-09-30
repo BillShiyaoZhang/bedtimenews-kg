@@ -1,5 +1,6 @@
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { buildSegmentationReport } from "./news.mjs";
+import { summarizeActionAssessments } from "./action-reporting.mjs";
 
 const bytes = (value) => Buffer.from(`${canonicalJson(value)}\n`);
 const must = (value, message) => { if (!value) throw new Error(`Accepted reports: ${message}`); };
@@ -93,6 +94,7 @@ export function buildAcceptedOntologyReport({ kg, ontology, newEvents, commit, t
     newsDatasetSchemaVersion: kg.source.newsDatasetSchemaVersion,
     segmentationVersion: kg.source.segmentationVersion,
     extractionVersion: kg.source.extractionVersion,
+    ...(kg.source.actionExtractionVersion ? { actionAssessments: summarizeActionAssessments(kg) } : {}),
     policy:
       "Coverage describes the complete accepted extraction projection. Sources are acquired separately; every accepted candidate fully rematerializes the graph. Topic assignments and legacy event domains are extraction annotations, not independent claims that real-world events occurred.",
     coverage: {
