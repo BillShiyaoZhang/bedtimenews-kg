@@ -52500,29 +52500,6 @@
       }
     },
     {
-      "id": "page-6b7afe80df35",
-      "title": "短视频试验",
-      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
-      "repositoryPath": "shorts/test.md",
-      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
-      "publishedAt": "2023-03-10",
-      "dateProvenance": {
-        "observedAt": "2023-03-10",
-        "source": "frontmatter",
-        "resolution": "observed"
-      },
-      "kind": "shorts",
-      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
-      "segmentation": {
-        "strategy": "page_fallback",
-        "confidence": 0.8,
-        "newsCount": 1,
-        "candidateBoundaryCount": 0,
-        "needsReview": false,
-        "reviewReasons": []
-      }
-    },
-    {
       "id": "page-2a0a36204320",
       "title": "【参考信息648】期满高速继续收费；火车站降格乘降所",
       "archiveUrl": "https://archive.bedtime.news/zh/reference/601-700/648",
@@ -52670,6 +52647,29 @@
         "reviewReasons": [
           "metadata_only_news_segmentation"
         ]
+      }
+    },
+    {
+      "id": "page-6b7afe80df35",
+      "title": "短视频试验",
+      "archiveUrl": "https://archive.bedtime.news/zh/shorts/test",
+      "repositoryPath": "shorts/test.md",
+      "repositoryUrl": "https://github.com/bedtimenews/bedtimenews-archive-contents/blob/main/shorts/test.md",
+      "publishedAt": "2023-03-10",
+      "dateProvenance": {
+        "observedAt": "2023-03-10",
+        "source": "frontmatter",
+        "resolution": "observed"
+      },
+      "kind": "shorts",
+      "contentHash": "88b93d962c393475acaf3ddff5b2354c83c0763cd35033ae6fc9fddb74af5e7d",
+      "segmentation": {
+        "strategy": "page_fallback",
+        "confidence": 0.8,
+        "newsCount": 1,
+        "candidateBoundaryCount": 0,
+        "needsReview": false,
+        "reviewReasons": []
       }
     }
   ],
@@ -217188,23 +217188,6 @@
       }
     },
     {
-      "id": "news-107e28383559",
-      "title": "短视频试验",
-      "date": "2023-03-10",
-      "datePrecision": "day",
-      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
-      "pageId": "page-6b7afe80df35",
-      "fragment": {
-        "strategy": "page_fallback",
-        "ordinal": 1,
-        "sourceField": "body",
-        "startLine": 10,
-        "endLine": 15,
-        "marker": "page",
-        "contentHash": "82f00b37a16ad6bb5d449fd21b4f18776ad794d296bd9c0ddc9444e7baaaccdd"
-      }
-    },
-    {
       "id": "news-804c13892b87",
       "title": "《公路法》拟修订，高速公路、独立桥梁、隧道的收费期满后由政府统一管理，养护资金可采用收取通行费等办法筹集",
       "date": "2026-09-20",
@@ -217886,6 +217869,23 @@
         "endColumn": 213,
         "marker": "南京一幼儿园被曝幼儿集体呕吐，食堂用炒菜锅洗拖把。",
         "contentHash": "2f2f3c45f39e701394e258ffc32bbe8f79454a15af8b3492b0902b9145a5af4b"
+      }
+    },
+    {
+      "id": "news-107e28383559",
+      "title": "短视频试验",
+      "date": "2023-03-10",
+      "datePrecision": "day",
+      "summary": "- 逮住马督工2 2023-03-15 - 逮住马督工1 2023-03-13 - 试验2 选个好专业 少判几年刑 - 试验1 逃不过的元旦劫",
+      "pageId": "page-6b7afe80df35",
+      "fragment": {
+        "strategy": "page_fallback",
+        "ordinal": 1,
+        "sourceField": "body",
+        "startLine": 10,
+        "endLine": 15,
+        "marker": "page",
+        "contentHash": "82f00b37a16ad6bb5d449fd21b4f18776ad794d296bd9c0ddc9444e7baaaccdd"
       }
     }
   ]
