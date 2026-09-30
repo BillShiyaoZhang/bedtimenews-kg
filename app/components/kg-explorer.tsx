@@ -6,6 +6,8 @@ import {
   formatEventDate,
   type Entity,
   type Event,
+  type ActionFilter,
+  type ActionAssignment,
   type KnowledgeBase,
   type Ontology,
 } from "../lib/kg";
@@ -19,6 +21,7 @@ import {
 } from "../lib/search.mjs";
 
 import { topicEntityIds, topicMatchReason } from "../lib/ontology-hierarchy.mjs";
+import { actionAssessmentLabel, actionFilterOptions, actionMatchReasons, eventMatchesAction } from "../lib/action-assessment.mjs";
 
 type SearchMode = "keyword" | "filters";
 type Filters = {
@@ -29,6 +32,10 @@ type Filters = {
   objectId: string;
   fromYear: string;
   toYear: string;
+  actionConceptId: string;
+  actionStatus: string;
+  actionPolarity: string;
+  actionModality: string;
 };
 
 const EMPTY_FILTERS: Filters = {
@@ -39,7 +46,12 @@ const EMPTY_FILTERS: Filters = {
   objectId: "",
   fromYear: "",
   toYear: "",
+  actionConceptId: "",
+  actionStatus: "",
+  actionPolarity: "",
+  actionModality: "",
 };
+const actionFilter = (filters: Filters): ActionFilter => ({ conceptId: filters.actionConceptId, status: filters.actionStatus, polarity: filters.actionPolarity, modality: filters.actionModality });
 const RESULT_LIMIT = 60;
 const ENTITY_RESULT_LIMIT = 12;
 
@@ -120,6 +132,7 @@ export function KGExplorer({
     visit(hierarchy.rootId, 0);
     return options;
   }, [initialOntology.hierarchies.topic]);
+  const actionOptions = useMemo(() => actionFilterOptions(initialOntology, initialKG.events), [initialOntology, initialKG.events]);
   const searchableEvents = useMemo(
     () =>
       initialKG.events.map((event) => {
@@ -198,6 +211,7 @@ export function KGExplorer({
           if (id && !event.entityIds.includes(id)) return false;
         }
         if (selectedTopicIds && !event.entityIds.some((id: string) => selectedTopicIds.has(id))) return false;
+        if (!eventMatchesAction(initialOntology, event, actionFilter(selected))) return false;
         const year = Number(event.date.slice(0, 4));
         if (selected.fromYear && year < Number(selected.fromYear)) return false;
         if (selected.toYear && year > Number(selected.toYear)) return false;
@@ -414,6 +428,39 @@ export function KGExplorer({
                     </label>
                   </div>
                 </div>
+                <FilterSelect
+                  id="action-concept"
+                  label="报道中的行动/变化"
+                  value={filters.actionConceptId}
+                  onChange={(value) => updateFilter("actionConceptId", value)}
+                  options={actionOptions}
+                  placeholder="全部受支持类别"
+                />
+                <FilterSelect
+                  id="action-status"
+                  label="行动适用性评估"
+                  value={filters.actionStatus}
+                  onChange={(value) => updateFilter("actionStatus", value)}
+                  options={initialOntology.actionAssessment?.statuses ?? []}
+                  placeholder="全部评估状态"
+                />
+                <FilterSelect
+                  id="action-polarity"
+                  label="行动极性"
+                  value={filters.actionPolarity}
+                  onChange={(value) => updateFilter("actionPolarity", value)}
+                  options={initialOntology.actionAssessment?.polarities ?? []}
+                  placeholder="全部极性"
+                />
+                <FilterSelect
+                  id="action-modality"
+                  label="行动模态"
+                  value={filters.actionModality}
+                  onChange={(value) => updateFilter("actionModality", value)}
+                  options={initialOntology.actionAssessment?.modalities ?? []}
+                  placeholder="全部模态"
+                />
+                <small style={{ gridColumn: "1 / -1" }}>行动选项按全库独立新闻计数；类别、极性和模态必须由同一条分配同时满足。描述来自报道，不表示现实已经发生或得到独立证实。</small>
                 <div className="filter-actions">
                   <button
                     type="button"
@@ -447,6 +494,7 @@ export function KGExplorer({
         <SearchResults
           ontology={initialOntology}
           selectedTopicId={search.mode === "filters" ? search.filters.topicId : ""}
+          selectedActionFilter={search.mode === "filters" ? actionFilter(search.filters) : {}}
           total={result.total}
           events={result.events}
           totalEntities={result.totalEntities}
@@ -516,6 +564,7 @@ function EntitySelect({
 function SearchResults({
   ontology,
   selectedTopicId,
+  selectedActionFilter,
   total,
   events,
   totalEntities,
@@ -527,6 +576,7 @@ function SearchResults({
 }: {
   ontology: Ontology;
   selectedTopicId: string;
+  selectedActionFilter: ActionFilter;
   total: number;
   events: Event[];
   totalEntities: number;
@@ -622,6 +672,7 @@ function SearchResults({
                   <h3>{event.title}</h3>
                   {selectedTopicId && <small className="topic-match-reason">主题命中：{topicMatchReason(ontology, event, selectedTopicId).map((match) => `${match.label}（${match.inherited ? "由下级归入" : "直接关联"}）`).join("、")}</small>}
                   <p>{event.summary || "原文未提供摘要，请查看出处。"}</p>
+                  <ActionAssessmentEvidence ontology={ontology} event={event} filter={selectedActionFilter} />
                   {!!event.identityAssignments?.length && <small>含经审查的新闻级实体归属；原始抽取与证据单独保留</small>}
                   <div className="entity-tags">
                     {entities.slice(0, 8).map((entity) => (
@@ -665,4 +716,25 @@ function SearchResults({
       )}
     </section>
   );
+}
+
+// Shared by search results and the selected-news inspector. All class and enum
+// names are read from the compiled ontology; spans remain quoted source text.
+export function ActionAssessmentEvidence({ ontology, event, filter = {}, expanded = false }: { ontology: Ontology; event: Event; filter?: ActionFilter; expanded?: boolean }) {
+  const assessment = event.actionAssessment;
+  if (!assessment) return <small>历史版本未记录行动评估</small>;
+  const matches = actionMatchReasons(ontology, event, filter);
+  return <section className="action-assessment-evidence" aria-label="报道中的行动/变化">
+    <p><strong>报道中的行动/变化</strong> · {actionAssessmentLabel(ontology, "statuses", assessment.status)}</p>
+    <small>{actionAssessmentLabel(ontology, "reasonCodes", assessment.reasonCode)}；仅描述本条报道，不验证现实发生。</small>
+    {matches.map((match) => <details key={`${match.conceptId}:${match.polarity}:${match.modality}`} open={expanded || undefined}>
+      <summary>{match.label}{filter.conceptId ? `（${match.inherited ? "由下级归入" : "直接关联"}）` : ""} · {actionAssessmentLabel(ontology, "polarities", match.polarity)} · {actionAssessmentLabel(ontology, "modalities", match.modality)} · {match.evidence.length} 处证据</summary>
+      {match.evidence.map((evidence: ActionAssignment["evidence"][number], index: number) => <div key={`${evidence.ruleId}:${evidence.predicate.start}:${index}`}>
+        <p>原文范围：{evidence.scope.text}</p>
+        <small>谓词：{evidence.predicate.text} · UTF-16 [{evidence.predicate.start}, {evidence.predicate.end}) · 规则 {evidence.ruleId}</small>
+        {evidence.qualifiers.length ? <p>原文限定：{evidence.qualifiers.map((qualifier) => `${qualifier.text}（${actionAssessmentLabel(ontology, qualifier.kind === "polarity" ? "polarities" : "modalities", qualifier.value)}；${qualifier.start}–${qualifier.end}）`).join("、")}</p> : <p>此局部范围未命中限定词；这不构成事实核实。</p>}
+      </div>)}
+    </details>)}
+    {assessment.review && <details open={expanded || undefined}><summary>查看不适用审查</summary><p>{assessment.review.reason}</p><p>原文范围：{assessment.review.evidence.text}</p><small>{assessment.review.reviewedAt} · UTF-16 [{assessment.review.evidence.start}, {assessment.review.evidence.end}) · 审查 {assessment.review.id}</small></details>}
+  </section>;
 }

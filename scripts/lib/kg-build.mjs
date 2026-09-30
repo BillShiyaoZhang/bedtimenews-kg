@@ -3,11 +3,14 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { createExtractionEngine, materializeEntity, shouldKeepCandidate } from "./extraction.mjs";
 import { cleanText, readNewsFragment } from "./news.mjs";
+import { createActionExtractionEngine } from "./action-extraction.mjs";
 
 // One materialization algorithm for accepted legacy builds and offline candidates.
 export function buildKnowledgeGraph({ dataset, rawPages, ontology, rules, generatedAt, collectTrace = false }) {
   if (typeof generatedAt !== "string" || !generatedAt) throw new Error("An explicit deterministic generatedAt is required");
   const extractor = createExtractionEngine(rules);
+  if (Boolean(ontology.actionAssessment) !== Boolean(rules.actionExtraction)) throw new Error("Action blueprint and extraction configuration must be present together");
+  const actionExtractor = rules.actionExtraction ? createActionExtractionEngine(rules.actionExtraction) : null;
   const trace = { news: [], retention: [], rescans: [], chronology: [] };
   const newsDataset = canonicalDataset(dataset);
   const pageById = new Map(newsDataset.pages.map((page) => [page.id, page]));
@@ -26,8 +29,9 @@ export function buildKnowledgeGraph({ dataset, rawPages, ontology, rules, genera
     const searchText = cleanText(text);
     const extraction = collectTrace ? extractor.extractCandidateDecisions(text, prominent, { newsId: item.id }) : { candidates: extractor.extractCandidates(text, prominent, { newsId: item.id }) };
     const candidates = extraction.candidates;
+    const actionAssessment = actionExtractor?.assess(fragment, { newsId: item.id, fragmentHash: item.fragment.contentHash });
     const classification = collectTrace ? extractor.classifyEventDecision(prominent, text) : { type: extractor.classifyEvent(prominent, text) };
-    if (collectTrace) trace.news.push({ newsId: item.id, eventId, observations: extraction.observations, classification, inputs: { text, prominent, fragment, search: searchText } });
+    if (collectTrace) trace.news.push({ newsId: item.id, eventId, observations: extraction.observations, classification, ...(actionAssessment ? { actionAssessment } : {}), inputs: { text, prominent, fragment, search: searchText } });
     const candidateKeys = [];
     for (const candidate of candidates) {
       candidateKeys.push(candidate.key);
@@ -60,6 +64,7 @@ export function buildKnowledgeGraph({ dataset, rawPages, ontology, rules, genera
       candidateKeys,
       // Only this news fragment may supply evidence, never the containing page.
       topicEvidence: extractor.matchTopicEvidence(fragment),
+      ...(actionAssessment ? { actionAssessment } : {}),
       searchText,
       sourceIds: [item.pageId],
       significance: "",
@@ -137,6 +142,7 @@ export function buildKnowledgeGraph({ dataset, rawPages, ontology, rules, genera
       segmentationVersion: newsDataset.segmentation.version,
       newsOverrideVersion: newsDataset.segmentation.overrideVersion,
       extractionVersion: extractor.version,
+      ...(actionExtractor ? { actionExtractionVersion: rules.actionExtraction.version, actionNormalizationVersion: rules.actionExtraction.normalizationVersion } : {}),
       ontologyCompilation: ontology.compilation,
     },
     entities,

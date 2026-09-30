@@ -12,6 +12,7 @@ import { readVerifiedAcceptedCheckpoint } from "./accepted-git.mjs";
 import { compileOntology } from "./ontology-compiler.mjs";
 import { acceptedSemanticSnapshot, semanticAxes, migrationReviewBinding, validateMigrationReview, assertMigrationNewsContinuity, rollbackReviewBinding, validateRollbackReview, rollbackSourcePlan } from "./accepted-transition.mjs";
 import { buildAcceptedReports } from "./accepted-reports.mjs";
+import { actionAssessmentDiff } from "./action-reporting.mjs";
 
 const must = (value, message) => { if (!value) throw new Error(`Accepted candidate: ${message}`); };
 const hash = (value) => sha256(canonicalJson(value));
@@ -368,6 +369,7 @@ function restoreArtifacts(context) {
   const provenance = json(targetBundle.files.get("provenance.json.gz"), "provenance.json.gz");
   const diff = { schemaVersion: "2.0.0", epistemicScope: "extraction_assignment",
     graph: diffKnowledgeGraphs(baseline.kg, kg), news: diffRecords(baseline.news, news, { collections: ["pages", "news"] }),
+    ...actionAssessmentDiff(baseline.kg, kg),
     lifecycle: { baselineBundleId: baseline.manifest.bundleId, transitionsHash: hash(lifecycle.transitions),
       note: "Each assignment belongs to its own news projection. Withdrawn support never labels a real-world claim false." },
     restoration: { targetBundleId: targetBundle.manifest.bundleId, freshSourceReplay: false } };

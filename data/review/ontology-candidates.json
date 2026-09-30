@@ -2,10 +2,40 @@
   "schemaVersion": 4,
   "upstreamCommit": "907bde68b02b8c2cfd82617ea3555c6d81a9ea43",
   "observedAt": "2026-09-29T01:05:06Z",
-  "ontologyVersion": "2.3.0",
+  "ontologyVersion": "2.4.0",
   "newsDatasetSchemaVersion": "1.1.0",
   "segmentationVersion": "1.4.0",
-  "extractionVersion": "4.1.0",
+  "extractionVersion": "4.2.0",
+  "actionAssessments": {
+    "semantics": "news_scoped_reported_descriptions_not_verified_occurrences",
+    "totalNews": 9652,
+    "unrecordedLegacyNews": 0,
+    "statusCounts": {
+      "applicable": 700,
+      "not_applicable": 0,
+      "undetermined": 8952
+    },
+    "directClassNewsCounts": {
+      "action-engineering": 247,
+      "action-legal": 285,
+      "change-quantitative": 191
+    },
+    "qualifiedClassNewsCounts": {
+      "{\"conceptId\":\"action-engineering\",\"modality\":\"conditional\",\"polarity\":\"affirmative\"}": 3,
+      "{\"conceptId\":\"action-engineering\",\"modality\":\"planned\",\"polarity\":\"affirmative\"}": 21,
+      "{\"conceptId\":\"action-engineering\",\"modality\":\"predicted\",\"polarity\":\"affirmative\"}": 13,
+      "{\"conceptId\":\"action-engineering\",\"modality\":\"reported\",\"polarity\":\"affirmative\"}": 226,
+      "{\"conceptId\":\"action-engineering\",\"modality\":\"reported\",\"polarity\":\"negated\"}": 7,
+      "{\"conceptId\":\"action-legal\",\"modality\":\"conditional\",\"polarity\":\"affirmative\"}": 5,
+      "{\"conceptId\":\"action-legal\",\"modality\":\"planned\",\"polarity\":\"affirmative\"}": 1,
+      "{\"conceptId\":\"action-legal\",\"modality\":\"planned\",\"polarity\":\"negated\"}": 1,
+      "{\"conceptId\":\"action-legal\",\"modality\":\"reported\",\"polarity\":\"affirmative\"}": 273,
+      "{\"conceptId\":\"action-legal\",\"modality\":\"reported\",\"polarity\":\"negated\"}": 7,
+      "{\"conceptId\":\"change-quantitative\",\"modality\":\"predicted\",\"polarity\":\"affirmative\"}": 3,
+      "{\"conceptId\":\"change-quantitative\",\"modality\":\"reported\",\"polarity\":\"affirmative\"}": 189
+    },
+    "independence": "not_assessed_unique_news_counts_are_not_independent_confirmations"
+  },
   "policy": "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
   "coverage": {
     "totalNews": 9652,
@@ -82,7 +112,7 @@
     }
   },
   "currentIncrement": {
-    "newNews": 14,
+    "newNews": 9652,
     "newNewsWithoutKnownEntities": 0,
     "otherTypeNews": 0,
     "untypedReviewSample": [],

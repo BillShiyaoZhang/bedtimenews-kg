@@ -16,12 +16,13 @@ export const SEMANTIC_CONFIGURATION_NAMES = Object.freeze(["ontologySource", "on
 // transport, scheduling, CLI wrappers, docs and tests are pinned by codeCommit,
 // but editing them does not change the semantic epoch.
 export const ACCEPTED_SEMANTIC_GENERATOR_FILES = Object.freeze([
-  "app/lib/ontology-hierarchy.mjs", "app/lib/topic-evidence.mjs", "app/lib/identity-projection.mjs",
+  "app/lib/ontology-hierarchy.mjs", "app/lib/topic-evidence.mjs", "app/lib/identity-projection.mjs", "app/lib/action-assessment.mjs",
   "scripts/lib/accepted-candidate.mjs", "scripts/lib/accepted-release.mjs", "scripts/lib/accepted-reports.mjs", "scripts/lib/accepted-transition.mjs",
   "scripts/lib/candidate-bundle.mjs", "scripts/lib/candidate-lifecycle.mjs", "scripts/lib/candidate-provenance.mjs",
   "scripts/lib/candidate-run.mjs", "scripts/lib/candidate-source-review.mjs", "scripts/lib/extraction-rules.mjs",
   "scripts/lib/extraction.mjs", "scripts/lib/git-object-integrity.mjs", "scripts/lib/kg-build.mjs",
   "scripts/lib/entity-identities.mjs", "scripts/lib/identity-materialization.mjs",
+  "scripts/lib/action-extraction.mjs", "scripts/lib/action-reporting.mjs", "scripts/lib/action-evidence.mjs",
   "scripts/lib/lifecycle-run.mjs", "scripts/lib/news-build.mjs", "scripts/lib/news.mjs",
   "scripts/lib/ontology-compiler.mjs", "scripts/lib/source-snapshot.mjs", "scripts/lib/topic-evidence.mjs", "scripts/lib/validate.mjs",
 ].sort());

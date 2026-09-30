@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { validateActionEvidenceSources } from "./lib/action-evidence.mjs";
+import { canonicalJson } from "./lib/candidate-bundle.mjs";
+import { summarizeActionAssessments } from "./lib/action-reporting.mjs";
 
 import { createHash } from "node:crypto";
 import { execFile as execFileCallback } from "node:child_process";
@@ -332,6 +335,7 @@ throwNewsValidationError(validateNewsDataset(newsDataset));
 const issues = validate(kg, ontology);
 issues.push(...validateKnowledgeBaseNewsProjection(kg, newsDataset));
 issues.push(...await validateTopicEvidence(kg, newsDataset, extractionRules, sourceRoot));
+issues.push(...await validateActionEvidenceSources(kg, newsDataset, extractionRules, sourceRoot));
 if (issues.length) throwValidationError(issues);
 throwNewsValidationError(await validateNewsFragments(newsDataset, sourceRoot));
 
@@ -495,6 +499,7 @@ function buildOntologyReport(kg, newEvents, commit, timestamp) {
     newsDatasetSchemaVersion: kg.source.newsDatasetSchemaVersion,
     segmentationVersion: kg.source.segmentationVersion,
     extractionVersion: kg.source.extractionVersion,
+    ...(kg.source.actionExtractionVersion ? { actionAssessments: summarizeActionAssessments(kg) } : {}),
     policy:
       "News boundaries, ontology, and extraction rules are versioned review artifacts. Incremental updates append only; changing boundaries or semantics requires an explicit full rebuild with no unresolved upstream edits.",
     coverage: {
@@ -737,5 +742,6 @@ async function readRequiredJson(path, message) {
 
 async function writeJson(path, value) {
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  // Match accepted-release KG serialization; retain readable review/config files.
+  await writeFile(path, `${path === generatedPath ? canonicalJson(value) : JSON.stringify(value, null, 2)}\n`, "utf8");
 }

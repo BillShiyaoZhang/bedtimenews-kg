@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { hierarchyIndex, sameOntologyCompilation, validateHierarchy } from "../../app/lib/ontology-hierarchy.mjs";
-import { assertExtractionRules } from "./extraction-rules.mjs";
+import { assertActionExtractionConfig, assertExtractionRules } from "./extraction-rules.mjs";
 
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const digest = (value) => createHash("sha256").update(json(value)).digest("hex");
@@ -11,7 +11,10 @@ const assert = (condition, message) => { if (!condition) fail(message); };
 
 // No time, locale ordering, source archive or runtime observations enter compilation.
 export function compileOntology(source, patterns) {
-  assert(Object.keys(source).every((key) => ["formatVersion", "version", "label", "description", "recordUnit", "facets", "eventEntityConstraint", "eventEntityRoles", "relationTypes", "hierarchies", "legacyEntityTypes", "legacyEventDomains", "mappings", "semantics"].includes(key)), "unknown authored blueprint field");
+  assert(source && typeof source === "object" && !Array.isArray(source), "authored blueprint must be an object");
+  assert(Object.keys(source).every((key) => ["formatVersion", "version", "label", "description", "recordUnit", "facets", "eventEntityConstraint", "eventEntityRoles", "relationTypes", "hierarchies", "legacyEntityTypes", "legacyEventDomains", "mappings", "semantics", "actionAssessment"].includes(key)), "unknown authored blueprint field");
+  assert(patterns && typeof patterns === "object" && !Array.isArray(patterns), "authored extraction patterns must be an object");
+  assert(Object.keys(patterns).every((key) => ["version", "description", "topics", "eventClassification", "placeAliases", "organizationSuffixes", "organizationAliases", "facilitySuffixes", "personRoles", "isoRegionCodes", "reviewedNewsEntityLinks", "actionExtraction"].includes(key)), "unknown authored extraction patterns field");
   assert(source.formatVersion === 1, "unknown blueprint formatVersion");
   assert(/^\d+\.\d+\.\d+$/u.test(source.version ?? ""), "version must be explicit semver");
   assert(source.recordUnit?.id === "news" && source.eventEntityConstraint?.minimumEntities === 1, "news projection and minimum entity constraint must be preserved");
@@ -35,9 +38,40 @@ export function compileOntology(source, patterns) {
   const topicMappings = source.mappings?.topics;
   function unique(items, key, path) {
     assert(Array.isArray(items) && items.length, `${path} must be a nonempty list`);
+    assert(items.every((item) => item && typeof item === "object" && !Array.isArray(item)), `${path} must contain objects`);
     const values = items.map((item) => item[key]);
     assert(values.every((value) => typeof value === "string" && value.trim()) && new Set(values).size === values.length, `${path}.${key} must be nonempty and unique`);
   }
+  const assessment = source.actionAssessment;
+  const assessmentKeys = ["schemaVersion", "normalizationVersion", "statuses", "polarities", "modalities", "reasonCodes", "templates"];
+  assert(assessment && Object.keys(assessment).length === assessmentKeys.length && assessmentKeys.every((key) => Object.hasOwn(assessment, key)), "actionAssessment must contain exactly the supported schema, normalization, vocabulary and template fields");
+  assert(assessment.schemaVersion === 1 && assessment.normalizationVersion === "visible-fragment-v1", "unsupported action assessment or normalization version");
+  assert(source.semantics?.actionAssignments === "news_scoped_evidence_backed_reported_descriptions" && source.semantics?.actionVerification === "never_verified_real_world_occurrences", "action assignments must be evidence-backed reported descriptions, never verified occurrences");
+  assert(source.semantics?.legacyEventTypes === "domain_classification_not_action", "legacy domain semantics must be preserved");
+  const vocabularies = {
+    statuses: ["applicable", "not_applicable", "undetermined"],
+    polarities: ["affirmative", "negated", "undetermined"],
+    modalities: ["reported", "planned", "predicted", "conditional", "undetermined"],
+    reasonCodes: ["supported_description", "reviewed_not_applicable", "no_supported_rule", "no_visible_body", "ambiguous_scope", "insufficient_context", "excluded_context"],
+  };
+  for (const [key, ids] of Object.entries(vocabularies)) {
+    unique(assessment[key], "id", `actionAssessment.${key}`);
+    unique(assessment[key], "label", `actionAssessment.${key}`);
+    assert(JSON.stringify(assessment[key].map((entry) => entry.id).sort()) === JSON.stringify([...ids].sort()), `actionAssessment.${key} must define the complete supported vocabulary`);
+    for (const entry of assessment[key]) assert(Object.keys(entry).length === 3 && ["id", "label", "description"].every((field) => typeof entry[field] === "string" && entry[field].trim() && entry[field] === entry[field].trim()), `actionAssessment.${key} entries must contain only id, label and description`);
+  }
+  unique(assessment.templates, "id", "actionAssessment.templates");
+  const actionNodes = new Map(hierarchies.action.nodes.map((node) => [node.id, node]));
+  const templateIds = ["legal_adjudication", "legal_prosecution", "engineering_lifecycle", "quantitative_change"];
+  assert(JSON.stringify(assessment.templates.map((template) => template.id).sort()) === JSON.stringify(templateIds.sort()), "actionAssessment.templates must identify exactly the supported template algorithms");
+  for (const template of assessment.templates) {
+    const node = actionNodes.get(template.conceptId);
+    assert(Object.keys(template).length === 2 && node?.status === "active" && node.abstract === false, `invalid actionAssessment.templates target ${template.conceptId}`);
+  }
+  assert(patterns.actionExtraction?.normalizationVersion === assessment.normalizationVersion, "action normalization contracts must match");
+  assertActionExtractionConfig(patterns.actionExtraction, { hierarchies, actionAssessment: assessment });
+  const actionTargets = new Set(patterns.actionExtraction.rules.map((rule) => rule.conceptId));
+  for (const node of actionNodes.values()) if (node.status === "active" && !node.abstract) assert(actionTargets.has(node.id), `active action concept has no supported extraction rule: ${node.id}`);
   unique(entityMappings, "legacyId", "mappings.entityTypes");
   unique(topicMappings, "legacyId", "mappings.topics");
   unique(topicMappings, "conceptId", "mappings.topics");
@@ -95,8 +129,12 @@ export function compileOntology(source, patterns) {
     return { id: mapping.legacyId, conceptId: node.id, entityId: mapping.entityId, label: node.label, aliases: node.aliases, extractionTriggers: rule.extractionTriggers };
   });
   unique(patterns.eventClassification, "id", "patterns.eventClassification");
-  for (const rule of patterns.eventClassification) assert(eventIds.has(rule.id), `unknown event classification domain ${rule.id}`);
-  const compilation = { formatVersion: 1, compilerVersion: "1.0.0", sourceHash: digest(source), patternsHash: digest(patterns) };
+  for (const rule of patterns.eventClassification) {
+    assert(Object.keys(rule).length === 2 && Object.hasOwn(rule, "keywords"), `event classification ${rule.id} has unknown fields`);
+    assert(Array.isArray(rule.keywords) && rule.keywords.length && rule.keywords.every((keyword) => typeof keyword === "string" && keyword.trim() && keyword === keyword.trim()) && new Set(rule.keywords).size === rule.keywords.length, `event classification ${rule.id} must have unique nonempty keywords`);
+    assert(eventIds.has(rule.id), `unknown event classification domain ${rule.id}`);
+  }
+  const compilation = { formatVersion: 1, compilerVersion: "1.1.0", sourceHash: digest(source), patternsHash: digest(patterns) };
   const { mappings, legacyEventDomains } = source;
   const metadata = Object.fromEntries(Object.entries(source).filter(([key]) => !["formatVersion", "mappings", "legacyEntityTypes", "legacyEventDomains", "hierarchies"].includes(key)));
   const ontology = { ...metadata, compilation, entityTypes, eventTypes: legacyEventDomains, hierarchies, mappings };

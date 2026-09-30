@@ -1,9 +1,10 @@
 import { sameOntologyCompilation, validateCompiledHierarchy } from "../../app/lib/ontology-hierarchy.mjs";
 import { validateTopicEvidenceStructure } from "../../app/lib/topic-evidence.mjs";
 import { applyIdentityResolution } from "../../app/lib/identity-projection.mjs";
+import { validateActionAssessmentStructure } from "../../app/lib/action-assessment.mjs";
 
 export function validate(kg, ontology) {
-  const issues = [...validateTopicEvidenceStructure(kg), ...validateCompiledHierarchy(ontology)];
+  const issues = [...validateTopicEvidenceStructure(kg), ...validateCompiledHierarchy(ontology), ...validateActionAssessmentStructure(kg, ontology)];
   try { applyIdentityResolution(kg); } catch (cause) { issues.push(error("identityResolution", cause.message)); }
   if (!sameOntologyCompilation(kg.source?.ontologyCompilation, ontology.compilation)) {
     issues.push(error("source.ontologyCompilation", "KG 与编译蓝图指纹不一致，必须显式重建"));
