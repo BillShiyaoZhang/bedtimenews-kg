@@ -4,6 +4,28 @@ on:
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
+    inputs:
+      recover_only:
+        description: Recover the existing accepted audit and Pages without upstream acquisition
+        required: false
+        type: boolean
+        default: false
+      rollback_commit:
+        description: Optional exact previously accepted commit to restore forward (same epoch)
+        required: false
+        type: string
+      rollback_review:
+        description: Required committed restoration review JSON path when rollback_commit is set
+        required: false
+        type: string
+      resolved_attempts:
+        description: Exact comma-separated run:attempt IDs manually reconciled by the operator; leave blank normally
+        required: false
+        type: string
+      source_review:
+        description: Optional committed exact source-review JSON path for release mode
+        required: false
+        type: string
   repository_dispatch:
     types: [archive-updated]
 
@@ -16,8 +38,53 @@ concurrency:
   group: kg-main-writer
   cancel-in-progress: false
 
+env:
+  TZ: UTC
+  LANG: en_US.UTF-8
+  LC_ALL: en_US.UTF-8
+
 jobs:
+  # Disabled until explicit repository-specific storage/publication consent.
+  # Only trusted main executes with write permissions; PR validation stays read-only.
+  release-sync:
+    if: vars.KG_RELEASE_ACTIVATED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout accepted main without requiring upstream availability
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          submodules: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: "Operator-reviewed release attempts: ${{ inputs.resolved_attempts }}"
+        if: github.event_name == 'workflow_dispatch' && inputs.resolved_attempts != ''
+        run: echo "Exact operator-reviewed attempts will be checked against Actions history"
+      - name: Fully materialize, validate, accept and recover publication
+        id: release
+        run: npm run kg:release:sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KG_RELEASE_ACTIVATED: ${{ vars.KG_RELEASE_ACTIVATED }}
+          KG_RELEASE_STORAGE_APPROVED: ${{ vars.KG_RELEASE_STORAGE_APPROVED }}
+          KG_RELEASE_RECOVER_ONLY: ${{ inputs.recover_only }}
+          KG_RELEASE_SOURCE_REVIEW: ${{ inputs.source_review }}
+          KG_RELEASE_ROLLBACK_COMMIT: ${{ inputs.rollback_commit }}
+          KG_RELEASE_ROLLBACK_REVIEW: ${{ inputs.rollback_review }}
+          KG_RELEASE_RESOLVED_ATTEMPTS: ${{ inputs.resolved_attempts }}
+      - name: Notify repository owner of accepted coverage advisory
+        if: steps.release.outputs.coverage_outcome == 'advisory-failed'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/notify-coverage.sh
+
   sync:
+    if: vars.KG_RELEASE_ACTIVATED != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout with archive
@@ -29,11 +96,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
 
       - name: Install
         run: npm ci
+
+      - name: Refuse legacy acceptance after release activation
+        run: |
+          node --input-type=module -e 'import { existsSync, readFileSync } from "node:fs"; if (existsSync("data/accepted-release.json") || JSON.parse(readFileSync("data/archive-state.json")).schemaVersion === 4) throw new Error("Accepted releases require explicitly enabled release sync; legacy acceptance is disabled")'
 
       - name: Advance archive submodule
         run: |
@@ -118,8 +189,8 @@ jobs:
   # A separate job can report failures even when checkout or npm never ran.
   # The daily Codex task also checks failed runs directly if reporting cannot run.
   notify-sync-failure:
-    needs: sync
-    if: always() && needs.sync.result == 'failure'
+    needs: [sync, release-sync]
+    if: always() && (needs.sync.result == 'failure' || needs.release-sync.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       actions: read

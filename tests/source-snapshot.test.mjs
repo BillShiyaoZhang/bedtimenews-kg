@@ -231,7 +231,12 @@ test("replacement commits cannot change the selected source HEAD timestamp", asy
     const replacementTime = "2001-02-03T04:05:06+07:00";
     const replacement = (await execFile("git", ["-C", input.sourceRoot, "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit-tree", tree, "-m", "replacement commit"], { env: { ...process.env, GIT_AUTHOR_DATE: replacementTime, GIT_COMMITTER_DATE: replacementTime } })).stdout.trim();
     await git(input.sourceRoot, ["replace", input.commit, replacement]);
-    assert.equal((await git(input.sourceRoot, ["show", "-s", "--format=%cI", "HEAD"])).stdout.trim(), replacementTime);
+    // This fixture control must exercise ordinary Git even when the outer
+    // prepared-tree validator correctly hardens its child environment. Keep the
+    // application call below hardened; do not mutate the parent environment.
+    const controlEnvironment = { ...process.env };
+    delete controlEnvironment.GIT_NO_REPLACE_OBJECTS;
+    assert.equal((await execFile("git", ["-C", input.sourceRoot, "show", "-s", "--format=%cI", "HEAD"], { env: controlEnvironment })).stdout.trim(), replacementTime);
     assert.deepEqual(await readGitSourceHead(input), expected);
     assert.notEqual(expected.committedAt, replacementTime);
   });

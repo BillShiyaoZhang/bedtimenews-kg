@@ -8,19 +8,42 @@ on:
 permissions:
   contents: read
 
+env:
+  TZ: UTC
+  LANG: en_US.UTF-8
+  LC_ALL: en_US.UTF-8
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
-          submodules: recursive
+          fetch-depth: 0
+          submodules: false
+          persist-credentials: false
+      - name: Acquire sources only for legacy validation
+        shell: bash
+        run: |
+          if [[ ! -f data/accepted-release.json ]]; then
+            git submodule update --init --recursive
+          fi
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - run: npm run kg:validate
+      - name: Independently verify proposed migration against exact PR base
+        if: github.event_name == 'pull_request'
+        env:
+          KG_RELEASE_BASE_COMMIT: ${{ github.event.pull_request.base.sha }}
+          KG_RELEASE_PR_SAME_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+          GH_TOKEN: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.token || '' }}
+        run: |
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$KG_RELEASE_BASE_COMMIT" || { echo "::error::PR base is no longer exact current main; refresh the reviewed proposal"; exit 1; }
+          npm run kg:release:validate-pr
+      - run: npm run kg:release:validate
       - name: Run required tests
         run: npm run test:required
       - name: Check semantic coverage (advisory)
@@ -33,4 +56,6 @@ jobs:
           echo "::warning title=Semantic coverage below threshold::Coverage is advisory and did not block validation. Review the coverage test output above."
           echo "### ⚠️ Semantic coverage is below the reviewed threshold" >> "$GITHUB_STEP_SUMMARY"
           echo "Validation will continue because coverage is an advisory quality signal." >> "$GITHUB_STEP_SUMMARY"
+      - run: npm run lint
+      - run: npm run build
       - run: npm run build:pages

@@ -88,7 +88,27 @@ npm run ontology:check
 这套命令不会更新 accepted 数据，也不放开来源内容修改或删除；普通同步继续使用
 原来的 `kg:update`。完整契约见 [候选与支持账本](docs/candidate-lifecycle.md)。
 
-## 自动同步
+## 版本化接受与恢复（启用前需单独审批）
+
+[版本化发布操作指南](docs/accepted-releases.md) 提供完整候选重算、支持账本、
+草稿审计包读回、原子接受和发布恢复。实现合并不等于启用：公开审计存储与
+自动接受仍需单独授权，默认继续使用下方的旧同步流程。
+
+启用后的日常来源更新由 Actions 运行 `kg:release:sync`；历史修改、删除或
+撤回必须提供精确哈希绑定的审查。无变化时复用原版本。失败先核实远端状态，
+不会盲目重传或重复提交。`kg:release:recover` 可在原始上游不可用时恢复已接受
+版本的发布，但不声称重新完成来源抽取。
+
+语义或运行时变更使用 `kg:release:migration:preview` 审查精确差异，再用一次
+`kg:release:migration:prepare` 生成同时包含代码与数据的评审提交；仍需正常 PR
+审批与保留提交历史的 merge。该命令不能推送 main。同一语义版本内的前向回滚
+会保留较新身份和来源撤回记录。跨语义版本回滚、新闻边界身份映射及实体合并拆分
+仍有明确的后续边界，不能通过改哈希或跳过验证替代。
+
+一旦存在 state4 或接受清单，旧 `kg:update`、`kg:rebuild`、`kg:bootstrap`
+会在写入前拒绝运行；下方 append-only 与直接语义修复流程不再适用于该模式。
+
+## 自动同步（旧模式）
 
 `.github/workflows/sync-archive.yml` 每 6 小时检查一次上游，也支持手动触发与 `archive-updated` repository dispatch。检测到安全新增后会：
 
