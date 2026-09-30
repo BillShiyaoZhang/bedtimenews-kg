@@ -90,20 +90,30 @@ jobs:
 
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
+          else
+            git commit -m "data: sync Bedtime News archive"
+            git push origin HEAD:main
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-          git commit -m "data: sync Bedtime News archive"
-          git push origin HEAD:main
-          echo "changed=true" >> "$GITHUB_OUTPUT"
+          # GITHUB_SHA can be the original event SHA, including on a rerun.
+          echo "target_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       # Pushes made by GITHUB_TOKEN do not start workflows triggered by `push`,
-      # so explicitly dispatch the Pages workflow after a successful sync.
+      # so reconcile Pages even when this attempt did not create a new commit.
       - name: Deploy updated GitHub Pages
-        if: steps.commit.outputs.changed == 'true'
+        uses: actions/github-script@v9
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run pages.yml --ref main
+          TARGET_SHA: ${{ steps.commit.outputs.target_sha }}
+        with:
+          script: |
+            const { pathToFileURL } = require("node:url");
+            const { reconcilePagesDeployment } = await import(pathToFileURL(
+              `${process.env.GITHUB_WORKSPACE}/scripts/reconcile-pages-deployment.mjs`,
+            ).href);
+            await reconcilePagesDeployment({
+              github, core, repo: context.repo, targetSha: process.env.TARGET_SHA,
+            });
 
   # A separate job can report failures even when checkout or npm never ran.
   # The daily Codex task also checks failed runs directly if reporting cannot run.
