@@ -11,15 +11,16 @@ import {
 } from "./lib/extraction.mjs";
 import {
   cleanText,
-  normalizeIdentifier,
   readNewsFragment,
   validateKnowledgeBaseNewsProjection,
   validateNewsDataset,
 } from "./lib/news.mjs";
 import { validate } from "./lib/validate.mjs";
+import { compileOntologyFiles } from "./lib/ontology-compiler.mjs";
 import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
+await compileOntologyFiles(projectRoot);
 const args = parseArgs(process.argv.slice(2));
 const sourceRoot = resolve(
   args.source ??
@@ -128,10 +129,7 @@ const provisionalEntities = retainedStats
       left.label.localeCompare(right.label, "zh-CN"),
   );
 const retainedEntityIds = new Map(
-  provisionalEntities.map((entity) => [
-    `${entity.type}:${normalizeIdentifier(entity.label)}`,
-    entity.id,
-  ]),
+  retainedStats.map((stat) => [stat.key, materializeEntity(stat).id]),
 );
 const matchableEntities = provisionalEntities
   .filter((entity) =>
@@ -195,6 +193,7 @@ const kg = {
     segmentationVersion: newsDataset.segmentation.version,
     newsOverrideVersion: newsDataset.segmentation.overrideVersion,
     extractionVersion: extractor.version,
+    ontologyCompilation: ontology.compilation,
   },
   entities,
   events,

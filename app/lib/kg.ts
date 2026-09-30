@@ -1,3 +1,4 @@
+import { validateCompiledHierarchy } from "./ontology-hierarchy.mjs";
 import { validateTopicEvidenceStructure } from "./topic-evidence.mjs";
 
 export type EntityType = {
@@ -33,7 +34,20 @@ export type EventEntityRole = {
   entityTypes: string[];
 };
 
+export type OntologyConcept = {
+  id: string; label: string; aliases: string[]; description: string; parentIds: string[]; primaryParentId: string | null; abstract: boolean; status: "active" | "draft" | "deprecated";
+};
+
+export type OntologyHierarchy = {
+  relation: "subClassOf" | "broaderTopic"; rootId: string; nodes: OntologyConcept[]; ancestors: Record<string, string[]>; descendants: Record<string, string[]>;
+};
+
+export type OntologyCompilation = { formatVersion: number; compilerVersion: string; sourceHash: string; patternsHash: string };
+
 export type Ontology = {
+  compilation: OntologyCompilation;
+  hierarchies: Record<"entity" | "action" | "topic", OntologyHierarchy>;
+  mappings: { entityTypes: { legacyId: string; conceptId?: string; conceptKind?: string }[]; topics: { legacyId: string; conceptId: string; entityId: string }[] };
   version: string;
   label: string;
   description: string;
@@ -146,6 +160,7 @@ export type KnowledgeBase = {
     segmentationVersion: string;
     newsOverrideVersion: string;
     extractionVersion: string;
+    ontologyCompilation: OntologyCompilation;
   };
   entities: Entity[];
   events: Event[];
@@ -164,7 +179,7 @@ const isoDate = /^\d{4}-\d{2}-\d{2}$/;
 const hexColor = /^#[0-9a-f]{6}$/i;
 
 export function validateOntology(ontology: Ontology): ValidationIssue[] {
-  const issues: ValidationIssue[] = [];
+  const issues: ValidationIssue[] = validateCompiledHierarchy(ontology);
   if (ontology.recordUnit?.id !== "news") {
     issues.push({
       level: "error",
@@ -325,6 +340,9 @@ export function validateKnowledgeBase(
   issues.push(...validateTopicEvidenceStructure(kg));
   if (kg.schemaVersion !== ontology.version) {
     issues.push({ level: "error", path: "schemaVersion", message: "KG 与 ontology 版本不一致" });
+  }
+  if (JSON.stringify(kg.source.ontologyCompilation) !== JSON.stringify(ontology.compilation)) {
+    issues.push({ level: "error", path: "source.ontologyCompilation", message: "KG 与编译蓝图指纹不一致" });
   }
   const entityIds = new Set<string>();
   const eventIds = new Set<string>();

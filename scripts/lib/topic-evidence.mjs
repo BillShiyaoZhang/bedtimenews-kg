@@ -15,12 +15,12 @@ export async function validateTopicEvidence(kg, dataset, rules, sourceRoot) {
   const newsById = new Map(dataset.news.map((item) => [item.id, item]));
   const pages = new Map(dataset.pages.map((page) => [page.id, page]));
   const rawPages = new Map();
-  const topicByLabel = new Map(rules.topics.map((topic) => [topic.label, topic]));
+  const topicById = new Map(rules.topics.map((topic) => [topic.entityId, topic]));
   for (const [index, entity] of kg.entities.entries()) {
     if (entity.type !== "topic") continue;
-    const topic = topicByLabel.get(entity.label);
+    const topic = topicById.get(entity.id);
     const aliases = topic?.aliases.filter((alias) => alias !== topic.label);
-    if (!topic || JSON.stringify(entity.aliases) !== JSON.stringify(aliases)) {
+    if (!topic || entity.label !== topic.label || JSON.stringify(entity.aliases) !== JSON.stringify(aliases)) {
       issues.push(error(`entities.${index}.aliases`, "Topic aliases must exactly match the reviewed names in extraction-rules"));
     }
   }
