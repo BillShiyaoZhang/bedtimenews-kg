@@ -3,11 +3,7 @@
   "description": "从新闻存档确定性抽取事件、主体、地点、命名对象与受控主题的规则。规则版本变化必须触发显式全量重建。",
   "topics": [
     {
-      "id": "topic-macroeconomy",
       "conceptId": "topic-macroeconomy",
-      "entityId": "entity-topic-ec064b630b41",
-      "label": "宏观经济",
-      "aliases": [],
       "extractionTriggers": [
         "经济增长",
         "GDP",
@@ -32,14 +28,11 @@
         "增量政策",
         "投资拉动",
         "居民部门"
-      ]
+      ],
+      "legacyEventType": "economy_business"
     },
     {
-      "id": "topic-public-finance",
       "conceptId": "topic-public-finance",
-      "entityId": "entity-topic-4aec0475249f",
-      "label": "财政与税收",
-      "aliases": [],
       "extractionTriggers": [
         "财政",
         "税收",
@@ -57,14 +50,11 @@
         "退税",
         "三支一扶",
         "富人税"
-      ]
+      ],
+      "legacyEventType": "policy_governance"
     },
     {
-      "id": "topic-finance",
       "conceptId": "topic-finance",
-      "entityId": "entity-topic-da8baac7a56a",
-      "label": "金融与资本市场",
-      "aliases": [],
       "extractionTriggers": [
         "银行",
         "证券",
@@ -109,14 +99,11 @@
         "净利润",
         "贷款年龄",
         "年龄＋期限"
-      ]
+      ],
+      "legacyEventType": "economy_business"
     },
     {
-      "id": "topic-housing",
       "conceptId": "topic-housing",
-      "entityId": "entity-topic-1111de459cd2",
-      "label": "住房与土地",
-      "aliases": [],
       "extractionTriggers": [
         "房地产",
         "房价",
@@ -139,14 +126,11 @@
         "法拍房",
         "房贷",
         "新建住宅"
-      ]
+      ],
+      "legacyEventType": "society_livelihood"
     },
     {
-      "id": "topic-manufacturing",
       "conceptId": "topic-manufacturing",
-      "entityId": "entity-topic-db818238bf90",
-      "label": "产业与制造",
-      "aliases": [],
       "extractionTriggers": [
         "制造业",
         "工业",
@@ -172,14 +156,11 @@
         "停产",
         "限产",
         "车企"
-      ]
+      ],
+      "legacyEventType": "economy_business"
     },
     {
-      "id": "topic-digital-economy",
       "conceptId": "topic-digital-economy",
-      "entityId": "entity-topic-8a581a8f5d03",
-      "label": "数字经济",
-      "aliases": [],
       "extractionTriggers": [
         "互联网",
         "平台经济",
@@ -215,14 +196,11 @@
         "阿里巴巴",
         "阿里云",
         "商业模式"
-      ]
+      ],
+      "legacyEventType": "science_technology"
     },
     {
-      "id": "topic-ai",
       "conceptId": "topic-ai",
-      "entityId": "entity-topic-85bc32ad72f0",
-      "label": "人工智能",
-      "aliases": [],
       "extractionTriggers": [
         "人工智能",
         "AI",
@@ -234,14 +212,11 @@
         "算力",
         "智能化",
         "AIGC"
-      ]
+      ],
+      "legacyEventType": "science_technology"
     },
     {
-      "id": "topic-semiconductor",
       "conceptId": "topic-semiconductor",
-      "entityId": "entity-topic-8f0d9fc472a1",
-      "label": "半导体与电子",
-      "aliases": [],
       "extractionTriggers": [
         "芯片",
         "半导体",
@@ -254,14 +229,11 @@
         "台积电",
         "三星电子",
         "SK海力士"
-      ]
+      ],
+      "legacyEventType": "science_technology"
     },
     {
-      "id": "topic-energy",
       "conceptId": "topic-energy",
-      "entityId": "entity-topic-6cf73dbb1b59",
-      "label": "能源",
-      "aliases": [],
       "extractionTriggers": [
         "能源",
         "煤炭",
@@ -276,14 +248,11 @@
         "氢能",
         "风力",
         "发电机"
-      ]
+      ],
+      "legacyEventType": "environment_energy"
     },
     {
-      "id": "topic-environment",
       "conceptId": "topic-environment",
-      "entityId": "entity-topic-7fe1d89c885d",
-      "label": "环境与气候",
-      "aliases": [],
       "extractionTriggers": [
         "环境",
         "污染",
@@ -300,14 +269,11 @@
         "反盗猎",
         "自然景观",
         "热浪"
-      ]
+      ],
+      "legacyEventType": "environment_energy"
     },
     {
-      "id": "topic-transport",
       "conceptId": "topic-transport",
-      "entityId": "entity-topic-6c34323d1aa3",
-      "label": "交通与基础设施",
-      "aliases": [],
       "extractionTriggers": [
         "铁路",
         "高铁",
@@ -331,14 +297,11 @@
         "客机",
         "火车站",
         "乘降所"
-      ]
+      ],
+      "legacyEventType": "infrastructure_transport"
     },
     {
-      "id": "topic-agriculture",
       "conceptId": "topic-agriculture",
-      "entityId": "entity-topic-53d167322c77",
-      "label": "农业与粮食",
-      "aliases": [],
       "extractionTriggers": [
         "农业",
         "农村",
@@ -353,14 +316,11 @@
         "撂荒",
         "农田",
         "产粮"
-      ]
+      ],
+      "legacyEventType": "society_livelihood"
     },
     {
-      "id": "topic-healthcare",
       "conceptId": "topic-healthcare",
-      "entityId": "entity-topic-1a28a95ca93c",
-      "label": "医疗健康",
-      "aliases": [],
       "extractionTriggers": [
         "医疗",
         "医院",
@@ -395,14 +355,11 @@
         "生物制药",
         "村医",
         "精神障碍"
-      ]
+      ],
+      "legacyEventType": "society_livelihood"
     },
     {
-      "id": "topic-public-health",
       "conceptId": "topic-public-health",
-      "entityId": "entity-topic-2578a308b835",
-      "label": "公共卫生",
-      "aliases": [],
       "extractionTriggers": [
         "疫情",
         "传染病",
@@ -414,14 +371,11 @@
         "疾控",
         "流行病",
         "公共卫生"
-      ]
+      ],
+      "legacyEventType": "public_health"
     },
     {
-      "id": "topic-education",
       "conceptId": "topic-education",
-      "entityId": "entity-topic-3619e6a68ba1",
-      "label": "教育",
-      "aliases": [],
       "extractionTriggers": [
         "教育",
         "学校",
@@ -449,14 +403,11 @@
         "学龄人口",
         "休学",
         "本科专业"
-      ]
+      ],
+      "legacyEventType": "education_culture"
     },
     {
-      "id": "topic-science",
       "conceptId": "topic-science",
-      "entityId": "entity-topic-5dd0d821b9a8",
-      "label": "科学研究",
-      "aliases": [],
       "extractionTriggers": [
         "科学",
         "科研",
@@ -476,14 +427,11 @@
         "嫦娥",
         "工程师",
         "研发"
-      ]
+      ],
+      "legacyEventType": "science_technology"
     },
     {
-      "id": "topic-population",
       "conceptId": "topic-population",
-      "entityId": "entity-topic-18a9a1d4f0e0",
-      "label": "人口与生育",
-      "aliases": [],
       "extractionTriggers": [
         "人口",
         "生育",
@@ -501,14 +449,11 @@
         "劝生",
         "不婚不育",
         "新生儿"
-      ]
+      ],
+      "legacyEventType": "society_livelihood"
     },
     {
-      "id": "topic-labor",
       "conceptId": "topic-labor",
-      "entityId": "entity-topic-9be00a89dec0",
-      "label": "就业与劳动",
-      "aliases": [],
       "extractionTriggers": [
         "就业",
         "失业",
@@ -537,14 +482,11 @@
         "善待员工",
         "排班",
         "休息质量"
-      ]
+      ],
+      "legacyEventType": "society_livelihood"
     },
     {
-      "id": "topic-social-security",
       "conceptId": "topic-social-security",
-      "entityId": "entity-topic-09a250abf6ac",
-      "label": "社会保障",
-      "aliases": [],
       "extractionTriggers": [
         "社保",
         "养老保险",
@@ -557,14 +499,11 @@
         "慈善",
         "退休金",
         "困难职工"
-      ]
+      ],
+      "legacyEventType": "society_livelihood"
     },
     {
-      "id": "topic-governance",
       "conceptId": "topic-governance",
-      "entityId": "entity-topic-ba1dbbad6e64",
-      "label": "公共治理",
-      "aliases": [],
       "extractionTriggers": [
         "政府",
         "治理",
@@ -616,14 +555,11 @@
         "投诉",
         "经开区",
         "过紧日子通知"
-      ]
+      ],
+      "legacyEventType": "policy_governance"
     },
     {
-      "id": "topic-law",
       "conceptId": "topic-law",
-      "entityId": "entity-topic-d68c099d5b04",
-      "label": "法律与司法",
-      "aliases": [],
       "extractionTriggers": [
         "法律",
         "法院",
@@ -654,14 +590,11 @@
         "贪腐",
         "吸毒",
         "遇刺"
-      ]
+      ],
+      "legacyEventType": "law_justice"
     },
     {
-      "id": "topic-public-safety",
       "conceptId": "topic-public-safety",
-      "entityId": "entity-topic-7826943ffa59",
-      "label": "公共安全",
-      "aliases": [],
       "extractionTriggers": [
         "事故",
         "火灾",
@@ -678,14 +611,11 @@
         "毒品",
         "矿难",
         "超载"
-      ]
+      ],
+      "legacyEventType": "disaster_accident"
     },
     {
-      "id": "topic-international",
       "conceptId": "topic-international",
-      "entityId": "entity-topic-8e6234a589f6",
-      "label": "国际关系",
-      "aliases": [],
       "extractionTriggers": [
         "外交",
         "国际关系",
@@ -706,14 +636,11 @@
         "特朗普",
         "访华",
         "驻美大使"
-      ]
+      ],
+      "legacyEventType": "international_relations"
     },
     {
-      "id": "topic-defense",
       "conceptId": "topic-defense",
-      "entityId": "entity-topic-89169131f716",
-      "label": "国防与安全",
-      "aliases": [],
       "extractionTriggers": [
         "军事",
         "战争",
@@ -728,14 +655,11 @@
         "台军",
         "军工",
         "防长"
-      ]
+      ],
+      "legacyEventType": "conflict_security"
     },
     {
-      "id": "topic-culture",
       "conceptId": "topic-culture",
-      "entityId": "entity-topic-e3a330ceec3c",
-      "label": "文化与传媒",
-      "aliases": [],
       "extractionTriggers": [
         "文化",
         "电影",
@@ -776,14 +700,11 @@
         "记者",
         "情书",
         "图书馆"
-      ]
+      ],
+      "legacyEventType": "education_culture"
     },
     {
-      "id": "topic-consumption",
       "conceptId": "topic-consumption",
-      "entityId": "entity-topic-240a20d1377a",
-      "label": "消费与生活",
-      "aliases": [],
       "extractionTriggers": [
         "消费",
         "价格",
@@ -808,14 +729,11 @@
         "纸尿裤",
         "酒吧",
         "KTV"
-      ]
+      ],
+      "legacyEventType": "economy_business"
     },
     {
-      "id": "topic-sports",
       "conceptId": "topic-sports",
-      "entityId": "entity-topic-8427f6313373",
-      "label": "体育",
-      "aliases": [],
       "extractionTriggers": [
         "体育",
         "足球",
@@ -834,7 +752,8 @@
         "速度滑冰",
         "半马",
         "网球"
-      ]
+      ],
+      "legacyEventType": "education_culture"
     }
   ],
   "eventClassification": [
@@ -1992,41 +1911,5 @@
     "首席执行官",
     "CEO"
   ],
-  "isoRegionCodes": "AF AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BV BR IO BN BG BF BI CV KH CM CA KY CF TD CL CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF TF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HM VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU VE VN VG VI WF EH YE ZM ZW",
-  "compilation": {
-    "formatVersion": 1,
-    "compilerVersion": "1.0.0",
-    "sourceHash": "763bd789ceee8a55adb7566b31cfb1e52e1380716fef5e8821077118e04de618",
-    "patternsHash": "e1a7639e503121456ceaf2f453b56165f0be2569cbf9e284ef019a918166c375"
-  },
-  "ontologyVersion": "2.3.0",
-  "topicEventTypes": {
-    "topic-macroeconomy": "economy_business",
-    "topic-public-finance": "policy_governance",
-    "topic-finance": "economy_business",
-    "topic-housing": "society_livelihood",
-    "topic-manufacturing": "economy_business",
-    "topic-digital-economy": "science_technology",
-    "topic-ai": "science_technology",
-    "topic-semiconductor": "science_technology",
-    "topic-energy": "environment_energy",
-    "topic-environment": "environment_energy",
-    "topic-transport": "infrastructure_transport",
-    "topic-agriculture": "society_livelihood",
-    "topic-healthcare": "society_livelihood",
-    "topic-public-health": "public_health",
-    "topic-education": "education_culture",
-    "topic-science": "science_technology",
-    "topic-population": "society_livelihood",
-    "topic-labor": "society_livelihood",
-    "topic-social-security": "society_livelihood",
-    "topic-governance": "policy_governance",
-    "topic-law": "law_justice",
-    "topic-public-safety": "disaster_accident",
-    "topic-international": "international_relations",
-    "topic-defense": "conflict_security",
-    "topic-culture": "education_culture",
-    "topic-consumption": "economy_business",
-    "topic-sports": "education_culture"
-  }
+  "isoRegionCodes": "AF AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BV BR IO BN BG BF BI CV KH CM CA KY CF TD CL CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF TF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HM VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU VE VN VG VI WF EH YE ZM ZW"
 }

@@ -2127,9 +2127,15 @@
     "shorts/test/3.md": "bfae9954dc5e5eeefea10e007e05d341265735b87491c03b02ac5f4360c2a492",
     "shorts/test/4.md": "5a9155d7b009f9d818f2cab2bb2354d48fec01f78c5cfedae525e8def05cbf16"
   },
-  "extractionVersion": "4.0.0",
+  "extractionVersion": "4.1.0",
   "segmentationVersion": "1.4.0",
   "newsOverrideVersion": "1.1.0",
-  "ontologyVersion": "2.2.0",
-  "newsDatasetSchemaVersion": "1.1.0"
+  "ontologyVersion": "2.3.0",
+  "newsDatasetSchemaVersion": "1.1.0",
+  "ontologyCompilation": {
+    "formatVersion": 1,
+    "compilerVersion": "1.0.0",
+    "sourceHash": "763bd789ceee8a55adb7566b31cfb1e52e1380716fef5e8821077118e04de618",
+    "patternsHash": "e1a7639e503121456ceaf2f453b56165f0be2569cbf9e284ef019a918166c375"
+  }
 }
