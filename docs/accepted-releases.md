@@ -174,6 +174,27 @@ validation or main race leaves accepted main unchanged, although its private dra
 may remain for inspection. After acceptance, publication/Pages recovery reuses the
 same commit and data version.
 
+After creating a draft, the adapter validates the returned release metadata and
+uses its numeric ID only to locate an independent GET readback. The tag endpoint
+is for published releases, and a draft can be readable by ID before it appears in
+the release listing. Creation reconciliation makes at most four readback attempts,
+with delays of 250 ms, 1 s and 2 s after the first attempt. Only absent or transient
+transport/server reads are retried; the create POST is never repeated. A lost
+create response uses tag/list discovery under the same read-only bound. Conflicts,
+unsafe URLs and incomplete/invalid listings still fail closed, and an exhausted
+readback keeps the mutation intent unresolved.
+
+For a failed bootstrap that left only an empty draft, keep that exact draft for
+inspection. A transport-code repair merged into main changes the next bootstrap's
+origin commit and therefore its candidate identity, even if semantic axes are
+unchanged; do not retarget or relabel the old draft for the new candidate. Before
+an authorized manual sync, recheck current main, the failed attempt's exact draft
+and assets, and all intervening Actions attempts. Include every separately
+reconciled blocking `runId:attempt` pair in `resolved_attempts`; a later blocked
+scheduled run may add another pair. `recover_only` cannot bootstrap when no
+accepted release exists. Code review/merge does not itself authorize that dispatch
+or resolve the previous attempt.
+
 The historical schema2 draft readback receipt remains unchanged after publication.
 The public state is a fresh remote observation, not a rewrite of accepted history.
 Pages retains the PR12 exact-SHA guard, successful deployment-job detection,
