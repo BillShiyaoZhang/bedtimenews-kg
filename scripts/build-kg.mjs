@@ -17,6 +17,7 @@ import {
   validateNewsDataset,
 } from "./lib/news.mjs";
 import { validate } from "./lib/validate.mjs";
+import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const args = parseArgs(process.argv.slice(2));
@@ -104,6 +105,8 @@ for (const item of newsDataset.news) {
     ),
     summary: item.summary,
     candidateKeys,
+    // Only this news fragment may supply evidence, never the containing page.
+    topicEvidence: extractor.matchTopicEvidence(fragment),
     searchText: cleanText(`${item.title}\n${item.summary}\n${fragment}`),
     sourceIds: [item.pageId],
     significance: "",
@@ -203,6 +206,7 @@ const kg = {
 const issues = [
   ...validate(kg, ontology),
   ...validateKnowledgeBaseNewsProjection(kg, newsDataset),
+  ...(await validateTopicEvidence(kg, newsDataset, extractionRules, sourceRoot)),
 ];
 if (issues.length) {
   for (const issue of issues.slice(0, 30)) {

@@ -8,11 +8,13 @@ import {
 import { validate } from "../scripts/lib/validate.mjs";
 
 const root = new URL("../", import.meta.url);
-const [kg, ontology, newsDataset, coverageReport] = await Promise.all([
+const [kg, ontology, newsDataset, coverageReport, extractionRules, archiveState] = await Promise.all([
   readJson(new URL("data/generated/kg.json", root)),
   readJson(new URL("data/ontology.json", root)),
   readJson(new URL("data/processed/news.json", root)),
   readJson(new URL("data/review/ontology-candidates.json", root)),
+  readJson(new URL("data/extraction-rules.json", root)),
+  readJson(new URL("data/archive-state.json", root)),
 ]);
 
 test("generated semantic knowledge graph passes schema and reference checks", () => {
@@ -28,7 +30,11 @@ test("generated semantic knowledge graph passes schema and reference checks", ()
   assert.equal(kg.schemaVersion, ontology.version);
   assert.equal(kg.source.newsDatasetSchemaVersion, "1.1.0");
   assert.equal(kg.source.segmentationVersion, "1.4.0");
-  assert.equal(kg.source.extractionVersion, "3.10.0");
+  assert.equal(kg.source.extractionVersion, extractionRules.version);
+  assert.equal(archiveState.extractionVersion, extractionRules.version);
+  assert.equal(archiveState.ontologyVersion, ontology.version);
+  assert.equal(coverageReport.extractionVersion, extractionRules.version);
+  assert.equal(coverageReport.ontologyVersion, ontology.version);
 });
 
 test("news validation rejects titles with no searchable text", () => {

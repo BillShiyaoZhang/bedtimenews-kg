@@ -9,6 +9,7 @@ import {
   validateNewsDataset,
 } from "./lib/news.mjs";
 import { validate } from "./lib/validate.mjs";
+import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const kgPath = resolve(root, process.argv[2] ?? "data/generated/kg.json");
@@ -18,14 +19,16 @@ const sourceRoot = resolve(
   root,
   process.argv[5] ?? "sources/bedtimenews-archive-contents",
 );
-const [kg, ontology, newsDataset] = await Promise.all([
+const [kg, ontology, newsDataset, rules] = await Promise.all([
   readJson(kgPath),
   readJson(ontologyPath),
   readJson(newsPath),
+  readJson(resolve(root, "data/extraction-rules.json")),
 ]);
 const issues = [
   ...validateNewsDataset(newsDataset),
   ...validate(kg, ontology),
+  ...(await validateTopicEvidence(kg, newsDataset, rules, sourceRoot)),
   ...validateKnowledgeBaseNewsProjection(kg, newsDataset),
   ...(await validateNewsFragments(newsDataset, sourceRoot)),
 ];
