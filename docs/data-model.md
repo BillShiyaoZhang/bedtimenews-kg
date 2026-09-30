@@ -76,7 +76,7 @@ Page 保存：
 
 ```text
 KnowledgeBase
-├── source              数据集、拆分器与语义抽取版本
+├── source              数据集、拆分器、语义抽取版本与蓝图编译指纹
 ├── entities[]          主体、地点、主题与命名对象
 ├── events[]            每条独立新闻的一对一语义投影
 ├── eventRelations[]    有证据的新闻时序关系
@@ -193,3 +193,16 @@ Unicode 兼容归一化，忽略大小写、全半角、空白和标点差异，
 且来源校验会阻止发布无效旧页面。删除、疑似改名或重复复制不走此路径。
 
 拆分或语义版本变化必须显式全量重建；来源版本审查不允许借机修改新闻边界或语义。
+
+
+## 蓝图与兼容映射（schema 2.3）
+
+`ontology-source.json` 是语义定义的唯一编辑入口，`extraction-patterns.json` 引用其
+稳定概念 ID。编译器输出统一运行时本体、抽取规则与祖先/后代闭包。旧实体类型、
+27 个 topic 的生成实体 ID 和旧事件领域由显式映射保留；细分类与事件行动尚无
+证据时不推断。`source.ontologyCompilation` 与 archive state 的同名字段绑定编译器
+版本和两份输入哈希，用于拒绝增量时混入不同语义版本。
+
+主题父级是检索派生关系，不是 `entityRelations` 或 `topicEvidence` 中的新断言。
+当前 KG 还没有 Assertion/Support 生命周期或原子 Release；它们是后续迁移，不能
+据本阶段字段接受历史新闻修改/删除。详见 [本体与编译](ontology.md)。

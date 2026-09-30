@@ -1961,3 +1961,11 @@ footer a:hover {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Compiled ontology trees: definitions stay readable without horizontal scroll. */
+.hierarchy-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+.hierarchy-grid > article { border: 1px solid var(--line, #d8d1c6); padding: 1.25rem; border-radius: 0.75rem; }
+.hierarchy-grid p { font-size: 0.875rem; line-height: 1.65; color: var(--muted, #6c6a63); }
+.ontology-tree { padding-left: 1.1rem; margin: 0.8rem 0; font-size: 0.875rem; line-height: 1.8; }
+.ontology-tree small { color: var(--muted, #6c6a63); white-space: nowrap; }
+@media (max-width: 900px) { .hierarchy-grid { grid-template-columns: 1fr; } }

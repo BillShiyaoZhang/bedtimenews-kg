@@ -177,36 +177,6 @@ const PERSON_STOP_LABELS = new Set([
   "最近",
 ]);
 
-const TOPIC_EVENT_TYPES = {
-  "topic-macroeconomy": "economy_business",
-  "topic-public-finance": "policy_governance",
-  "topic-finance": "economy_business",
-  "topic-housing": "society_livelihood",
-  "topic-manufacturing": "economy_business",
-  "topic-digital-economy": "science_technology",
-  "topic-ai": "science_technology",
-  "topic-semiconductor": "science_technology",
-  "topic-energy": "environment_energy",
-  "topic-environment": "environment_energy",
-  "topic-transport": "infrastructure_transport",
-  "topic-agriculture": "society_livelihood",
-  "topic-healthcare": "society_livelihood",
-  "topic-public-health": "public_health",
-  "topic-education": "education_culture",
-  "topic-science": "science_technology",
-  "topic-population": "society_livelihood",
-  "topic-labor": "society_livelihood",
-  "topic-social-security": "society_livelihood",
-  "topic-governance": "policy_governance",
-  "topic-law": "law_justice",
-  "topic-public-safety": "disaster_accident",
-  "topic-international": "international_relations",
-  "topic-defense": "conflict_security",
-  "topic-culture": "education_culture",
-  "topic-consumption": "economy_business",
-  "topic-sports": "education_culture",
-};
-
 const POLICY_SUFFIXES =
   "法|条例|办法|规定|规划|方案|通知|意见|纲要|决定|公约|协议";
 const DOCUMENT_SUFFIXES = "报告|白皮书|年鉴|标准";
@@ -358,8 +328,9 @@ export function createExtractionEngine(rules) {
   );
 
   const topicCandidates = rules.topics.map((topic) => ({
-    key: entityKey("topic", topic.label),
+    key: `topic:${topic.conceptId}`,
     type: "topic",
+    entityId: topic.entityId,
     label: topic.label,
     aliases: unique(topic.aliases),
     method: "controlled_vocabulary",
@@ -526,16 +497,18 @@ export function createExtractionEngine(rules) {
       }
     }
     for (const link of rules.reviewedNewsEntityLinks?.[context.newsId] ?? []) {
+      const topic = link.type === "topic" ? topicCandidates.find((candidate) => candidate.topic.conceptId === link.conceptId) : undefined;
       const canonical =
         link.type === "organization"
           ? organizationAliases.get(link.label)
           : undefined;
-      const label = canonical?.label ?? link.label;
+      const label = topic?.label ?? canonical?.label ?? link.label;
       add({
-        key: entityKey(link.type, label),
+        key: topic?.key ?? entityKey(link.type, label),
+        ...(topic ? { entityId: topic.entityId } : {}),
         type: link.type,
         label,
-        aliases: canonical?.aliases ?? link.aliases ?? [],
+        aliases: topic?.aliases ?? canonical?.aliases ?? link.aliases ?? [],
         method: "reviewed_news_link",
         confidence: 1,
         prominent: true,
@@ -568,9 +541,9 @@ export function createExtractionEngine(rules) {
     for (const topic of rules.topics) {
       if (
         topic.extractionTriggers.some((keyword) => normalized.includes(keyword)) &&
-        TOPIC_EVENT_TYPES[topic.id]
+        rules.topicEventTypes[topic.id]
       ) {
-        return TOPIC_EVENT_TYPES[topic.id];
+        return rules.topicEventTypes[topic.id];
       }
     }
     return "other";
@@ -584,7 +557,7 @@ export function createExtractionEngine(rules) {
       const normalized = normalizeText(text);
       return rules.topics.flatMap((topic) => {
         const terms = topic.extractionTriggers.filter((term) => normalized.includes(term));
-        return terms.length ? [{ entityId: entityId("topic", topic.label), terms }] : [];
+        return terms.length ? [{ entityId: topic.entityId, terms }] : [];
       });
     },
   };
@@ -620,7 +593,7 @@ export function materializeEntity(stat) {
     reviewed_news_link: `经人工审查与独立新闻建立的实体关联；关联 ${stat.eventCount} 条独立新闻。`,
   };
   return {
-    id: entityId(stat.type, stat.label),
+    id: stat.entityId ?? entityId(stat.type, stat.label),
     label: stat.label,
     type: stat.type,
     aliases: unique(stat.aliases ?? []).filter((alias) => alias !== stat.label),

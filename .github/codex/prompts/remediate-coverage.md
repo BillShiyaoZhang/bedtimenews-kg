@@ -9,7 +9,8 @@ handle secrets; the enclosing workflow owns those actions.
 Work through this procedure:
 
 1. Read `README.md`, `docs/ontology.md`, `docs/data-model.md`,
-   `data/ontology.json`, `data/extraction-rules.json`, the current review
+   `data/ontology-source.json`, `data/extraction-patterns.json`, their generated
+   `data/ontology.json` / `data/extraction-rules.json` outputs, the current review
    reports, extraction/build/validation code, and coverage/search tests.
 2. Reproduce the failure with `npm run test:coverage`. Inspect the actual
    uncovered news and their source fragments; do not optimize only for a
@@ -26,9 +27,12 @@ Work through this procedure:
    remain in `other`. Subject, place, topic, and named-object facet presence is
    observational and must not be forced to 100%.
 6. Preserve the append-only/update contracts. Bump the appropriate ontology,
-   extraction, or segmentation version when its semantics change. Run
-   `npm run kg:rebuild` after changing semantic extraction, ontology, or news
-   boundaries.
+   extraction, or segmentation version when its semantics change. Edit semantic
+   definitions only in ontology-source and lexical patterns only in extraction-patterns;
+   never hand-edit compiled ontology/rules. Run `npm run ontology:compile`, then
+   `npm run kg:rebuild` and `npm run ontology:check` after semantic changes.
+   Preserve stable concept and legacy entity IDs; do not assign draft action or
+   refined entity classes without evidence-backed reviewed extraction.
 7. Preserve and improve high-recall search across titles, summaries,
    significance, event/entity type metadata, canonical labels, aliases,
    source metadata, punctuation/case/width normalization, and reviewed

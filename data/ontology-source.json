@@ -1,0 +1,1445 @@
+{
+  "formatVersion": 1,
+  "version": "2.3.0",
+  "label": "睡前消息新闻知识本体",
+  "description": "作为新闻知识抽取的蓝图，分别定义实体类、事件行动与议题层级；抽取后的知识图谱是独立的版本化结果。",
+  "recordUnit": {
+    "id": "news",
+    "label": "独立新闻",
+    "description": "一个具有独立主题、可精确追溯到原始页面片段的新闻记录；原始 Markdown 页面只是来源容器。"
+  },
+  "facets": [
+    {
+      "id": "event",
+      "label": "报道领域",
+      "description": "兼容旧版新闻领域分类，不代表具体事件行动",
+      "eventTypes": [
+        "*"
+      ]
+    },
+    {
+      "id": "subject",
+      "label": "主体",
+      "description": "事件中的人物与组织",
+      "entityTypes": [
+        "person",
+        "organization"
+      ]
+    },
+    {
+      "id": "place",
+      "label": "地点",
+      "description": "事件涉及的国家、地区与城市",
+      "entityTypes": [
+        "place"
+      ]
+    },
+    {
+      "id": "topic",
+      "label": "主题",
+      "description": "跨事件复用的受控议题",
+      "entityTypes": [
+        "topic"
+      ]
+    },
+    {
+      "id": "named_object",
+      "label": "对象",
+      "description": "事件涉及的设施、政策文件与命名报告",
+      "entityTypes": [
+        "facility",
+        "policy",
+        "document"
+      ]
+    }
+  ],
+  "eventEntityConstraint": {
+    "minimumEntities": 1,
+    "description": "每条事件至少通过一个语义角色关联一个实体；并非要求每个可选 facet 都必须出现。"
+  },
+  "eventEntityRoles": [
+    {
+      "id": "subject",
+      "label": "主体",
+      "description": "参与事件、受事件影响或作为报道核心的人物与组织。",
+      "entityTypes": [
+        "person",
+        "organization"
+      ]
+    },
+    {
+      "id": "place",
+      "label": "地点",
+      "description": "事件明确涉及的国家、地区、城市或其他地理区域。",
+      "entityTypes": [
+        "place"
+      ]
+    },
+    {
+      "id": "topic",
+      "label": "主题",
+      "description": "用于跨时期聚合事件的受控议题。",
+      "entityTypes": [
+        "topic"
+      ]
+    },
+    {
+      "id": "named_object",
+      "label": "命名对象",
+      "description": "事件明确涉及的设施、政策文件、报告或文献。",
+      "entityTypes": [
+        "facility",
+        "policy",
+        "document"
+      ]
+    }
+  ],
+  "relationTypes": [
+    {
+      "id": "precedes",
+      "label": "先于",
+      "description": "两个新闻投影涉及同一非泛化实体，按报道发布日期排序；不推断现实事件的发生顺序或因果。",
+      "from": [
+        "event"
+      ],
+      "to": [
+        "event"
+      ],
+      "directed": true
+    },
+    {
+      "id": "located_in",
+      "label": "位于",
+      "description": "设施或组织位于某个地理区域；仅在原文存在明确定位证据时使用。",
+      "from": [
+        "facility",
+        "organization"
+      ],
+      "to": [
+        "place"
+      ],
+      "directed": true
+    },
+    {
+      "id": "part_of",
+      "label": "属于",
+      "description": "一个设施、组织或政策文件是另一个命名对象的组成部分。",
+      "from": [
+        "facility",
+        "organization",
+        "policy"
+      ],
+      "to": [
+        "facility",
+        "organization",
+        "policy"
+      ],
+      "directed": true
+    }
+  ],
+  "hierarchies": {
+    "entity": {
+      "relation": "subClassOf",
+      "rootId": "class-entity",
+      "nodes": [
+        {
+          "id": "class-entity",
+          "label": "实体",
+          "aliases": [],
+          "description": "可引用的行动者、空间、物质对象、信息资源、社会安排或群体。",
+          "parentIds": [],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": null
+        },
+        {
+          "id": "class-agent",
+          "label": "行动者",
+          "aliases": [],
+          "description": "能够参与行动的自然人或组织。",
+          "parentIds": [
+            "class-entity"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "class-entity"
+        },
+        {
+          "id": "class-person",
+          "label": "人物",
+          "aliases": [],
+          "description": "有明确身份的自然人。",
+          "parentIds": [
+            "class-agent"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "class-agent"
+        },
+        {
+          "id": "class-organization",
+          "label": "组织",
+          "aliases": [],
+          "description": "具有可识别身份和组织结构的行动主体。",
+          "parentIds": [
+            "class-agent"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "class-agent"
+        },
+        {
+          "id": "class-geographic-space",
+          "label": "地理空间",
+          "aliases": [],
+          "description": "行政、自然或功能性地理区域。",
+          "parentIds": [
+            "class-entity"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "class-entity"
+        },
+        {
+          "id": "class-administrative-area",
+          "label": "行政区域",
+          "aliases": [],
+          "description": "具有行政边界的地理区域。",
+          "parentIds": [
+            "class-geographic-space"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-geographic-space"
+        },
+        {
+          "id": "class-natural-area",
+          "label": "自然区域",
+          "aliases": [],
+          "description": "按自然特征识别的区域。",
+          "parentIds": [
+            "class-geographic-space"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-geographic-space"
+        },
+        {
+          "id": "class-functional-area",
+          "label": "功能区域",
+          "aliases": [],
+          "description": "按用途或功能识别的地理区域。",
+          "parentIds": [
+            "class-geographic-space"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-geographic-space"
+        },
+        {
+          "id": "class-physical-object",
+          "label": "物质对象",
+          "aliases": [],
+          "description": "可识别的物质或工程对象。",
+          "parentIds": [
+            "class-entity"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "class-entity"
+        },
+        {
+          "id": "class-facility",
+          "label": "设施",
+          "aliases": [],
+          "description": "具有稳定位置的建筑、基础设施或工程系统。",
+          "parentIds": [
+            "class-physical-object"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "class-physical-object"
+        },
+        {
+          "id": "class-physical-product",
+          "label": "物质产品",
+          "aliases": [],
+          "description": "生产或使用的有形产品。",
+          "parentIds": [
+            "class-physical-object"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-physical-object"
+        },
+        {
+          "id": "class-information-resource",
+          "label": "信息资源",
+          "aliases": [],
+          "description": "规范、报告、标准、作品或软件等可识别的信息载体。",
+          "parentIds": [
+            "class-entity"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "class-entity"
+        },
+        {
+          "id": "class-normative-document",
+          "label": "规范文件",
+          "aliases": [],
+          "description": "承载明确规则的命名文献。",
+          "parentIds": [
+            "class-information-resource"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-information-resource"
+        },
+        {
+          "id": "class-evidence-document",
+          "label": "证据文献",
+          "aliases": [],
+          "description": "提供观察、调查或研究信息的文献。",
+          "parentIds": [
+            "class-information-resource"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-information-resource"
+        },
+        {
+          "id": "class-technical-standard",
+          "label": "技术标准",
+          "aliases": [],
+          "description": "规定技术要求或方法的标准。",
+          "parentIds": [
+            "class-information-resource"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-information-resource"
+        },
+        {
+          "id": "class-creative-work",
+          "label": "创作作品",
+          "aliases": [],
+          "description": "具有稳定身份的文化创作。",
+          "parentIds": [
+            "class-information-resource"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-information-resource"
+        },
+        {
+          "id": "class-software-product",
+          "label": "软件产品",
+          "aliases": [],
+          "description": "具有名称和版本的软件。",
+          "parentIds": [
+            "class-information-resource"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-information-resource"
+        },
+        {
+          "id": "class-social-arrangement",
+          "label": "社会安排",
+          "aliases": [],
+          "description": "制度、工作安排或项目等社会组织方式。",
+          "parentIds": [
+            "class-entity"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "class-entity"
+        },
+        {
+          "id": "class-policy-measure",
+          "label": "政策措施",
+          "aliases": [],
+          "description": "政策中安排的具体措施，与承载文献及发布行动区分。",
+          "parentIds": [
+            "class-social-arrangement"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-social-arrangement"
+        },
+        {
+          "id": "class-work-arrangement",
+          "label": "工作安排",
+          "aliases": [],
+          "description": "组织或劳动中的工作制度安排。",
+          "parentIds": [
+            "class-social-arrangement"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-social-arrangement"
+        },
+        {
+          "id": "class-project",
+          "label": "项目",
+          "aliases": [],
+          "description": "具有目标与边界的计划或协作项目。",
+          "parentIds": [
+            "class-social-arrangement"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-social-arrangement"
+        },
+        {
+          "id": "class-social-collective",
+          "label": "社会群体",
+          "aliases": [],
+          "description": "按明确范围识别的群体，不自动具有行动主体资格。",
+          "parentIds": [
+            "class-entity"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "class-entity"
+        },
+        {
+          "id": "class-scoped-population",
+          "label": "限定人群",
+          "aliases": [],
+          "description": "具有明确范围条件的人群。",
+          "parentIds": [
+            "class-social-collective"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-social-collective"
+        },
+        {
+          "id": "class-public-body",
+          "label": "公共机构",
+          "aliases": [],
+          "description": "组织的细分类，只有明确证据时才能赋予实例。",
+          "parentIds": [
+            "class-organization"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-organization"
+        },
+        {
+          "id": "class-business-organization",
+          "label": "企业组织",
+          "aliases": [],
+          "description": "组织的细分类，只有明确证据时才能赋予实例。",
+          "parentIds": [
+            "class-organization"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-organization"
+        },
+        {
+          "id": "class-education-organization",
+          "label": "教育组织",
+          "aliases": [],
+          "description": "组织的细分类，只有明确证据时才能赋予实例。",
+          "parentIds": [
+            "class-organization"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-organization"
+        },
+        {
+          "id": "class-social-organization",
+          "label": "社会组织",
+          "aliases": [],
+          "description": "组织的细分类，只有明确证据时才能赋予实例。",
+          "parentIds": [
+            "class-organization"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-organization"
+        },
+        {
+          "id": "class-international-organization",
+          "label": "国际组织",
+          "aliases": [],
+          "description": "组织的细分类，只有明确证据时才能赋予实例。",
+          "parentIds": [
+            "class-organization"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "class-organization"
+        }
+      ]
+    },
+    "action": {
+      "relation": "subClassOf",
+      "rootId": "occurrence",
+      "nodes": [
+        {
+          "id": "occurrence",
+          "label": "发生与变化",
+          "aliases": [],
+          "description": "报道所描述的行动或状态变化；不等同于新闻记录。",
+          "parentIds": [],
+          "abstract": true,
+          "status": "draft",
+          "primaryParentId": null
+        },
+        {
+          "id": "action",
+          "label": "行动",
+          "aliases": [],
+          "description": "主体实施的行动；计划、预测或否定不能自动认定已发生。",
+          "parentIds": [
+            "occurrence"
+          ],
+          "abstract": true,
+          "status": "draft",
+          "primaryParentId": "occurrence"
+        },
+        {
+          "id": "state-change",
+          "label": "状态变化",
+          "aliases": [],
+          "description": "自然、事故、健康或数量状态的改变；静态统计属于观察。",
+          "parentIds": [
+            "occurrence"
+          ],
+          "abstract": true,
+          "status": "draft",
+          "primaryParentId": "occurrence"
+        },
+        {
+          "id": "action-institutional",
+          "label": "制度行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-organizational",
+          "label": "组织行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-transaction",
+          "label": "交易行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-legal",
+          "label": "法律行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-engineering",
+          "label": "工程行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-research",
+          "label": "研究行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-communication",
+          "label": "沟通行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-security",
+          "label": "安全行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-service",
+          "label": "服务行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-collective",
+          "label": "集体行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "action-cultural-sports",
+          "label": "文化体育行动",
+          "aliases": [],
+          "description": "需要独立的新闻片段和行动证据，不能从报道领域直接推导。",
+          "parentIds": [
+            "action"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "action"
+        },
+        {
+          "id": "change-natural",
+          "label": "自然变化",
+          "aliases": [],
+          "description": "需要状态改变的证据；观察、计划和预测需保留其限定信息。",
+          "parentIds": [
+            "state-change"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "state-change"
+        },
+        {
+          "id": "change-accident",
+          "label": "事故",
+          "aliases": [],
+          "description": "需要状态改变的证据；观察、计划和预测需保留其限定信息。",
+          "parentIds": [
+            "state-change"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "state-change"
+        },
+        {
+          "id": "change-health",
+          "label": "健康变化",
+          "aliases": [],
+          "description": "需要状态改变的证据；观察、计划和预测需保留其限定信息。",
+          "parentIds": [
+            "state-change"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "state-change"
+        },
+        {
+          "id": "change-quantitative",
+          "label": "数量变化",
+          "aliases": [],
+          "description": "需要状态改变的证据；观察、计划和预测需保留其限定信息。",
+          "parentIds": [
+            "state-change"
+          ],
+          "abstract": false,
+          "status": "draft",
+          "primaryParentId": "state-change"
+        }
+      ]
+    },
+    "topic": {
+      "relation": "broaderTopic",
+      "rootId": "topics",
+      "nodes": [
+        {
+          "id": "topics",
+          "label": "议题",
+          "aliases": [],
+          "description": "跨新闻聚合的受控议题概念；上下位关系用于检索展开。",
+          "parentIds": [],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": null
+        },
+        {
+          "id": "topic-domain-economy-industry",
+          "label": "经济与产业",
+          "aliases": [],
+          "description": "用于浏览和检索的一级议题领域。",
+          "parentIds": [
+            "topics"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "topics"
+        },
+        {
+          "id": "topic-macroeconomy",
+          "label": "宏观经济",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-economy-industry"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-economy-industry"
+        },
+        {
+          "id": "topic-public-finance",
+          "label": "财政与税收",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-economy-industry"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-economy-industry"
+        },
+        {
+          "id": "topic-finance",
+          "label": "金融与资本市场",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-economy-industry"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-economy-industry"
+        },
+        {
+          "id": "topic-manufacturing",
+          "label": "产业与制造",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-economy-industry"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-economy-industry"
+        },
+        {
+          "id": "topic-digital-economy",
+          "label": "数字经济",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-economy-industry"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-economy-industry"
+        },
+        {
+          "id": "topic-agriculture",
+          "label": "农业与粮食",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-economy-industry"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-economy-industry"
+        },
+        {
+          "id": "topic-consumption",
+          "label": "消费与生活",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-economy-industry"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-economy-industry"
+        },
+        {
+          "id": "topic-domain-science-technology",
+          "label": "科学与技术",
+          "aliases": [],
+          "description": "用于浏览和检索的一级议题领域。",
+          "parentIds": [
+            "topics"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "topics"
+        },
+        {
+          "id": "topic-science",
+          "label": "科学研究",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-science-technology"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-science-technology"
+        },
+        {
+          "id": "topic-ai",
+          "label": "人工智能",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-science-technology"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-science-technology"
+        },
+        {
+          "id": "topic-semiconductor",
+          "label": "半导体与电子",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-science-technology"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-science-technology"
+        },
+        {
+          "id": "topic-domain-resources-environment-infrastructure",
+          "label": "资源、环境与基础设施",
+          "aliases": [],
+          "description": "用于浏览和检索的一级议题领域。",
+          "parentIds": [
+            "topics"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "topics"
+        },
+        {
+          "id": "topic-energy",
+          "label": "能源",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-resources-environment-infrastructure"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-resources-environment-infrastructure"
+        },
+        {
+          "id": "topic-environment",
+          "label": "环境与气候",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-resources-environment-infrastructure"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-resources-environment-infrastructure"
+        },
+        {
+          "id": "topic-transport",
+          "label": "交通与基础设施",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-resources-environment-infrastructure"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-resources-environment-infrastructure"
+        },
+        {
+          "id": "topic-domain-livelihood-public-services",
+          "label": "民生与公共服务",
+          "aliases": [],
+          "description": "用于浏览和检索的一级议题领域。",
+          "parentIds": [
+            "topics"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "topics"
+        },
+        {
+          "id": "topic-labor",
+          "label": "就业与劳动",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-livelihood-public-services"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-livelihood-public-services"
+        },
+        {
+          "id": "topic-housing",
+          "label": "住房与土地",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-livelihood-public-services"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-livelihood-public-services"
+        },
+        {
+          "id": "topic-population",
+          "label": "人口与生育",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-livelihood-public-services"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-livelihood-public-services"
+        },
+        {
+          "id": "topic-social-security",
+          "label": "社会保障",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-livelihood-public-services"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-livelihood-public-services"
+        },
+        {
+          "id": "topic-healthcare",
+          "label": "医疗健康",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-livelihood-public-services"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-livelihood-public-services"
+        },
+        {
+          "id": "topic-public-health",
+          "label": "公共卫生",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-livelihood-public-services"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-livelihood-public-services"
+        },
+        {
+          "id": "topic-domain-governance-law",
+          "label": "治理与法律",
+          "aliases": [],
+          "description": "用于浏览和检索的一级议题领域。",
+          "parentIds": [
+            "topics"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "topics"
+        },
+        {
+          "id": "topic-governance",
+          "label": "公共治理",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-governance-law"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-governance-law"
+        },
+        {
+          "id": "topic-law",
+          "label": "法律与司法",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-governance-law"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-governance-law"
+        },
+        {
+          "id": "topic-domain-international-security",
+          "label": "国际与安全",
+          "aliases": [],
+          "description": "用于浏览和检索的一级议题领域。",
+          "parentIds": [
+            "topics"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "topics"
+        },
+        {
+          "id": "topic-international",
+          "label": "国际关系",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-international-security"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-international-security"
+        },
+        {
+          "id": "topic-defense",
+          "label": "国防与安全",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-international-security"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-international-security"
+        },
+        {
+          "id": "topic-domain-education-culture-sports",
+          "label": "教育、文化与体育",
+          "aliases": [],
+          "description": "用于浏览和检索的一级议题领域。",
+          "parentIds": [
+            "topics"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "topics"
+        },
+        {
+          "id": "topic-education",
+          "label": "教育",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-education-culture-sports"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-education-culture-sports"
+        },
+        {
+          "id": "topic-culture",
+          "label": "文化与传媒",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-education-culture-sports"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-education-culture-sports"
+        },
+        {
+          "id": "topic-sports",
+          "label": "体育",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-education-culture-sports"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-education-culture-sports"
+        },
+        {
+          "id": "topic-domain-risk-public-safety",
+          "label": "风险与公共安全",
+          "aliases": [],
+          "description": "用于浏览和检索的一级议题领域。",
+          "parentIds": [
+            "topics"
+          ],
+          "abstract": true,
+          "status": "active",
+          "primaryParentId": "topics"
+        },
+        {
+          "id": "topic-public-safety",
+          "label": "公共安全",
+          "aliases": [],
+          "description": "跨新闻复用的受控议题；词面触发规则在抽取配置中独立维护。",
+          "parentIds": [
+            "topic-domain-risk-public-safety"
+          ],
+          "abstract": false,
+          "status": "active",
+          "primaryParentId": "topic-domain-risk-public-safety"
+        }
+      ]
+    }
+  },
+  "legacyEventDomains": [
+    {
+      "id": "policy_governance",
+      "label": "政策与治理",
+      "description": "政策、规划、监管、行政安排或公共治理方式发生变化。",
+      "color": "#506f97"
+    },
+    {
+      "id": "economy_business",
+      "label": "经济与商业",
+      "description": "价格、市场、贸易、投资、企业经营或产业格局发生变化。",
+      "color": "#398073"
+    },
+    {
+      "id": "infrastructure_transport",
+      "label": "基建与交通",
+      "description": "基础设施的规划、建设、投运、维护或组织调整。",
+      "color": "#b85a36"
+    },
+    {
+      "id": "science_technology",
+      "label": "科学与技术",
+      "description": "科研活动、技术能力、产品路线或工程方法出现进展与争议。",
+      "color": "#725c9c"
+    },
+    {
+      "id": "law_justice",
+      "label": "法律与司法",
+      "description": "立法、执法、调查、诉讼、判决或犯罪案件相关进展。",
+      "color": "#866246"
+    },
+    {
+      "id": "conflict_security",
+      "label": "冲突与安全",
+      "description": "战争、军事行动、制裁、政变、袭击或国家安全事件。",
+      "color": "#934d4d"
+    },
+    {
+      "id": "disaster_accident",
+      "label": "灾害与事故",
+      "description": "自然灾害、生产安全事故、公共安全事故及其救援和问责。",
+      "color": "#b06a36"
+    },
+    {
+      "id": "public_health",
+      "label": "公共卫生",
+      "description": "疫情、传染病、疫苗、防疫措施或群体健康风险变化。",
+      "color": "#3f7d79"
+    },
+    {
+      "id": "environment_energy",
+      "label": "环境与能源",
+      "description": "能源供给、生态环境、污染治理或气候议题相关变化。",
+      "color": "#5e7d58"
+    },
+    {
+      "id": "education_culture",
+      "label": "教育与文化",
+      "description": "教育制度、学校、科研文化、影视传媒、体育与公共文化事件。",
+      "color": "#8b6588"
+    },
+    {
+      "id": "society_livelihood",
+      "label": "社会与民生",
+      "description": "就业、住房、人口、养老、医疗、劳动与日常生活相关变化。",
+      "color": "#9a7444"
+    },
+    {
+      "id": "international_relations",
+      "label": "国际关系",
+      "description": "外交、国际组织、双边关系、国际谈判与跨国制度变化。",
+      "color": "#4a6f83"
+    },
+    {
+      "id": "other",
+      "label": "其他事件",
+      "description": "证据不足以稳定归入其他通用类型的事件；应在覆盖报告中持续审查。",
+      "color": "#7d7870"
+    }
+  ],
+  "mappings": {
+    "entityTypes": [
+      {
+        "legacyId": "person",
+        "conceptId": "class-person",
+        "mappingStatus": "exact_class"
+      },
+      {
+        "legacyId": "organization",
+        "conceptId": "class-organization",
+        "mappingStatus": "exact_class"
+      },
+      {
+        "legacyId": "place",
+        "conceptId": "class-geographic-space",
+        "mappingStatus": "exact_class"
+      },
+      {
+        "legacyId": "facility",
+        "conceptId": "class-facility",
+        "mappingStatus": "exact_class"
+      },
+      {
+        "legacyId": "policy",
+        "conceptId": "class-information-resource",
+        "mappingStatus": "broad_legacy_class"
+      },
+      {
+        "legacyId": "document",
+        "conceptId": "class-information-resource",
+        "mappingStatus": "broad_legacy_class"
+      },
+      {
+        "legacyId": "topic",
+        "conceptKind": "TopicConcept",
+        "mappingStatus": "controlled_concept"
+      }
+    ],
+    "topics": [
+      {
+        "legacyId": "topic-macroeconomy",
+        "conceptId": "topic-macroeconomy",
+        "entityId": "entity-topic-ec064b630b41"
+      },
+      {
+        "legacyId": "topic-public-finance",
+        "conceptId": "topic-public-finance",
+        "entityId": "entity-topic-4aec0475249f"
+      },
+      {
+        "legacyId": "topic-finance",
+        "conceptId": "topic-finance",
+        "entityId": "entity-topic-da8baac7a56a"
+      },
+      {
+        "legacyId": "topic-housing",
+        "conceptId": "topic-housing",
+        "entityId": "entity-topic-1111de459cd2"
+      },
+      {
+        "legacyId": "topic-manufacturing",
+        "conceptId": "topic-manufacturing",
+        "entityId": "entity-topic-db818238bf90"
+      },
+      {
+        "legacyId": "topic-digital-economy",
+        "conceptId": "topic-digital-economy",
+        "entityId": "entity-topic-8a581a8f5d03"
+      },
+      {
+        "legacyId": "topic-ai",
+        "conceptId": "topic-ai",
+        "entityId": "entity-topic-85bc32ad72f0"
+      },
+      {
+        "legacyId": "topic-semiconductor",
+        "conceptId": "topic-semiconductor",
+        "entityId": "entity-topic-8f0d9fc472a1"
+      },
+      {
+        "legacyId": "topic-energy",
+        "conceptId": "topic-energy",
+        "entityId": "entity-topic-6cf73dbb1b59"
+      },
+      {
+        "legacyId": "topic-environment",
+        "conceptId": "topic-environment",
+        "entityId": "entity-topic-7fe1d89c885d"
+      },
+      {
+        "legacyId": "topic-transport",
+        "conceptId": "topic-transport",
+        "entityId": "entity-topic-6c34323d1aa3"
+      },
+      {
+        "legacyId": "topic-agriculture",
+        "conceptId": "topic-agriculture",
+        "entityId": "entity-topic-53d167322c77"
+      },
+      {
+        "legacyId": "topic-healthcare",
+        "conceptId": "topic-healthcare",
+        "entityId": "entity-topic-1a28a95ca93c"
+      },
+      {
+        "legacyId": "topic-public-health",
+        "conceptId": "topic-public-health",
+        "entityId": "entity-topic-2578a308b835"
+      },
+      {
+        "legacyId": "topic-education",
+        "conceptId": "topic-education",
+        "entityId": "entity-topic-3619e6a68ba1"
+      },
+      {
+        "legacyId": "topic-science",
+        "conceptId": "topic-science",
+        "entityId": "entity-topic-5dd0d821b9a8"
+      },
+      {
+        "legacyId": "topic-population",
+        "conceptId": "topic-population",
+        "entityId": "entity-topic-18a9a1d4f0e0"
+      },
+      {
+        "legacyId": "topic-labor",
+        "conceptId": "topic-labor",
+        "entityId": "entity-topic-9be00a89dec0"
+      },
+      {
+        "legacyId": "topic-social-security",
+        "conceptId": "topic-social-security",
+        "entityId": "entity-topic-09a250abf6ac"
+      },
+      {
+        "legacyId": "topic-governance",
+        "conceptId": "topic-governance",
+        "entityId": "entity-topic-ba1dbbad6e64"
+      },
+      {
+        "legacyId": "topic-law",
+        "conceptId": "topic-law",
+        "entityId": "entity-topic-d68c099d5b04"
+      },
+      {
+        "legacyId": "topic-public-safety",
+        "conceptId": "topic-public-safety",
+        "entityId": "entity-topic-7826943ffa59"
+      },
+      {
+        "legacyId": "topic-international",
+        "conceptId": "topic-international",
+        "entityId": "entity-topic-8e6234a589f6"
+      },
+      {
+        "legacyId": "topic-defense",
+        "conceptId": "topic-defense",
+        "entityId": "entity-topic-89169131f716"
+      },
+      {
+        "legacyId": "topic-culture",
+        "conceptId": "topic-culture",
+        "entityId": "entity-topic-e3a330ceec3c"
+      },
+      {
+        "legacyId": "topic-consumption",
+        "conceptId": "topic-consumption",
+        "entityId": "entity-topic-240a20d1377a"
+      },
+      {
+        "legacyId": "topic-sports",
+        "conceptId": "topic-sports",
+        "entityId": "entity-topic-8427f6313373"
+      }
+    ]
+  },
+  "semantics": {
+    "newsProjection": "one_per_news",
+    "actionAssignments": "not_materialized",
+    "legacyEventTypes": "domain_classification_not_action",
+    "chronology": "news_publication_order_not_real_world_event_order",
+    "identity": "subClassOf / broaderTopic / instanceOf / partOf are distinct"
+  },
+  "legacyEntityTypes": [
+    {
+      "id": "person",
+      "label": "人物",
+      "description": "在原文中以姓名出现、并由职务或角色上下文确认的自然人；国名、职位名和泛称不属于人物。",
+      "color": "#bd563d"
+    },
+    {
+      "id": "organization",
+      "label": "组织",
+      "description": "具有可识别名称的政府机构、企业、学校、国际组织、政党或社会团体；泛指的“有关部门”等不纳入。",
+      "color": "#315f86"
+    },
+    {
+      "id": "place",
+      "label": "地点",
+      "description": "国家、行政区、城市或具有稳定名称的地理区域；同一地点的正式名与常用简称归并为一个实体。",
+      "color": "#617b4a"
+    },
+    {
+      "id": "facility",
+      "label": "设施",
+      "description": "铁路、公路、桥梁、机场、港口、电站、园区等可定位的物质或工程系统。",
+      "color": "#8a6848"
+    },
+    {
+      "id": "policy",
+      "label": "政策文件",
+      "description": "原文明确命名的法律、条例、办法、规划、方案、通知、意见、纲要或决定。",
+      "color": "#765a98"
+    },
+    {
+      "id": "document",
+      "label": "报告与文献",
+      "description": "原文明确命名的调查报告、研究报告、白皮书、年鉴或技术标准；它们可作为证据，但不等同于政策。",
+      "color": "#6e6b8f"
+    },
+    {
+      "id": "topic",
+      "label": "主题",
+      "description": "由受控词表定义、可跨时期稳定复用的议题维度；主题不是原文中的独立行动者。",
+      "color": "#a06c25"
+    }
+  ]
+}

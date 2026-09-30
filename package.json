@@ -6,6 +6,10 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "ontology:compile": "node scripts/compile-ontology.mjs",
+    "ontology:check": "node scripts/compile-ontology.mjs --check",
+    "prebuild": "npm run ontology:check",
+    "prebuild:pages": "npm run ontology:check",
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "build:pages": "NEXT_OUTPUT_EXPORT=1 next build",

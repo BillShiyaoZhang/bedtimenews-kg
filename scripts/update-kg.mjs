@@ -27,10 +27,12 @@ import {
 } from "./lib/news.mjs";
 import { applyReviewedSourceRevisions } from "./lib/source-revisions.mjs";
 import { validate } from "./lib/validate.mjs";
+import { assertAcceptedCompilation, compileOntologyFiles } from "./lib/ontology-compiler.mjs";
 import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
 
 const execFile = promisify(execFileCallback);
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
+await compileOntologyFiles(projectRoot);
 const args = parseArgs(process.argv.slice(2));
 const bootstrap = Boolean(args.bootstrap);
 const rebuild = Boolean(args.rebuild);
@@ -124,6 +126,7 @@ if (bootstrap) {
     },
     includedRoots: includeRoots,
     ontologyVersion: candidate.schemaVersion,
+    ontologyCompilation: candidate.source.ontologyCompilation,
     newsDatasetSchemaVersion: candidateNews.schemaVersion,
     extractionVersion: candidate.source.extractionVersion,
     segmentationVersion: candidate.source.segmentationVersion,
@@ -211,6 +214,7 @@ if (rebuild) {
     ...state,
     schemaVersion: 3,
     ontologyVersion: candidate.schemaVersion,
+    ontologyCompilation: candidate.source.ontologyCompilation,
     newsDatasetSchemaVersion: candidateNews.schemaVersion,
     extractionVersion: candidate.source.extractionVersion,
     segmentationVersion: candidate.source.segmentationVersion,
@@ -256,6 +260,7 @@ if (rebuild) {
   printSummary("Rebuilt", report, candidate);
   process.exit(0);
 }
+assertAcceptedCompilation(existing, state, candidate.source.ontologyCompilation);
 if (
   state.ontologyVersion !== candidate.schemaVersion ||
   existing.schemaVersion !== candidate.schemaVersion ||

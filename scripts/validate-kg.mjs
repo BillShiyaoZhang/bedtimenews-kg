@@ -9,9 +9,11 @@ import {
   validateNewsDataset,
 } from "./lib/news.mjs";
 import { validate } from "./lib/validate.mjs";
+import { compileOntologyFiles } from "./lib/ontology-compiler.mjs";
 import { validateTopicEvidence } from "./lib/topic-evidence.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
+await compileOntologyFiles(root);
 const kgPath = resolve(root, process.argv[2] ?? "data/generated/kg.json");
 const ontologyPath = resolve(root, process.argv[3] ?? "data/ontology.json");
 const newsPath = resolve(root, process.argv[4] ?? "data/processed/news.json");

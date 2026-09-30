@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import knowledgeBaseData from "../../data/generated/kg.json";
 import ontologyData from "../../data/ontology.json";
-import type { KnowledgeBase, Ontology } from "../lib/kg";
+import { eventMatchesTopic } from "../lib/ontology-hierarchy.mjs";
+import type { KnowledgeBase, Ontology, OntologyHierarchy } from "../lib/kg";
 import type { CSSProperties } from "react";
 
 export const metadata: Metadata = {
@@ -12,13 +13,6 @@ export const metadata: Metadata = {
 
 const knowledgeBase = knowledgeBaseData as unknown as KnowledgeBase;
 const ontology = ontologyData as unknown as Ontology;
-
-const FACET_ENTITY_TYPES = {
-  subject: ["person", "organization"],
-  place: ["place"],
-  topic: ["topic"],
-  named_object: ["facility", "policy", "document"],
-} as const;
 
 function percentage(matched: number, total: number) {
   return total ? (matched / total) * 100 : 0;
@@ -89,8 +83,8 @@ export default function OntologyPage() {
       ).length,
     },
   ];
-  const facetPresence = Object.entries(FACET_ENTITY_TYPES).map(
-    ([id, types]) => ({
+  const facetPresence = ontology.facets.filter((facet) => facet.entityTypes).map(
+    ({ id, entityTypes: types = [] }) => ({
       id,
       label: ontology.facets.find((facet) => facet.id === id)?.label ?? id,
       description:
@@ -151,6 +145,18 @@ export default function OntologyPage() {
             <dd>{ontology.relationTypes.length}</dd>
           </div>
         </dl>
+      </section>
+
+      <section className="ontology-section hierarchy-section">
+        <div className="ontology-section-heading">
+          <div><span className="eyebrow">Extraction blueprint</span><h2>从上到下的抽取蓝图</h2></div>
+          <p>类的继承、议题的上下位关系和实例之间的组成关系分别建模；父级筛选会展开到下级，统计按新闻去重。</p>
+        </div>
+        <div className="hierarchy-grid">
+          <article><h3>实体类 · subClassOf</h3><p>实体实例通过类型归属到类；不会把实例与类、整体与部分混为一谈。</p><HierarchyTree hierarchy={ontology.hierarchies.entity} /></article>
+          <article><h3>事件行动 · subClassOf</h3><p>这里是待用于抽取的行动定义；本版尚未生成行动实例，不以旧报道领域代替行动证据。</p><HierarchyTree hierarchy={ontology.hierarchies.action} /></article>
+          <article><h3>议题 · broaderTopic</h3><p>可在首页选择父级或具体议题；抽取证据只属于实际命中的新闻。</p><HierarchyTree hierarchy={ontology.hierarchies.topic} counts={new Map(ontology.hierarchies.topic.nodes.map((node) => [node.id, knowledgeBase.events.filter((event) => eventMatchesTopic(ontology, event, node.id)).length]))} /></article>
+        </div>
       </section>
 
       <section className="ontology-section coverage-section">
@@ -309,9 +315,9 @@ export default function OntologyPage() {
         <div className="ontology-section-heading">
           <div>
             <span className="eyebrow">Event classes</span>
-            <h2>事件类型</h2>
+            <h2>兼容报道领域</h2>
           </div>
-          <p>事件类型描述每条独立新闻中发生了什么，而非原页面或稿件栏目名称。</p>
+          <p>现有 event.type 继续保存报道领域，保留历史分类与检索；不能据此判断具体行动或合并现实事件。</p>
         </div>
         <div className="type-grid event-type-grid">
           {ontology.eventTypes.map((type) => (
@@ -398,4 +404,11 @@ export default function OntologyPage() {
       </footer>
     </main>
   );
+}
+
+function HierarchyTree({ hierarchy, parentId = hierarchy.rootId, counts }: { hierarchy: OntologyHierarchy; parentId?: string; counts?: Map<string, number> }) {
+  return <ul className="ontology-tree">{hierarchy.nodes.filter((node) => node.primaryParentId === parentId).map((node) => <li key={node.id}>
+    <span title={`${node.id} · ${node.description}`}>{node.label}{node.status === "draft" && <small> · 草案</small>}{counts && <small> {counts.get(node.id)?.toLocaleString("zh-CN")} 条新闻</small>}</span>
+    {hierarchy.nodes.some((child) => child.primaryParentId === node.id) && <HierarchyTree hierarchy={hierarchy} parentId={node.id} counts={counts} />}
+  </li>)}</ul>;
 }

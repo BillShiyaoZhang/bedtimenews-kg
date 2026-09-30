@@ -22,7 +22,9 @@
 4. KG 逐条重新读取并验签原文片段，再抽取主体、地点、设施、政策、命名文献与受控主题；
 5. 仅为共同涉及同一高置信实体、且日期不同的相邻新闻生成 `precedes` 时序关系。
 
-`data/ontology.json` 定义稳定的语义类型与首页 facet；`data/extraction-rules.json` 定义可复现的语义抽取规则；`data/news-overrides.json` 保存经人工审查的页面拆分修正。三者分开版本化。主题 `aliases` 只保存真正同义名称，`extractionTriggers` 只负责抽取；生成的 `event.topicEvidence` 保存每条新闻独立验签片段的实际命中词，避免把一个主题的全部相关词扩散到每条新闻。维护与迁移见 [名称与抽取证据](docs/ontology.md)。
+`data/ontology-source.json` 是唯一的语义定义源，管理实体类、事件行动、议题层级、名称/别名、角色、关系和兼容映射；`data/extraction-patterns.json` 只维护引用稳定 ID 的抽取信号。`npm run ontology:compile` 生成供抽取器、校验器和前端共用的 `data/ontology.json` 与 `data/extraction-rules.json`，不要手改这两个产物。主题 `aliases` 只保存真正同义名称，`extractionTriggers` 只负责抽取，`event.topicEvidence` 只保存该条新闻片段实际命中词。维护方法见 [本体与编译流程](docs/ontology.md)。
+
+首页主题条件支持 8 个一级领域和 27 个既有议题的父子筛选，结果说明直接关联或由下级归入。新行动分类目前是明确标记的蓝图草案，旧 `event.type` 保留为兼容报道领域；本次不声称已抽取现实行动、支持来源撤回或完成 KG 生命周期。
 
 `data/review/news-segmentation.json` 报告拆分策略、每页新闻数、待审页面，以及正式节目期号时间轴中的日期插值和异常校正。标题中的期号越大，最终发布日期保证不会更早；原始观测日期及其来源仍保留在 processed dataset 中。语义覆盖质量写入 `data/review/ontology-candidates.json`，包括：
 
@@ -68,10 +70,12 @@ npm run kg:update
 
 已审查的文件版本也必须重新核验全部新闻记录、日期、边界与片段哈希，以及除完整文件哈希外的全部页面元数据。任何一项变化都会拒绝应用该审查记录；完整来源校验不会跳过。具体流程见 `docs/source-revisions.md`。
 
-修改 ontology 或抽取规则后，必须显式运行：
+修改本体定义或抽取模式时，显式更新对应版本，然后运行：
 
 ```bash
+npm run ontology:compile
 npm run kg:rebuild
+npm run ontology:check
 ```
 
 修改拆分逻辑、`data/news-overrides.json`、ontology 或抽取规则后，都必须执行显式重建。重建会先确认不存在未解决的上游修改、删除、改名或重复新增，然后才同时替换 processed news 和 KG。版本不一致时，`kg:update` 会拒绝继续，避免把数据边界或语义迁移伪装成普通增量。
@@ -122,8 +126,10 @@ app/                         站点路由与界面
 app/page.tsx                 关键词与条件检索首页
 app/graph/page.tsx           实体相关新闻与 KG 可视化
 app/ontology/page.tsx        Ontology 类型、约束与覆盖率
-data/ontology.json           类型、关系与检索 facet
-data/extraction-rules.json   版本化确定性抽取规则
+data/ontology-source.json    唯一语义定义、层级与稳定 ID 映射
+data/extraction-patterns.json  引用稳定 ID 的抽取模式
+data/ontology.json           编译后的本体与层级索引（勿手改）
+data/extraction-rules.json   编译后的运行时抽取规则（勿手改）
 data/news-overrides.json     经审查的页面拆分修正
 data/processed/news.json     页面拆分后的独立新闻数据集
 data/generated/kg.json       独立新闻的语义 KG 投影

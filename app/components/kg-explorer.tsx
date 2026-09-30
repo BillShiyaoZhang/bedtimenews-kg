@@ -18,6 +18,8 @@ import {
   rankEventSearchDocument,
 } from "../lib/search.mjs";
 
+import { topicEntityIds, topicMatchReason } from "../lib/ontology-hierarchy.mjs";
+
 type SearchMode = "keyword" | "filters";
 type Filters = {
   eventType: string;
@@ -101,12 +103,23 @@ export function KGExplorer({
             left.label.localeCompare(right.label, "zh-CN"),
         );
     return {
-      subjects: options(["person", "organization"]),
-      places: options(["place"]),
-      topics: options(["topic"]),
-      objects: options(["facility", "policy", "document"]),
+      subjects: options(initialOntology.facets.find((facet) => facet.id === "subject")?.entityTypes ?? []),
+      places: options(initialOntology.facets.find((facet) => facet.id === "place")?.entityTypes ?? []),
+      objects: options(initialOntology.facets.find((facet) => facet.id === "named_object")?.entityTypes ?? []),
     };
-  }, [initialKG.entities, initialKG.events]);
+  }, [initialKG.entities, initialKG.events, initialOntology.facets]);
+  const topicOptions = useMemo(() => {
+    const hierarchy = initialOntology.hierarchies.topic;
+    const options: { id: string; label: string }[] = [];
+    const visit = (parentId: string, depth: number) => {
+      for (const node of hierarchy.nodes.filter((node) => node.primaryParentId === parentId)) {
+        options.push({ id: node.id, label: `${"　".repeat(depth)}${node.label}${node.abstract ? "（含下级）" : ""}` });
+        visit(node.id, depth + 1);
+      }
+    };
+    visit(hierarchy.rootId, 0);
+    return options;
+  }, [initialOntology.hierarchies.topic]);
   const searchableEvents = useMemo(
     () =>
       initialKG.events.map((event) => {
@@ -172,6 +185,7 @@ export function KGExplorer({
         .map(({ entity }) => entity);
     } else {
       const selected = search.filters;
+      const selectedTopicIds = selected.topicId ? new Set(topicEntityIds(initialOntology, selected.topicId)) : null;
       matching = matching.filter(({ event }) => {
         if (selected.eventType && event.type !== selected.eventType) {
           return false;
@@ -179,11 +193,11 @@ export function KGExplorer({
         for (const id of [
           selected.subjectId,
           selected.placeId,
-          selected.topicId,
           selected.objectId,
         ]) {
           if (id && !event.entityIds.includes(id)) return false;
         }
+        if (selectedTopicIds && !event.entityIds.some((id: string) => selectedTopicIds.has(id))) return false;
         const year = Number(event.date.slice(0, 4));
         if (selected.fromYear && year < Number(selected.fromYear)) return false;
         if (selected.toYear && year > Number(selected.toYear)) return false;
@@ -224,7 +238,7 @@ export function KGExplorer({
       totalEntities: matchingEntities.length,
       entities: matchingEntities.slice(0, ENTITY_RESULT_LIMIT),
     };
-  }, [entityById, search, searchableEntities, searchableEvents]);
+  }, [entityById, search, searchableEntities, searchableEvents, initialOntology]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -326,11 +340,11 @@ export function KGExplorer({
               <div className="filter-search">
                 <FilterSelect
                   id="event-type"
-                  label="事件"
+                  label="报道领域"
                   value={filters.eventType}
                   onChange={(value) => updateFilter("eventType", value)}
                   options={initialOntology.eventTypes}
-                  placeholder="全部事件类型"
+                  placeholder="全部兼容领域"
                 />
                 <EntitySelect
                   id="subject"
@@ -348,12 +362,12 @@ export function KGExplorer({
                   options={entitiesByType.places}
                   placeholder="全部地点"
                 />
-                <EntitySelect
+                <FilterSelect
                   id="topic"
-                  label="主题"
+                  label="主题层级"
                   value={filters.topicId}
                   onChange={(value) => updateFilter("topicId", value)}
-                  options={entitiesByType.topics}
+                  options={topicOptions}
                   placeholder="全部主题"
                 />
                 <EntitySelect
@@ -431,6 +445,8 @@ export function KGExplorer({
 
       {search ? (
         <SearchResults
+          ontology={initialOntology}
+          selectedTopicId={search.mode === "filters" ? search.filters.topicId : ""}
           total={result.total}
           events={result.events}
           totalEntities={result.totalEntities}
@@ -498,6 +514,8 @@ function EntitySelect({
 }
 
 function SearchResults({
+  ontology,
+  selectedTopicId,
   total,
   events,
   totalEntities,
@@ -507,6 +525,8 @@ function SearchResults({
   eventTypeById,
   entityTypeById,
 }: {
+  ontology: Ontology;
+  selectedTopicId: string;
   total: number;
   events: Event[];
   totalEntities: number;
@@ -599,6 +619,7 @@ function SearchResults({
                     {source ? <i>{source.kind}</i> : null}
                   </div>
                   <h3>{event.title}</h3>
+                  {selectedTopicId && <small className="topic-match-reason">主题命中：{topicMatchReason(ontology, event, selectedTopicId).map((match) => `${match.label}（${match.inherited ? "由下级归入" : "直接关联"}）`).join("、")}</small>}
                   <p>{event.summary || "原文未提供摘要，请查看出处。"}</p>
                   <div className="entity-tags">
                     {entities.slice(0, 8).map((entity) => (
