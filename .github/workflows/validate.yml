@@ -22,12 +22,9 @@ jobs:
           fetch-depth: 0
           submodules: false
           persist-credentials: false
-      - name: Acquire sources only for legacy validation
+      - name: Materialize pinned source fixtures for required tests
         shell: bash
-        run: |
-          if [[ ! -f data/accepted-release.json ]]; then
-            git submodule update --init --recursive
-          fi
+        run: git submodule update --init --recursive -- sources/bedtimenews-archive-contents
       - uses: actions/setup-node@v6
         with:
           node-version-file: .node-version

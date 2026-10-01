@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertReleaseApproval, RELEASE_NODE_VERSION, syncAcceptedRelease, releaseStoreJournalOptions, createFileReleaseJournal } from "./lib/release-sync.mjs";
 import { createGitHubReleaseStore } from "./lib/release-store.mjs";
-import { createReleaseGitTransport, acquireReleaseSource, validatePreparedRelease, createReleaseGitHubClient, reconcileReleasePages, createActionsReleaseMutationGuard, inspectAcceptedReleaseRecovery } from "./lib/release-runtime.mjs";
+import { createReleaseGitTransport, acquireReleaseSource, validatePreparedRelease, createReleaseGitHubClient, reconcileReleasePages, createActionsReleaseMutationGuard, describeActionsHistoryFailure, inspectAcceptedReleaseRecovery } from "./lib/release-runtime.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const repository = process.env.GITHUB_REPOSITORY;
@@ -29,7 +29,8 @@ if (process.env.GITHUB_ACTIONS === "true") {
   try {
     guard = await createActionsReleaseMutationGuard({ repository, request, runId: process.env.GITHUB_RUN_ID, runAttempt: process.env.GITHUB_RUN_ATTEMPT,
       resolvedAttempts: process.env.GITHUB_EVENT_NAME === "workflow_dispatch" ? process.env.KG_RELEASE_RESOLVED_ATTEMPTS : "" });
-  } catch {
+  } catch (error) {
+    console.error(`Actions history verification failed: ${JSON.stringify(describeActionsHistoryFailure(error))}`);
     guard = { blockedAttempts: ["history-unverified"], assertMutationAllowed() { throw new Error("Actions history could not establish restart safety"); } };
   }
 }
