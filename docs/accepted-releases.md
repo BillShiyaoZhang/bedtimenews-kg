@@ -168,6 +168,17 @@ closed. A previously unreferenced failed run that was externally deleted cannot
 be discovered from an otherwise clean listing. Deleting history is never a valid
 way to resolve an uncertain write; investigate the original operation instead.
 
+The fixed-origin API client retries transient GET/HEAD failures at most four
+times total, with 250 ms, 1 s and 2 s delays. Timeouts, interrupted response reads,
+and HTTP 408/429/500/502/503/504 are eligible; authorization failures, missing
+resources, malformed JSON and invalid history are not. A `Retry-After` value
+outside the next bounded delay fails closed rather than being ignored. No POST
+or other mutation is retried, including when its response is lost. Exhaustion
+keeps the `history-unverified` fence. The CLI reports only safe phase, run/page,
+failure category, HTTP status and attempt count, never remote response bodies or
+transport error text. These diagnostics distinguish a transient read failure
+from incomplete history without declaring any failed release attempt resolved.
+
 A lost response is reconciled read-only. Unknown outcomes block additional
 writes; starting a new process does not authorize a retry. A failed preparation,
 validation or main race leaves accepted main unchanged, although its private draft
@@ -210,6 +221,12 @@ Accepted Pages builds can use the Git-tracked rendered outputs even when upstrea
 is unavailable. Fresh extraction always requires authenticated pinned raw Git
 history and fails closed if it is unavailable. Raw upstream archives are not
 mirrored into audit storage: the upstream redistribution license is unverified.
+
+PR/push validation still materializes the source submodule at its committed
+gitlink for the required real-corpus extraction regression tests, including when
+an accepted receipt exists. It never advances to the upstream branch tip. This
+fixture checkout does not turn the unchanged-receipt validation gate into a
+fresh full-source replay; Pages rendering itself remains source-independent.
 
 ## Semantic epochs and reviewed maintenance
 

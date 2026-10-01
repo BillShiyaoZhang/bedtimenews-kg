@@ -301,6 +301,14 @@ test("release mode is explicitly gated and keeps PR tokens read-only", async () 
   assert.equal((await readText(".node-version")).trim(), "22.23.2");
 });
 
+test("required corpus tests materialize the pinned source even with an accepted receipt", () => {
+  const setup = validate.split("- name: Materialize pinned source fixtures for required tests\n")[1]?.split("      - uses:")[0];
+  assert.ok(setup, "required source-fixture step is missing");
+  assert.match(setup, /run: git submodule update --init --recursive -- sources\/bedtimenews-archive-contents/u);
+  assert.doesNotMatch(setup, /accepted-release\.json|if:|if \[|--remote|checkout.*main/u);
+  assert.ok(validate.indexOf("Materialize pinned source fixtures") < validate.indexOf("npm run test:required"));
+});
+
 test("semantic maintenance preview and PR preparation are reachable without a main-CAS bypass", async () => {
   const packageJson = JSON.parse(await readText("package.json"));
   assert.equal(packageJson.scripts["kg:release:migration:preview"], "node scripts/preview-accepted-migration.mjs");

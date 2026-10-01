@@ -145,19 +145,67 @@ export function summarizeValidationFailure(output) {
   return [...excerpts, "Last output:", safe.slice(-2500)].join("\n\n").slice(0, 18000);
 }
 
-/** Minimal fixed-origin GitHub client for the CLI. It never exposes response
- * bodies or credentials in errors and never retries mutation requests. */
-export function createReleaseGitHubClient({ repository, token, fetchImpl = globalThis.fetch }) {
+const GITHUB_READ_DELAYS_MS = Object.freeze([0, 250, 1000, 2000]);
+class ReleaseGitHubRequestError extends Error {
+  constructor(kind, method, attempts, status = null) {
+    super(`Release runtime: GitHub ${method} ${kind}${status === null ? "" : ` HTTP ${status}`} after ${attempts} attempt(s)`);
+    this.details = { kind, method, attempts, status };
+  }
+}
+class ActionsHistoryError extends Error {
+  constructor(phase, context, reason) {
+    super(`Release runtime: Actions history could not establish restart safety${reason.reason ? `: ${reason.reason}` : ""}`);
+    this.details = { phase, ...context, ...reason };
+  }
+}
+
+/** Only locally constructed categories are printable, never remote bodies,
+ * transport error messages, URLs, tokens or arbitrary injected exceptions. */
+export function describeActionsHistoryFailure(error) {
+  return error instanceof ActionsHistoryError ? { ...error.details } : { phase: "history", kind: "unexpected-error" };
+}
+
+/** Minimal fixed-origin GitHub client for the CLI. Bounded retries apply only
+ * to transient reads; mutation requests always have exactly one attempt. */
+export function createReleaseGitHubClient({ repository, token, fetchImpl = globalThis.fetch, sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) }) {
   must(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repository) && typeof token === "string" && token.length > 0, "repository and token are required");
   const [owner, repo] = repository.split("/");
   async function request(path, { method = "GET", body, allow404 = false } = {}) {
     must(path.startsWith(`/repos/${repository}/`), "request outside approved repository");
-    const response = await fetchImpl(`https://api.github.com${path}`, { method, redirect: "error", signal: AbortSignal.timeout(30_000),
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2026-03-10", ...(body ? { "Content-Type": "application/json" } : {}) },
-      ...(body ? { body: JSON.stringify(body) } : {}) });
-    if (allow404 && response.status === 404) return null;
-    must(response.ok, `GitHub ${method} returned HTTP ${response.status}`);
-    return response.status === 204 ? null : response.json();
+    const attempts = ["GET", "HEAD"].includes(method) ? GITHUB_READ_DELAYS_MS.length : 1;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      if (attempt > 1) await sleep(GITHUB_READ_DELAYS_MS[attempt - 1]);
+      let response;
+      try {
+        response = await fetchImpl(`https://api.github.com${path}`, { method, redirect: "error", signal: AbortSignal.timeout(30_000),
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2026-03-10", ...(body ? { "Content-Type": "application/json" } : {}) },
+          ...(body ? { body: JSON.stringify(body) } : {}) });
+      } catch (error) {
+        const transient = ["TypeError", "AbortError", "TimeoutError"].includes(error?.name);
+        if (transient && attempt < attempts) continue;
+        throw new ReleaseGitHubRequestError(transient ? "transport-failure" : "unexpected-transport-error", method, attempt);
+      }
+      if (allow404 && response.status === 404) return null;
+      if (!response.ok) {
+        const transient = [408, 429, 500, 502, 503, 504].includes(response.status);
+        // Never retry sooner than a server's Retry-After. A delay beyond our
+        // bounded budget (or an unrecognized value) fails closed instead.
+        const retryAfter = response.headers.get("retry-after");
+        const withinDelay = retryAfter === null || (/^\d+$/u.test(retryAfter) && Number(retryAfter) * 1000 <= (GITHUB_READ_DELAYS_MS[attempt] ?? 0));
+        if (transient && withinDelay && attempt < attempts) {
+          try { await response.body?.cancel(); } catch { /* Do not expose remote errors. */ }
+          continue;
+        }
+        throw new ReleaseGitHubRequestError("http-failure", method, attempt, response.status);
+      }
+      if (response.status === 204 || method === "HEAD") return null;
+      try { return await response.json(); }
+      catch (error) {
+        const transient = ["TypeError", "AbortError", "TimeoutError"].includes(error?.name);
+        if (transient && attempt < attempts) continue;
+        throw new ReleaseGitHubRequestError(transient ? "response-transport-failure" : "invalid-json", method, attempt, response.status);
+      }
+    }
   }
   const get = (path) => async (params) => ({ data: await request(path(params)) });
   const base = `/repos/${repository}`;
@@ -205,26 +253,35 @@ export async function reconcileReleasePages({ github, core, repo, journal, commi
  * run:attempt pairs in a manual dispatch after resolving their uncertain writes.
  * This is intentionally conservative, including failures before any write. */
 export async function createActionsReleaseMutationGuard({ repository, request, runId, runAttempt, resolvedAttempts = "" }) {
-  must(/^\d+$/u.test(String(runId)) && /^\d+$/u.test(String(runAttempt)), "Actions run identity is required");
+  let phase = "identity", context = {};
+  const check = (value, reason) => { if (!value) throw new ActionsHistoryError(phase, context, { kind: "invalid-history", reason }); };
+  const readHistory = async (path, nextPhase, nextContext) => {
+    phase = nextPhase; context = nextContext;
+    try { return await request(path); }
+    catch (error) {
+      throw new ActionsHistoryError(phase, context, error instanceof ReleaseGitHubRequestError ? error.details : { kind: "request-failed" });
+    }
+  };
+  check(/^\d+$/u.test(String(runId)) && /^\d+$/u.test(String(runAttempt)), "Actions run identity is required");
   const resolved = new Set(resolvedAttempts ? resolvedAttempts.split(",").map((item) => item.trim()) : []);
-  must([...resolved].every((item) => /^[1-9]\d*:[1-9]\d*$/u.test(item)), "reviewed attempts must be exact run:attempt pairs");
+  check([...resolved].every((item) => /^[1-9]\d*:[1-9]\d*$/u.test(item)), "reviewed attempts must be exact run:attempt pairs");
   const base = `/repos/${repository}`;
   const runs = [];
   for (let page = 1; page <= 10; page++) {
-    const result = await request(`${base}/actions/workflows/sync-archive.yml/runs?branch=main&per_page=100&page=${page}`);
-    must(Array.isArray(result.workflow_runs), "Actions history is unavailable");
+    const result = await readHistory(`${base}/actions/workflows/sync-archive.yml/runs?branch=main&per_page=100&page=${page}`, "runs", { page });
+    check(Array.isArray(result?.workflow_runs), "Actions history is unavailable");
     runs.push(...result.workflow_runs);
     if (result.workflow_runs.length < 100) break;
-    must(page < 10, "Actions history reached the search limit; cannot prove restart safety");
+    check(page < 10, "Actions history reached the search limit; cannot prove restart safety");
   }
-  must(runs.some((run) => run.id === Number(runId)), "current Actions run is missing from history");
+  check(runs.some((run) => run.id === Number(runId)), "current Actions run is missing from history");
   const blocked = new Set(); const observed = new Set(); const previouslyReviewed = new Set();
   for (const run of runs.filter((item) => Number.isSafeInteger(item.id) && item.id <= Number(runId))) {
     for (let page = 1; page <= 100; page++) {
-      const result = await request(`${base}/actions/runs/${run.id}/jobs?filter=all&per_page=100&page=${page}`);
-      must(Array.isArray(result.jobs), "Actions attempt history is unavailable");
+      const result = await readHistory(`${base}/actions/runs/${run.id}/jobs?filter=all&per_page=100&page=${page}`, "jobs", { runId: run.id, page });
+      check(Array.isArray(result?.jobs), "Actions attempt history is unavailable");
       for (const job of result.jobs.filter((item) => item.name === "release-sync")) {
-        must(Number.isSafeInteger(job.run_attempt) && job.run_attempt > 0, "Actions attempt identity is unavailable");
+        check(Number.isSafeInteger(job.run_attempt) && job.run_attempt > 0, "Actions attempt identity is unavailable");
         if (run.id === Number(runId) && job.run_attempt >= Number(runAttempt)) continue;
         const step = job.steps?.find((item) => item.name === "Fully materialize, validate, accept and recover publication");
         if (!step || step.conclusion === "skipped" || step.status === "queued") continue;
@@ -234,17 +291,18 @@ export async function createActionsReleaseMutationGuard({ repository, request, r
           const record = job.steps.find((item) => item.conclusion === "success" && item.name.startsWith("Operator-reviewed release attempts: "));
           if (record) {
             for (const item of record.name.slice("Operator-reviewed release attempts: ".length).split(",").map((part) => part.trim())) {
-              must(/^[1-9]\d*:[1-9]\d*$/u.test(item), "invalid persisted operator resolution"); previouslyReviewed.add(item);
+              check(/^[1-9]\d*:[1-9]\d*$/u.test(item), "invalid persisted operator resolution"); previouslyReviewed.add(item);
             }
           }
         }
       }
       if (result.jobs.length < 100) break;
-      must(page < 100, "Actions attempt history exceeds safety limit");
+      check(page < 100, "Actions attempt history exceeds safety limit");
     }
   }
-  for (const key of previouslyReviewed) { must(observed.has(key), "reviewed Actions history is incomplete"); blocked.delete(key); }
-  must([...resolved].every((key) => observed.has(key)), "a reviewed run:attempt was not found in complete Actions history");
+  phase = "resolution"; context = {};
+  for (const key of previouslyReviewed) { check(observed.has(key), "reviewed Actions history is incomplete"); blocked.delete(key); }
+  check([...resolved].every((key) => observed.has(key)), "a reviewed run:attempt was not found in complete Actions history");
   return {
     blockedAttempts: [...blocked].sort(),
     assertMutationAllowed() {
