@@ -1,0 +1,119 @@
+{
+  "baseCommit": "fb3691b7578ca4960de2e00f039e23bd48afddfe",
+  "sourceCommit": "907bde68b02b8c2cfd82617ea3555c6d81a9ea43",
+  "npm": "10.9.8",
+  "runtime": {
+    "node": "v22.23.2",
+    "versions": {
+      "node": "22.23.2",
+      "acorn": "8.16.0",
+      "ada": "2.9.2",
+      "amaro": "1.1.8",
+      "ares": "1.34.6",
+      "brotli": "1.1.0",
+      "cjs_module_lexer": "2.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.4.3",
+      "modules": "127",
+      "napi": "10",
+      "nbytes": "0.1.3",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.69.0",
+      "openssl": "3.5.7",
+      "simdjson": "4.5.0",
+      "simdutf": "6.4.2",
+      "sqlite": "3.51.3",
+      "tz": "2026a",
+      "undici": "6.28.0",
+      "unicode": "17.0",
+      "uv": "1.51.0",
+      "uvwasi": "0.0.23",
+      "v8": "12.4.254.21-node.56",
+      "zlib": "1.3.1-e00f703",
+      "zstd": "1.5.7"
+    },
+    "platform": "linux",
+    "arch": "x64",
+    "locale": {
+      "locale": "en-US",
+      "calendar": "gregory",
+      "numberingSystem": "latn",
+      "timeZone": "UTC",
+      "year": "numeric",
+      "month": "numeric",
+      "day": "numeric"
+    }
+  },
+  "before": {
+    "package.json": {
+      "sha256": "3757644b7c65579e8e1058cbec31064dcb56f55a766aad16c616620d40797558"
+    },
+    "package-lock.json": {
+      "sha256": "ac8a84f19cc64c308f0ef1cffb5cfe428b61c40dab1f1ec8278113c79f7beacf"
+    }
+  },
+  "after": {
+    "package.json": {
+      "sha256": "de75289c139ebc6cd43cbea71003fefe63821203e60cbe477ced80d399378175"
+    },
+    "package-lock.json": {
+      "sha256": "c2eb68159e7404b422e9dc084b662044f403b6dd909b5cc226bd425a0a95d548"
+    }
+  },
+  "commands": [
+    "npm audit --json",
+    "npm audit --omit=dev --json"
+  ],
+  "reports": {
+    "npm-audit-after.json": {
+      "sha256": "2c96a2d356ba75705c3bfc8c39bb519fdb1376bf309c505bb09131b5f3fe57ff",
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 8,
+        "critical": 0,
+        "total": 8
+      },
+      "capturedAt": "2026-10-03T06:09:49.530048+00:00"
+    },
+    "npm-audit-before.json": {
+      "sha256": "0e91ce9d07dd769779938e431916e5271c21ac977b865cd835a2af05297eb0bb",
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 4,
+        "high": 21,
+        "critical": 1,
+        "total": 26
+      },
+      "capturedAt": "2026-10-03T06:07:01.519177+00:00"
+    },
+    "npm-audit-production-after.json": {
+      "sha256": "e662042ce355590ed1ccc1798b37a1e78e0dcff003d495aa56ad279e0be01414",
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "capturedAt": "2026-10-03T06:09:58.642205+00:00"
+    },
+    "npm-audit-production-before.json": {
+      "sha256": "c6ea00003bb5a255f4fedb7bb5686c8ef2d9d326ae2d023e1add0a3a91ad6761",
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 1,
+        "high": 3,
+        "critical": 1,
+        "total": 5
+      },
+      "capturedAt": "2026-10-03T06:07:10.683331+00:00"
+    }
+  },
+  "assembledAt": "2026-10-03T06:15:24.189863+00:00"
+}
