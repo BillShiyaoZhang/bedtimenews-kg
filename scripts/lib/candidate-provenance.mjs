@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
 import { canonicalJson } from "./candidate-bundle.mjs";
 import { buildKnowledgeGraph } from "./kg-build.mjs";
-import { extractExplicitDate } from "./news.mjs";
+import { extractExplicitDate, readNewsFragment } from "./news.mjs";
 import { normalizeExtractionText } from "./extraction.mjs";
 import { attachIdentityResolution } from "./identity-materialization.mjs";
 import { normalizeActionFragment, ACTION_NORMALIZATION_VERSION } from "./action-extraction.mjs";
+import { reportedNumericObservationId } from "./report-description-extraction.mjs";
+import { REPORTING_FORM_IDS, validateReportingFormAssessment, validateNumericObservationAssessment } from "../../app/lib/report-description-assessment.mjs";
 
 const hash = (value) => createHash("sha256").update(typeof value === "string" ? value : canonicalJson(value)).digest("hex");
 const identity = (prefix, value) => `${prefix}-${hash(value).slice(0, 24)}`;
@@ -15,7 +17,10 @@ const ensure = (value, message) => { if (!value) throw new Error(`Candidate prov
 // Input text is transient. Persist only normalized hashes, exact witnesses and IDs.
 export function buildCandidateProvenance({ kg, dataset, sourceInventory, rawPages, trace, bindings }) {
   const actionEnabled = Boolean(kg.source.actionExtractionVersion);
-  const tables = Object.fromEntries(["sourceRevisions", "newsRevisions", "dateDerivations", "inputs", "evidence", "observations", "retention", "classifications", "chronologyGroups", "assertions", "supports", "assertionRevisions", ...(actionEnabled ? ["actionAssessments"] : [])].map((name) => [name, new Map()]));
+  const reportDescriptionEnabled = kg.source.reportDescriptionVersion === "1.0.0";
+  ensure(!Object.hasOwn(kg.source, "reportDescriptionVersion") || reportDescriptionEnabled, "unsupported report description version");
+  ensure(reportDescriptionEnabled ? kg.source.reportDescriptionNormalizationVersion === ACTION_NORMALIZATION_VERSION : !Object.hasOwn(kg.source, "reportDescriptionNormalizationVersion"), "unsupported report description normalization");
+  const tables = Object.fromEntries(["sourceRevisions", "newsRevisions", "dateDerivations", "inputs", "evidence", "observations", "retention", "classifications", "chronologyGroups", "assertions", "supports", "assertionRevisions", ...(actionEnabled ? ["actionAssessments"] : []), ...(reportDescriptionEnabled ? ["reportingFormAssessments", "numericObservationAssessments", "reportedNumericObservations"] : [])].map((name) => [name, new Map()]));
   function put(table, record) {
     const previous = tables[table].get(record.id);
     ensure(!previous || canonicalJson(previous) === canonicalJson(record), `conflicting identity ${record.id}`);
@@ -71,13 +76,17 @@ export function buildCandidateProvenance({ kg, dataset, sourceInventory, rawPage
     if (inputIds.has(key)) return inputIds.get(key);
     const row = traceByEvent.get(eventId);
     ensure(row, `missing extraction trace ${eventId}`);
-    const kind = { text: "title_summary_fragment", prominent: "title_summary", primary: "title_summary", context: "title_summary_fragment", fragment: "fragment", search: "cleaned_search_text", action: "visible_action_fragment" }[role];
+    const kind = { text: "title_summary_fragment", prominent: "title_summary", primary: "title_summary", context: "title_summary_fragment", fragment: "fragment", search: "cleaned_search_text", action: "visible_action_fragment", reportDescription: "visible_report_description_fragment" }[role];
     ensure(kind, `unknown evidence input ${role}`);
-    const raw = row.inputs[{ primary: "prominent", context: "text", action: "fragment" }[role] ?? role];
+    const raw = row.inputs[{ primary: "prominent", context: "text", action: "fragment", reportDescription: "fragment" }[role] ?? role];
     ensure(typeof raw === "string", `missing consumed input ${eventId}/${role}`);
-    const normalizationId = role === "action" ? ACTION_NORMALIZATION_VERSION : role === "search" ? "clean-text-v1" : "extraction-normalized-v1";
-    const normalized = role === "action" ? normalizeActionFragment(raw) : role === "search" ? raw : normalizeExtractionText(raw);
-    const record = { newsRevisionId: newsRevisionByEvent.get(eventId), kind, normalizationId, contentHash: hash(normalized), origin: ["fragment", "action"].includes(role) ? "verified_fragment" : ["text", "context", "search"].includes(role) ? "mixed_fragment_and_derived_fields" : "derived_news_fields" };
+    if (role === "reportDescription") {
+      const news = newsById.get(row.newsId);
+      ensure(news && raw === readNewsFragment(rawPages.get(news.pageId), news.fragment), `report description input differs from authenticated fragment ${eventId}`);
+    }
+    const normalizationId = ["action", "reportDescription"].includes(role) ? ACTION_NORMALIZATION_VERSION : role === "search" ? "clean-text-v1" : "extraction-normalized-v1";
+    const normalized = ["action", "reportDescription"].includes(role) ? normalizeActionFragment(raw) : role === "search" ? raw : normalizeExtractionText(raw);
+    const record = { newsRevisionId: newsRevisionByEvent.get(eventId), kind, normalizationId, contentHash: hash(normalized), origin: ["fragment", "action", "reportDescription"].includes(role) ? "verified_fragment" : ["text", "context", "search"].includes(role) ? "mixed_fragment_and_derived_fields" : "derived_news_fields" };
     const id = put("inputs", { id: identity("input", record), ...record });
     inputTextById.set(id, normalized);
     inputIds.set(key, id);
@@ -106,6 +115,15 @@ export function buildCandidateProvenance({ kg, dataset, sourceInventory, rawPage
     ensure(Number.isSafeInteger(span.start) && Number.isSafeInteger(span.end) && span.start >= 0 && span.end > span.start && span.end <= normalized.length && normalized.slice(span.start, span.end) === span.text, `forged action witness ${eventId}`);
     const basis = { inputId, start: span.start, end: span.end, text: span.text };
     return put("evidence", { id: identity("action-evidence", basis), inputId, text: span.text, firstRange: [span.start, span.end], occurrenceCount: 1, spanPolicy: "exact_action_occurrence" });
+  }
+  // Distinct evidence namespace: exact occurrences are never collapsed by surface
+  // text or borrowed from legacy entity/action evidence.
+  function reportDescriptionWitness(eventId, span) {
+    const inputId = input(eventId, "reportDescription");
+    const normalized = inputTextById.get(inputId);
+    ensure(span?.normalizationVersion === ACTION_NORMALIZATION_VERSION && Number.isSafeInteger(span.start) && Number.isSafeInteger(span.end) && span.start >= 0 && span.end > span.start && span.end <= normalized.length && normalized.slice(span.start, span.end) === span.text, `forged report description witness ${eventId}`);
+    const basis = { inputId, start: span.start, end: span.end, text: span.text };
+    return put("evidence", { id: identity("report-description-evidence", basis), inputId, text: span.text, firstRange: [span.start, span.end], occurrenceCount: 1, spanPolicy: "exact_report_description_occurrence" });
   }
   function support(assertionId, details) {
     const record = { assertionId, ...details };
@@ -140,6 +158,50 @@ export function buildCandidateProvenance({ kg, dataset, sourceInventory, rawPage
     const decision = { eventId: event.id, newsRevisionId: newsRevisionByEvent.get(event.id), type: row.classification.type, selectedInput: row.classification.selectedInput, steps };
     const decisionId = put("classifications", { id: identity("classification", decision), ...decision });
     support(assertion(event.id, "assigned_legacy_domain", event.type), { method: "classification", decisionId });
+    for (const field of ["reportingFormAssessment", "numericObservationAssessment"]) ensure(Object.hasOwn(row, field) === reportDescriptionEnabled && Object.hasOwn(event, field) === reportDescriptionEnabled, `missing or unexpected ${field} ${event.id}`);
+    if (reportDescriptionEnabled) {
+      for (const field of ["reportingFormAssessment", "numericObservationAssessment"]) ensure(canonicalJson(row[field]) === canonicalJson(event[field]), `${field} differs for ${event.id}`);
+      const form = row.reportingFormAssessment;
+      ensure(validateReportingFormAssessment(form, { concepts: REPORTING_FORM_IDS.map((id) => ({ id, status: "active" })) }).length === 0, `invalid reporting form assessment ${event.id}`);
+      if (form.review) ensure(form.review.newsId === event.newsId && form.review.fragmentHash === newsById.get(event.newsId).fragment.contentHash, `stale or cross-news reporting form review ${event.id}`);
+      const formEvidenceIds = new Set();
+      const formExact = (span) => { const id = reportDescriptionWitness(event.id, span); formEvidenceIds.add(id); return id; };
+      const assignments = form.assignments.map((item) => ({ conceptId: item.conceptId, evidenceIds: item.evidence.map(formExact) }));
+      const review = form.review ? { id: form.review.id, newsId: form.review.newsId, fragmentHash: form.review.fragmentHash, reviewedAt: form.review.reviewedAt, reason: form.review.reason, evidenceIds: form.review.evidence.map(formExact) } : null;
+      const formDecision = { eventId: event.id, newsRevisionId: newsRevisionByEvent.get(event.id), inputId: input(event.id, "reportDescription"), status: form.status, reasonCode: form.reasonCode, assignments, review, evidenceIds: [...formEvidenceIds].sort() };
+      const reportingFormAssessmentId = put("reportingFormAssessments", { id: identity("reporting-form-assessment", formDecision), ...formDecision });
+      support(assertion(event.id, "reporting_form_applicability", form.status), { method: "reporting_form_assessment", reportingFormAssessmentId });
+      for (const assignment of assignments) support(assertion(event.id, "assigned_reporting_form", assignment.conceptId), { method: "reviewed_reporting_form", reportingFormAssessmentId, reviewId: review.id, evidenceIds: [...assignment.evidenceIds].sort() });
+
+      const numeric = row.numericObservationAssessment;
+      ensure(validateNumericObservationAssessment(numeric).length === 0, `invalid numeric observation assessment ${event.id}`);
+      const diagnostic = row.numericObservationDiagnostics;
+      ensure(diagnostic && Number.isSafeInteger(diagnostic.rejectedCandidateCount) && diagnostic.rejectedCandidateCount >= 0 && diagnostic.supportedObservationCount === numeric.observations.length && diagnostic.partialCoverage === Boolean(diagnostic.rejectedCandidateCount && numeric.observations.length), `invalid numeric observation diagnostics ${event.id}`);
+      const diagnostics = { partialCoverage: diagnostic.partialCoverage, rejectedCandidateCount: diagnostic.rejectedCandidateCount, supportedObservationCount: diagnostic.supportedObservationCount };
+      const numericEvidenceIds = new Set();
+      const observations = numeric.observations.map((item) => {
+        ensure(item.id === reportedNumericObservationId(item, { newsId: event.newsId, fragmentHash: newsById.get(event.newsId).fragment.contentHash }), `numeric observation identity differs ${item.id}`);
+        const evidenceIds = new Set();
+        const exact = (span) => { const id = reportDescriptionWitness(event.id, { normalizationVersion: item.evidence.normalizationVersion, ...span }); evidenceIds.add(id); numericEvidenceIds.add(id); return id; };
+        const evidence = { normalizationVersion: item.evidence.normalizationVersion };
+        for (const key of ["scope", "metric", "comparison", "direction", "value", "unit", "referencePeriod"]) evidence[`${key}EvidenceId`] = item.evidence[key] === null ? null : exact(item.evidence[key]);
+        const observation = { id: item.id, eventId: event.id, newsRevisionId: newsRevisionByEvent.get(event.id), inputId: input(event.id, "reportDescription"),
+          metric: { text: item.metric.text, evidenceId: exact(item.metric.span) }, value: item.value,
+          comparison: item.comparison,
+          referencePeriod: item.referencePeriod ? { text: item.referencePeriod.text, evidenceId: exact(item.referencePeriod.span) } : null,
+          populationOrPlace: item.populationOrPlace, polarity: item.polarity, modality: item.modality, evidence, evidenceIds: [...evidenceIds].sort() };
+        // Rule support is deliberately excluded from observation identity/payload.
+        put("reportedNumericObservations", observation);
+        return { reportedNumericObservationId: item.id, ruleIds: [...item.ruleIds] };
+      });
+      const numericDecision = { eventId: event.id, newsRevisionId: newsRevisionByEvent.get(event.id), inputId: input(event.id, "reportDescription"), status: numeric.status, reasonCode: numeric.reasonCode, observations, diagnostics, evidenceIds: [...numericEvidenceIds].sort() };
+      const numericObservationAssessmentId = put("numericObservationAssessments", { id: identity("numeric-observation-assessment", numericDecision), ...numericDecision });
+      support(assertion(event.id, "numeric_observation_applicability", numeric.status), { method: "numeric_observation_assessment", numericObservationAssessmentId });
+      for (const item of observations) for (const ruleId of item.ruleIds) support(assertion(event.id, "reported_numeric_description", item.reportedNumericObservationId), {
+        method: "fragment_numeric_rule", numericObservationAssessmentId, reportedNumericObservationId: item.reportedNumericObservationId, ruleId,
+        evidenceIds: tables.reportedNumericObservations.get(item.reportedNumericObservationId).evidenceIds,
+      });
+    }
     ensure(Boolean(row.actionAssessment) === actionEnabled && Boolean(event.actionAssessment) === actionEnabled, `missing or unexpected action assessment ${event.id}`);
     if (actionEnabled) {
       ensure(canonicalJson(row.actionAssessment) === canonicalJson(event.actionAssessment), `action assessment differs for ${event.id}`);
@@ -198,6 +260,12 @@ export function buildCandidateProvenance({ kg, dataset, sourceInventory, rawPage
   for (const event of kg.events) {
     for (const entityId of event.entityIds) { ensure(entities.has(entityId), `dangling entity ${entityId}`); expectedAssertions.add(assertion(event.id, "assigned_entity", entityId)); }
     expectedAssertions.add(assertion(event.id, "assigned_legacy_domain", event.type));
+    if (reportDescriptionEnabled) {
+      expectedAssertions.add(assertion(event.id, "reporting_form_applicability", event.reportingFormAssessment.status));
+      for (const item of event.reportingFormAssessment.assignments) expectedAssertions.add(assertion(event.id, "assigned_reporting_form", item.conceptId));
+      expectedAssertions.add(assertion(event.id, "numeric_observation_applicability", event.numericObservationAssessment.status));
+      for (const item of event.numericObservationAssessment.observations) expectedAssertions.add(assertion(event.id, "reported_numeric_description", item.id));
+    }
     if (actionEnabled) {
       expectedAssertions.add(assertion(event.id, "action_applicability", event.actionAssessment.status));
       for (const item of event.actionAssessment.assignments) expectedAssertions.add(assertion(event.id, "assigned_reported_action", { conceptId: item.conceptId, polarity: item.polarity, modality: item.modality }));
@@ -216,13 +284,13 @@ export function buildCandidateProvenance({ kg, dataset, sourceInventory, rawPage
   }
   const duplicateContentGroups = [...contentGroups.entries()].filter(([, ids]) => ids.length > 1).map(([contentHash, newsRevisionIds]) => ({ id: identity("duplicate-fragment", contentHash), contentHash, newsRevisionIds: newsRevisionIds.sort(), independence: "not_established" }));
   for (const evidence of tables.evidence.values()) {
-    if (evidence.spanPolicy === "exact_action_occurrence") continue;
+    if (["exact_action_occurrence", "exact_report_description_occurrence"].includes(evidence.spanPolicy)) continue;
     evidence.ranges.sort(([a, b], [c, d]) => a - c || b - d);
     evidence.firstRange = evidence.ranges[0];
     evidence.occurrenceCount = evidence.ranges.length;
     delete evidence.ranges;
   }
-  return { chronologySemantics: "legacy_selected_news_date_order_including_explicit_fragment_fallback_not_actual_occurrence_order", witnessPolicy: "first_exact_span_per_input_and_surface_with_occurrence_count", ...(actionEnabled ? { actionWitnessPolicy: "exact_occurrence_in_offset_preserving_visible_news_fragment" } : {}), schemaVersion: "1.0.0", epistemicScope: "extraction_assignment", independence: "not_assessed_support_count_is_not_independent_source_count", bindings, sourceInventoryHash: inventoryHash, ...Object.fromEntries(Object.entries(tables).map(([name, table]) => [name, sorted(table.values())])), duplicateContentGroups: sorted(duplicateContentGroups) };
+  return { chronologySemantics: "legacy_selected_news_date_order_including_explicit_fragment_fallback_not_actual_occurrence_order", witnessPolicy: "first_exact_span_per_input_and_surface_with_occurrence_count", ...(actionEnabled ? { actionWitnessPolicy: "exact_occurrence_in_offset_preserving_visible_news_fragment" } : {}), ...(reportDescriptionEnabled ? { reportDescriptionVersion: "1.0.0", reportDescriptionWitnessPolicy: "exact_occurrence_in_offset_preserving_visible_news_fragment" } : {}), schemaVersion: "1.0.0", epistemicScope: "extraction_assignment", independence: "not_assessed_support_count_is_not_independent_source_count", bindings, sourceInventoryHash: inventoryHash, ...Object.fromEntries(Object.entries(tables).map(([name, table]) => [name, sorted(table.values())])), duplicateContentGroups: sorted(duplicateContentGroups) };
 }
 
 // Recompute decisions from verified source input; stored ledger records are not trusted.

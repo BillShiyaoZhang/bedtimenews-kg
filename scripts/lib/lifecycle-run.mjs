@@ -1,3 +1,5 @@
+import { validateReportDescriptionEvidenceSources } from "./report-description-evidence.mjs";
+import { reportDescriptionDiff } from "./report-description-reporting.mjs";
 import { validateActionEvidenceSources } from "./action-evidence.mjs";
 import { actionAssessmentDiff } from "./action-reporting.mjs";
 import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from "node:fs/promises";
@@ -93,6 +95,7 @@ function diffFor(context, baseline, current, lifecycle) {
     graph: diffKnowledgeGraphs(baseline?.kg ?? context.snapshot.json("acceptedKG"), current.kg),
     ...reviewed,
     ...actionAssessmentDiff(baseline?.kg ?? context.snapshot.json("acceptedKG"), current.kg),
+    ...reportDescriptionDiff(baseline?.kg ?? context.snapshot.json("acceptedKG"), current.kg),
     news: diffRecords(baseline?.news ?? context.snapshot.json("acceptedNews"), current.news, { collections: ["pages", "news"] }),
     lifecycle: { baselineBundleId: baseline?.manifest.bundleId ?? null, transitionsHash: hash(lifecycle.transitions),
       note: "Each assignment belongs to its own news projection. Withdrawn support never labels a real-world claim false." } };
@@ -120,7 +123,7 @@ async function materialize(context, recipe, plan, inputs, baseline, review) {
     const provenance = buildCandidateProvenance({ kg: built.kg, dataset, sourceInventory: plan.effectiveInventory, rawPages, trace: built.trace, bindings: provenanceBindings(inputs) });
     built.trace = null;
     const kg = attachIdentityResolution({ kg: built.kg, news: dataset, provenance, config: context.snapshot.bytes.identityRegistry ? context.snapshot.json("identityRegistry") : null, baselineOverlay: baseline?.kg.identityResolution?.overlay ?? null });
-    const issues = [...validateNewsDataset(dataset), ...validate(kg, context.ontology), ...validateKnowledgeBaseNewsProjection(kg, dataset), ...await validateNewsFragments(dataset, temporary), ...await validateTopicEvidence(kg, dataset, context.rules, temporary), ...await validateActionEvidenceSources(kg, dataset, context.rules, temporary, { rawPages })];
+    const issues = [...validateNewsDataset(dataset), ...validate(kg, context.ontology), ...validateKnowledgeBaseNewsProjection(kg, dataset), ...await validateNewsFragments(dataset, temporary), ...await validateTopicEvidence(kg, dataset, context.rules, temporary), ...await validateActionEvidenceSources(kg, dataset, context.rules, temporary, { rawPages }), ...await validateReportDescriptionEvidenceSources(kg, dataset, context.ontology, context.rules, temporary, { rawPages })];
     must(!issues.length, issues.slice(0, 15).map((issue) => `${issue.path}: ${issue.message}`).join("\n"));
     const current = { kg, news: dataset, provenance };
     const summary = summarizeCandidateLifecycleInput(current);
