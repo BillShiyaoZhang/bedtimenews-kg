@@ -1,0 +1,1 @@
+{"actor":{"id":18454625,"login":"BillShiyaoZhang"},"kind":"audit-snapshot-policy","maximumArchiveBytes":135266304,"maximumPages":40,"repository":"BillShiyaoZhang/bedtimenews-kg","schemaVersion":1,"workflowPath":".github/workflows/audit-snapshot.yml"}

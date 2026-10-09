@@ -10,6 +10,9 @@ import { canonicalJson, sha256 } from "../scripts/lib/candidate-bundle.mjs";
 import { loadAcceptedGitCheckpoint } from "../scripts/lib/accepted-git.mjs";
 import { buildAcceptedCandidate, previewAcceptedMigration } from "../scripts/lib/accepted-candidate.mjs";
 import { createAcceptedRelease } from "../scripts/lib/accepted-release.mjs";
+import { verifyLiveCombinedHead } from "../scripts/lib/audit-live-verification.mjs";
+import { createOfflineCheckpointStore } from "../scripts/lib/offline-checkpoint-store.mjs";
+import { createSnapshotSplitStore } from "../scripts/lib/audit-snapshot.mjs";
 import { validateMigrationPullRequest } from "../scripts/lib/migration-pr-validation.mjs";
 
 const project = fileURLToPath(new URL("..", import.meta.url));
@@ -137,5 +140,38 @@ test("code changes after proposed ancestor are refused rather than verified unde
   await workspace(async ({ options, proposal, root }) => {
     await proposal(); await writeFile(resolve(root, "README.md"), "Later unbound proposal change\n"); await commit(root, ["README.md"]);
     await assert.rejects(validateMigrationPullRequest(options), /changed after the reviewed proposal commit/u);
+  });
+});
+
+
+test("new-baseline migration independently replays candidate snapshot while predecessor stays live", async () => {
+  await workspace(async ({ options, proposal, root, store, baseCommit }) => {
+    const proposed = await proposal();
+    const combinedHead = await head(root);
+    const api = async (path) => {
+      const oid = path.split("/").at(-1).split("?")[0];
+      if (path.startsWith("/git/commits/")) return { sha: oid, tree: { sha: (await git(root,["rev-parse", `${oid}^{tree}`])).stdout.trim() }, parents: (await git(root,["show","-s","--format=%P",oid])).stdout.trim().split(" ").filter(Boolean).map((sha)=>({sha})) };
+      if (path.startsWith("/git/trees/")) {
+        const text = (await git(root,["ls-tree","-r","-l",oid])).stdout.trim();
+        return { truncated: false, tree: text.split("\n").map((line)=> { const [meta,path]=line.split("\t"); const [mode,type,sha,size]=meta.trim().split(/\s+/u);return {mode,type,sha,path,...(size === "-"?{}:{size:Number(size)})}; }) };
+      }
+      if (path.startsWith("/git/blobs/")) { const bytes=Buffer.from((await git(root,["cat-file","blob",oid])).stdout); return {encoding:"base64",content:bytes.toString("base64"),size:bytes.length}; }
+      throw Error("Unexpected live verification read");
+    };
+    const plan={proposalCommit:proposed.proposalCommit,expectedMain:baseCommit,sourceCommit:proposed.manifest.source.commit,bundleId:proposed.manifest.candidateBundleId};
+    assert.equal((await verifyLiveCombinedHead({api,plan,combinedHead,receipt:proposed.manifest.auditReceipt})).liveReceiptVerified,true);
+    await assert.rejects(verifyLiveCombinedHead({api,plan,combinedHead:proposed.proposalCommit,receipt:proposed.manifest.auditReceipt}));
+    await assert.rejects(verifyLiveCombinedHead({api,plan,combinedHead,receipt:{...proposed.manifest.auditReceipt,releaseId:999}}));
+    const accepted = JSON.parse((await git(root, ["show", `${baseCommit}:data/accepted-release.json`])).stdout);
+    let historyReads = 0;
+    const split = createSnapshotSplitStore({ candidateReceipt: proposed.manifest.auditReceipt, predecessorReceipt: accepted.auditReceipt,
+      candidateStore: createOfflineCheckpointStore({ directory: proposed.result.output, receipt: proposed.manifest.auditReceipt }),
+      publishedStore: { async readBundle(request) {
+        assert.deepEqual(request.receipt, accepted.auditReceipt); historyReads++; return store.readBundle(request);
+      } } });
+    const verified = await validateMigrationPullRequest({ ...options, store: split });
+    assert.equal(verified.kind, "independently-verified-migration"); assert.equal(verified.freshSourceReplay, true); assert.ok(historyReads > 0);
+    const damaged = resolve(proposed.result.output, "diff.json"); await writeFile(damaged, "{}\n");
+    await assert.rejects(validateMigrationPullRequest({ ...options, store: split }), /Offline checkpoint binding rejected/u);
   });
 });

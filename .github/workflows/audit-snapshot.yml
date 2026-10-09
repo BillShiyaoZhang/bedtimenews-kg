@@ -1,0 +1,115 @@
+name: Produce reviewed audit snapshot
+on:
+  workflow_dispatch:
+    inputs:
+      plan_commit:
+        description: Exact commit containing reviewed audit-production-plan.json
+        required: true
+        type: string
+      plan_sha256:
+        description: SHA256 of canonical reviewed plan bytes
+        required: true
+        type: string
+      combined_head:
+        description: Exact reviewed combined PR head; required for verify, unused for produce
+        required: false
+        type: string
+      operation:
+        description: Produce approved draft audit or verify existing draft without mutations
+        required: true
+        type: choice
+        options: [produce, verify]
+permissions: {}
+concurrency:
+  group: kg-main-writer
+  cancel-in-progress: false
+env:
+  TZ: UTC
+  LANG: en_US.UTF-8
+  LC_ALL: en_US.UTF-8
+jobs:
+  reconstruct:
+    if: github.ref == 'refs/heads/main' && github.actor_id == '18454625' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.workflow_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 22.23.2
+      - name: Read approved plan and accepted history using trusted main
+        run: node scripts/audit-production.mjs history "$RUNNER_TEMP/approved"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Independently reconstruct in isolated credential-free container
+        shell: bash
+        run: |
+          mkdir "$RUNNER_TEMP/audit-build"
+          docker run --rm --cap-drop ALL --security-opt no-new-privileges --pids-limit 256 --memory 6g \
+            --user "$(id -u):$(id -g)" \
+            -e HOME=/build/home -e LANG=en_US.UTF-8 -e LC_ALL=en_US.UTF-8 -e TZ=UTC -e CIRCLE_NODE_TOTAL=2 \
+            -v "$GITHUB_WORKSPACE:/operator:ro" -v "$RUNNER_TEMP/audit-build:/build" -v "$RUNNER_TEMP/approved:/approved:ro" \
+            node:22.23.2-bookworm@sha256:dd5847a04b0deee391fa145f1f4c6d214196668b6bcc7988ebed67249f226844 \
+            bash --noprofile --norc -euc '
+              mkdir /build/home
+              npm install --prefix /build/npm-runtime --no-audit --no-fund npm@10.9.9
+              export PATH=/build/npm-runtime/node_modules/.bin:$PATH
+              test "$(node --version)" = v22.23.2
+              test "$(npm --version)" = 10.9.9
+              proposal=$(node -p '\''JSON.parse(require("fs").readFileSync("/approved/plan.json")).proposalCommit'\'')
+              git clone --no-checkout https://github.com/BillShiyaoZhang/bedtimenews-kg.git /build/proposal
+              git -C /build/proposal checkout --detach "$proposal"
+              git -C /build/proposal submodule update --init -- sources/bedtimenews-archive-contents
+              cd /build/proposal
+              npm ci
+              node --max-old-space-size=4096 /operator/scripts/build-audit-production.mjs /build/proposal
+            '
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reviewed-audit-data
+          path: ${{ runner.temp }}/audit-build/bundle/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+  attest:
+    needs: reconstruct
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.workflow_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 22.23.2
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: reviewed-audit-data
+          path: ${{ runner.temp }}/audit-data
+      - name: Execute approved operation and verify real Release bytes
+        run: node scripts/audit-production.mjs "$AUDIT_OPERATION" "$RUNNER_TEMP/audit-data"
+        env:
+          AUDIT_OPERATION: ${{ inputs.operation }}
+          GH_TOKEN: ${{ github.token }}
+          KG_RELEASE_ACTIVATED: ${{ vars.KG_RELEASE_ACTIVATED }}
+          KG_RELEASE_STORAGE_APPROVED: ${{ vars.KG_RELEASE_STORAGE_APPROVED }}
+      - name: Resolve verified snapshot name
+        id: snapshot
+        run: node -e 'const fs=require("fs"); const s=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/verified-snapshot/snapshot.json")); if(!/^[a-f0-9]{64}$/.test(s.plan.bundleId))throw Error("Invalid bundle");fs.appendFileSync(process.env.GITHUB_OUTPUT,"name=kg-audit-snapshot-"+s.plan.bundleId+"\n")'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.snapshot.outputs.name }}
+          path: ${{ runner.temp }}/verified-snapshot/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
