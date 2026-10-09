@@ -1200,3 +1200,51 @@ test("asset ID substitution during download prevents a verified recovery outcome
   await assert.rejects(f.store().recoverPendingUpload(f.options), { code: "UNCERTAIN_MUTATION" });
   assert.equal(await readFile(f.original, "utf8"), f.originalBytes);
 });
+
+test("new recovery directory chain is fsynced through root before any POST", async (t) => {
+  const f = await recoveryFixture(t); const events = [];
+  const directory = join(f.root, "new-parent", "new-child", "recovery");
+  const approval = { ...f.approval, recoveryDirectory: directory };
+  const expected = []; let path = directory;
+  for (;;) { expected.push(path); const parent = join(path, ".."); if (parent === path) break; path = parent; }
+  const reserveAttempt = createUploadRecoveryReservation({ directory, originalJournalPath: f.original, onDurabilityEvent: (event) => events.push(event) });
+  f.gh.state.onRequest = ({ url, method }) => {
+    if (url.origin === "https://uploads.github.com" && method === "POST") {
+      assert.deepEqual(events.filter(({ phase }) => phase === "directory-chain").map(({ path }) => path), expected);
+      assert.equal(events.filter(({ phase }) => phase === "file-entry").length, 2);
+    }
+  };
+  assert.equal((await f.store().recoverPendingUpload({ ...f.options, approval, reserveAttempt })).state, "verified");
+  assert.equal(events.filter(({ phase }) => phase === "file-entry").length, 3);
+});
+
+test("directory sync boundary failures prevent POST; retained file reservation blocks restart", async (t) => {
+  for (const failure of ["leaf", "parent", "file-entry"]) {
+    const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+    const directory = f.approval.recoveryDirectory; let seen = 0;
+    const reserveAttempt = createUploadRecoveryReservation({ directory, originalJournalPath: f.original, onDurabilityEvent: ({ phase }) => {
+      if (phase === "directory-chain") seen++;
+      if ((failure === "leaf" && seen === 1) || (failure === "parent" && seen === 2)
+        || (failure === "file-entry" && phase === "file-entry")) throw new Error("Simulated sync boundary failure");
+    } });
+    await assert.rejects(f.store().recoverPendingUpload({ ...f.options, reserveAttempt }), { code: "JOURNAL_ERROR" });
+    assert.equal(mutations(f.gh.state).length, before);
+    assert.equal(await readFile(f.original, "utf8"), f.originalBytes);
+    if (failure === "file-entry") {
+      await assert.rejects(f.store().recoverPendingUpload(f.options), { code: "JOURNAL_ERROR" });
+      assert.equal(mutations(f.gh.state).length, before);
+    }
+  }
+});
+
+test("operator CLI rejects absent/ambiguous approval without exposing inherited credentials", async () => {
+  const cli = new URL("../scripts/recover-audit-upload.mjs", import.meta.url);
+  for (const args of [[], ["--execute"], ["--approval=/missing", "--approval=/other"], ["--approval=/missing", "--unsafe"]]) {
+    await assert.rejects(promisify(execFileCallback)(process.execPath, [cli.pathname, ...args], { env: { ...process.env, GH_TOKEN: token } }), (error) => {
+      const result = JSON.parse(error.stderr);
+      assert.equal(result.status, "stopped"); assert.equal(result.phase, "arguments");
+      assert.equal(error.stderr.includes(token), false); assert.equal(error.stdout, "");
+      return true;
+    });
+  }
+});

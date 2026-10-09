@@ -3,7 +3,9 @@
 This operator-only API is separate from normal staging, migration preparation,
 acceptance and publication. It is not enabled automatically by a pending journal.
 It does not interpret an empty asset list as proof that an earlier request failed.
-There is no production recovery CLI or automatic retry in this change.
+The operator CLI defaults to read-only inspection; execution requires an explicit
+`--execute` flag and a separately reviewed canonical approval file. There is no
+automatic retry.
 
 ## What the old diagnostics establish
 
@@ -34,9 +36,10 @@ review binding the repository, bundle and manifest hashes, target commit,
 expected main, proposal ref, numeric release ID, asset name/size/hash, original
 journal SHA-256 and path, retained recovery directory, operator recovery code
 commit, review time and reason.
-An operator must independently verify the recovery code commit and its clean
-checkout before invoking the API; it is recorded in the review, not discovered
-from the module's filesystem. Recovery does not retarget the audit or change the
+The operator CLI verifies its own code commit and clean checkout against the
+review, enforces a recovery-only changed-file allowlist, and checks the frozen
+migration checkout and pinned source. Direct API callers retain the same
+responsibility; the API itself does not discover the operator Git checkout. Recovery does not retarget the audit or change the
 frozen proposal anchor. Deploying any code into the migration proposal would
 require the normal new-anchor review instead.
 
@@ -46,7 +49,10 @@ require the normal new-anchor review instead.
 2. If the bound asset already exists, download and verify it, then reread release
    identity and asset IDs. This path performs no POST.
 3. Otherwise, `createUploadRecoveryReservation` validates the original journal
-   hash and pending binding. It exclusively creates and fsyncs an exact original
+   hash and pending binding. After creating the evidence directory it fsyncs every
+   directory from that leaf through the filesystem root, including all parent
+   directory entries, before an upload can proceed. It exclusively creates and
+   fsyncs an exact original
    journal copy and a separate recovery intent. Their deterministic names bind
    the original operation, not a new random attempt ID. Concurrent callers and
    process restarts cannot reserve a second attempt in the retained directory.
@@ -83,3 +89,26 @@ A verified asset alone is not acceptance. Resume the original coherent migration
 prepare only after canonical reconciliation confirms it. All remaining audit
 readbacks, exact-tree tests/builds, remote CI, ordinary merge ancestry and fresh
 accepted-Git publication gates still apply.
+
+## CLI invocation
+
+Run the reviewed operator checkout with the pinned Node runtime and the existing
+process-scoped repository/storage activation settings. The only path argument is
+the explicit canonical approval JSON. Without `--execute`, all network methods
+are restricted to GET/HEAD, and the reservation callback cannot write evidence
+or permit an upload:
+
+```sh
+node scripts/recover-audit-upload.mjs --approval=/absolute/path/to/approved-recovery.json
+```
+
+After coordination of the exact review, add `--execute` to that same command.
+The CLI fixes the original journal to `<migrationRoot>/work/migration-pr-journal.json`
+and evidence storage to `<migrationRoot>/work/upload-recovery`; it accepts no
+uploader, module, credential, or alternate evidence directory override. It emits
+only bounded binding/result metadata and never arbitrary exception text. A
+read-only success with `requires-explicit-recovery` means preflight reached the
+blocked reservation boundary; it is not authentication proof for POST.
+
+The directory durability tests observe real fsync order and inject failures
+after synchronization boundaries. They are not physical power-loss tests.
