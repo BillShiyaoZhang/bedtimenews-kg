@@ -10,6 +10,7 @@ import { loadAcceptedGitCheckpoint } from "../scripts/lib/accepted-git.mjs";
 import { acceptedReleaseIdentity, validateAcceptedReleaseStructure } from "../scripts/lib/accepted-release.mjs";
 import { AUDIT_STORE_LIMITS, createGitHubReleaseStore, prepareAuditBundle } from "../scripts/lib/release-store.mjs";
 import { createUploadRecoveryReservation } from "../scripts/lib/upload-recovery-journal.mjs";
+import { runActionsAuditUpload, createObservedUploadTransport } from "../scripts/lib/actions-audit-upload.mjs";
 
 const targetCommit = "a".repeat(40);
 const token = "fake-test-token-never-a-real-credential";
@@ -1000,8 +1001,8 @@ test("published or immutable observations cannot silently downgrade to draft or 
   await assert.rejects(f.store().readBundle({ receipt }), { code: "IMMUTABLE_CONFLICT" });
 });
 
-async function recoveryFixture(t) {
-  const f = await fixture(t); const durable = new Set();
+async function recoveryFixture(t, artifacts) {
+  const f = await fixture(t, artifacts); const durable = new Set();
   const gh = fakeGitHub({ onRequest: ({ url, method }) => url.origin === "https://uploads.github.com" && method === "POST" ? json({}, 401) : undefined });
   await assert.rejects(gh.store({ onMutationIntent: ({ operation }) => durable.add(operation), onMutationReconciled: ({ operation }) => durable.delete(operation) }).stageBundle(optionsFor(f)), { code: "UNCERTAIN_MUTATION" });
   gh.state.onRequest = undefined;
@@ -1247,4 +1248,63 @@ test("operator CLI rejects absent/ambiguous approval without exposing inherited 
       return true;
     });
   }
+});
+
+async function actionsProtocolFixture(t) {
+  const f = await recoveryFixture(t, { 'kg.json': { entities: [] }, 'lifecycle.json.gz': { transitions: [] },
+    'news.json': [], 'diff.json': {}, 'provenance.json.gz': {}, 'source-review.json': null });
+  const bundle = await prepareAuditBundle(f.dir);
+  const scope = { repository, releaseId: f.approval.releaseId, proposalCommit: targetCommit, bundleId: bundle.bundleId, files: bundle.files, successorOrdinal: 1 };
+  const intents = new Set(), outcomes = new Map();
+  const fence = { reserve: async (name) => {
+    assert.ok(!intents.has(name)); intents.add(name);
+    return { recordOutcome: async (outcome) => { assert.ok(!outcomes.has(name)); outcomes.set(name, outcome); } };
+  } };
+  const observed = createObservedUploadTransport({ scope, fetchImpl: f.gh.fetchImpl });
+  let checks = 0;
+  const run = () => runActionsAuditUpload({ scope, priorApproval: f.approval, journal: { pendingOperations: [f.operation] },
+    bundleDir: f.dir, fence, checkFrozen: async () => { checks++; }, assertHealthy: observed.assertHealthy,
+    createStore: (options) => f.gh.store({ ...options, fetchImpl: observed.fetchImpl }) });
+  return { ...f, scope, intents, outcomes, run, checks: () => checks };
+}
+
+test('Actions adapter uses real uploader for manifest successor, positive reconciliation and all seven readbacks', async (t) => {
+  const f = await actionsProtocolFixture(t); const before = mutations(f.gh.state).length;
+  const receipt = await f.run();
+  assert.equal(Object.keys(receipt.assets).length, 7);
+  assert.equal(receipt.readbackVerified, true);
+  assert.equal(mutations(f.gh.state).length - before, 7);
+  assert.equal(f.intents.size, 7); assert.equal(f.outcomes.size, 7);
+  assert.ok(f.checks() >= 16);
+  assert.equal(await readFile(f.original, 'utf8'), f.originalBytes);
+});
+
+test('Actions later-asset 401 persists exact outcome and stops before another POST', async (t) => {
+  const f = await actionsProtocolFixture(t); let uploads = 0;
+  f.gh.state.onRequest = ({ url, method }) => {
+    if (url.hostname !== 'uploads.github.com' || method !== 'POST') return;
+    uploads++;
+    if (uploads === 2) return new Response('{}', { status: 401, headers: { 'x-github-request-id': 'A:B:C:D:E' } });
+  };
+  await assert.rejects(f.run());
+  assert.equal(uploads, 2); assert.equal(f.intents.size, 2); assert.equal(f.outcomes.size, 2);
+  const failure = [...f.outcomes.values()].find((v) => v.requestStatus === 401);
+  assert.equal(failure.requestMethod, 'POST'); assert.equal(failure.requestHost, 'uploads.github.com');
+  assert.equal(failure.githubRequestId, 'A:B:C:D:E'); assert.equal(failure.state, 'unknown');
+});
+
+test('Actions 401 remains terminal even if read-only reconciliation subsequently sees correct bytes', async (t) => {
+  const f = await actionsProtocolFixture(t); let uploads = 0;
+  f.gh.state.onRequest = ({ url, method, body }, state) => {
+    if (url.hostname !== 'uploads.github.com' || method !== 'POST') return;
+    uploads++;
+    if (uploads !== 2) return;
+    const id = state.nextId++, bytes = Buffer.from(body);
+    state.assets.set(id, { id, releaseId: f.approval.releaseId, name: url.searchParams.get('name'), size: bytes.length, digest: `sha256:${sha256(bytes)}`, state: 'uploaded' });
+    state.bytes.set(id, bytes);
+    return json({}, 401);
+  };
+  await assert.rejects(f.run());
+  assert.equal(uploads, 2);
+  assert.equal([...f.outcomes.values()].filter((v) => v.requestStatus === 401).length, 1);
 });
