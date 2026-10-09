@@ -1969,3 +1969,63 @@ footer a:hover {
 .ontology-tree { padding-left: 1.1rem; margin: 0.8rem 0; font-size: 0.875rem; line-height: 1.8; }
 .ontology-tree small { color: var(--muted, #6c6a63); white-space: nowrap; }
 @media (max-width: 900px) { .hierarchy-grid { grid-template-columns: 1fr; } }
+
+/* Source descriptions stay independent from action assessments and entity data. */
+.report-description-details {
+  min-width: 0;
+  margin: 1rem 0;
+  overflow-wrap: anywhere;
+}
+.report-description-section {
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--line);
+}
+.report-description-section h4 {
+  margin: 0 0 0.35rem;
+  color: var(--green-dark);
+  font-size: 0.9rem;
+}
+.report-description-section .report-description-status {
+  margin: 0 0 0.35rem;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+.report-description-section small {
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+.report-description-section details {
+  margin-top: 0.7rem;
+  padding: 0.7rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+}
+.report-description-section summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+.report-description-section summary:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 4px;
+}
+.report-description-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.9rem 0;
+  font-size: 0.8rem;
+}
+.report-description-fields dt { color: var(--muted); }
+.report-description-fields dd { margin: 0.2rem 0 0; line-height: 1.65; }
+.report-description-section .report-source-clause { white-space: pre-wrap; }
+.report-evidence-spans { padding-left: 1.1rem; font-size: 0.75rem; line-height: 1.7; }
+.report-evidence-spans li { margin-top: 0.35rem; }
+.report-evidence-spans small { display: block; }
+.report-description-filter-note { grid-column: 1 / -1; }
+@media (max-width: 600px) {
+  .report-description-fields { grid-template-columns: 1fr; }
+  .report-description-section details { padding: 0.6rem; }
+}

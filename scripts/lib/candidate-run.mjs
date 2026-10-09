@@ -1,3 +1,5 @@
+import { validateReportDescriptionEvidenceSources } from "./report-description-evidence.mjs";
+import { reportDescriptionDiff } from "./report-description-reporting.mjs";
 import { validateActionEvidenceSources } from "./action-evidence.mjs";
 import { actionAssessmentDiff } from "./action-reporting.mjs";
 import { execFile as execFileCallback } from "node:child_process";
@@ -81,7 +83,7 @@ export function assertCandidateOutput(root, output, sourceRoot, baseline) {
 const optionalConfigPaths = { identityRegistry: "data/entity-identities.json" };
 
 async function generatorBindings(root) {
-  const files = ["scripts/build-news.mjs", "scripts/build-kg.mjs", "scripts/build-candidate.mjs", "scripts/validate-candidate.mjs", "scripts/compile-ontology.mjs", "scripts/build-lifecycle-candidate.mjs", "scripts/validate-lifecycle-candidate.mjs", "app/lib/topic-evidence.mjs", "app/lib/ontology-hierarchy.mjs", "app/lib/identity-projection.mjs", "app/lib/action-assessment.mjs"];
+  const files = ["scripts/build-news.mjs", "scripts/build-kg.mjs", "scripts/build-candidate.mjs", "scripts/validate-candidate.mjs", "scripts/compile-ontology.mjs", "scripts/build-lifecycle-candidate.mjs", "scripts/validate-lifecycle-candidate.mjs", "app/lib/topic-evidence.mjs", "app/lib/ontology-hierarchy.mjs", "app/lib/identity-projection.mjs", "app/lib/action-assessment.mjs", "app/lib/report-description-assessment.mjs"];
   for (const file of (await readdir(resolve(root, "scripts/lib"))).filter((name) => name.endsWith(".mjs")).sort()) files.push(`scripts/lib/${file}`);
   const hashes = {};
   for (const path of files.sort()) hashes[path] = sha256(await readFile(resolve(root, path)));
@@ -178,6 +180,7 @@ async function validateArtifacts({ artifacts, expectedDataset, inventory, rawPag
   issues.push(...validateNewsDataset(dataset), ...validate(kg, ontology), ...validateKnowledgeBaseNewsProjection(kg, dataset));
   issues.push(...await validateNewsFragments(dataset, sourceRoot), ...await validateTopicEvidence(kg, dataset, rules, sourceRoot));
   issues.push(...await validateActionEvidenceSources(kg, dataset, rules, sourceRoot, { rawPages }));
+  issues.push(...await validateReportDescriptionEvidenceSources(kg, dataset, ontology, rules, sourceRoot, { rawPages }));
   if (issues.length) throw new Error(issues.slice(0, 15).map((issue) => `${issue.path}: ${issue.message}`).join("\n"));
   const provenanceIssues = validateCandidateProvenance(artifacts["provenance.json.gz"], { kg, dataset, rawPages, ontology, rules, sourceInventory: inventory, bindings, identityRegistry, baselineOverlay });
   if (provenanceIssues.length) throw new Error(provenanceIssues.map((issue) => issue.message).join("\n"));
@@ -187,7 +190,7 @@ async function validateArtifacts({ artifacts, expectedDataset, inventory, rawPag
 
 export function candidateDiff(baseline, artifacts) {
   const provenance = artifacts["provenance.json.gz"];
-  return { schemaVersion: "1.0.0", epistemicScope: "extraction_assignment", graph: diffKnowledgeGraphs(baseline.kg, artifacts["kg.json"]), ...identityDiff(baseline.kg, artifacts["kg.json"]), ...actionAssessmentDiff(baseline.kg, artifacts["kg.json"]), news: diffRecords(baseline.news, artifacts["news.json"], { collections: ["pages", "news"] }), provenance: baseline.provenance ? { available: true, diff: diffRecords({ ...baseline.provenance, ...(provenance.actionAssessments ? { actionAssessments: baseline.provenance.actionAssessments ?? [] } : {}) }, provenance, { collections: ["sourceRevisions", "newsRevisions", "observations", "retention", "classifications", "assertions", "supports", "assertionRevisions", ...(provenance.actionAssessments ? ["actionAssessments"] : [])] }) } : { available: false, reason: "Accepted KG has no derivation ledger; initial support recording is not newly discovered knowledge" } };
+  return { schemaVersion: "1.0.0", epistemicScope: "extraction_assignment", graph: diffKnowledgeGraphs(baseline.kg, artifacts["kg.json"]), ...identityDiff(baseline.kg, artifacts["kg.json"]), ...actionAssessmentDiff(baseline.kg, artifacts["kg.json"]), ...reportDescriptionDiff(baseline.kg, artifacts["kg.json"]), news: diffRecords(baseline.news, artifacts["news.json"], { collections: ["pages", "news"] }), provenance: baseline.provenance ? { available: true, diff: diffRecords({ ...baseline.provenance, ...(provenance.actionAssessments ? { actionAssessments: baseline.provenance.actionAssessments ?? [] } : {}), ...Object.fromEntries(["reportingFormAssessments", "numericObservationAssessments", "reportedNumericObservations"].filter((name) => provenance[name]).map((name) => [name, baseline.provenance[name] ?? []])) }, provenance, { collections: ["sourceRevisions", "newsRevisions", "observations", "retention", "classifications", "assertions", "supports", "assertionRevisions", ...(provenance.actionAssessments ? ["actionAssessments"] : []), ...["reportingFormAssessments", "numericObservationAssessments", "reportedNumericObservations"].filter((name) => provenance[name])] }) } : { available: false, reason: "Accepted KG has no derivation ledger; initial support recording is not newly discovered knowledge" } };
 }
 
 async function baselineData(root, baselinePath, snapshot) {

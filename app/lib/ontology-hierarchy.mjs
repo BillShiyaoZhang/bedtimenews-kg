@@ -86,7 +86,7 @@ export function eventMatchesTopic(ontology, event, conceptId) {
 /** @returns {Array<{level: "error", path: string, message: string}>} */
 export function validateCompiledHierarchy(ontology) {
   const issues = [];
-  if (!["1.0.0", "1.1.0"].includes(ontology.compilation?.compilerVersion) || ontology.compilation?.formatVersion !== 1 || ![ontology.compilation?.sourceHash, ontology.compilation?.patternsHash].every((hash) => /^[a-f0-9]{64}$/u.test(hash ?? ""))) issues.push({ level: "error", path: "compilation", message: "编译版本与输入指纹必须完整" });
+  if (!["1.0.0", "1.1.0", "1.2.0"].includes(ontology.compilation?.compilerVersion) || ontology.compilation?.formatVersion !== 1 || ![ontology.compilation?.sourceHash, ontology.compilation?.patternsHash].every((hash) => /^[a-f0-9]{64}$/u.test(hash ?? ""))) issues.push({ level: "error", path: "compilation", message: "编译版本与输入指纹必须完整" });
   for (const kind of ["entity", "action", "topic"]) {
     const hierarchy = ontology.hierarchies?.[kind];
     const errors = validateHierarchy(hierarchy, `hierarchies.${kind}`);

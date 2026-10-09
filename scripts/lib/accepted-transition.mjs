@@ -22,6 +22,7 @@ export const ACCEPTED_SEMANTIC_GENERATOR_FILES = Object.freeze([
   "scripts/lib/candidate-run.mjs", "scripts/lib/candidate-source-review.mjs", "scripts/lib/extraction-rules.mjs",
   "scripts/lib/extraction.mjs", "scripts/lib/git-object-integrity.mjs", "scripts/lib/kg-build.mjs",
   "scripts/lib/entity-identities.mjs", "scripts/lib/identity-materialization.mjs",
+  "app/lib/report-description-assessment.mjs", "scripts/lib/report-description-extraction.mjs", "scripts/lib/report-description-evidence.mjs", "scripts/lib/report-description-reporting.mjs",
   "scripts/lib/action-extraction.mjs", "scripts/lib/action-reporting.mjs", "scripts/lib/action-evidence.mjs",
   "scripts/lib/lifecycle-run.mjs", "scripts/lib/news-build.mjs", "scripts/lib/news.mjs",
   "scripts/lib/ontology-compiler.mjs", "scripts/lib/source-snapshot.mjs", "scripts/lib/topic-evidence.mjs", "scripts/lib/validate.mjs",

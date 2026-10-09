@@ -1,3 +1,4 @@
+import { createReportDescriptionEngine } from "./report-description-extraction.mjs";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -11,6 +12,8 @@ export function buildKnowledgeGraph({ dataset, rawPages, ontology, rules, genera
   const extractor = createExtractionEngine(rules);
   if (Boolean(ontology.actionAssessment) !== Boolean(rules.actionExtraction)) throw new Error("Action blueprint and extraction configuration must be present together");
   const actionExtractor = rules.actionExtraction ? createActionExtractionEngine(rules.actionExtraction) : null;
+  const descriptionEnabled = [ontology.reportingForm, ontology.numericObservation, rules.reportingFormReviews, rules.numericExtraction].some((value) => value !== undefined);
+  const descriptionExtractor = descriptionEnabled ? createReportDescriptionEngine({ reportingForm: ontology.reportingForm, numericObservation: ontology.numericObservation, reportingFormReviews: rules.reportingFormReviews, numericExtraction: rules.numericExtraction }) : null;
   const trace = { news: [], retention: [], rescans: [], chronology: [] };
   const newsDataset = canonicalDataset(dataset);
   const pageById = new Map(newsDataset.pages.map((page) => [page.id, page]));
@@ -30,8 +33,11 @@ export function buildKnowledgeGraph({ dataset, rawPages, ontology, rules, genera
     const extraction = collectTrace ? extractor.extractCandidateDecisions(text, prominent, { newsId: item.id }) : { candidates: extractor.extractCandidates(text, prominent, { newsId: item.id }) };
     const candidates = extraction.candidates;
     const actionAssessment = actionExtractor?.assess(fragment, { newsId: item.id, fragmentHash: item.fragment.contentHash });
+    const descriptionContext = { newsId: item.id, fragmentHash: item.fragment.contentHash };
+    const descriptions = descriptionExtractor?.assess(fragment, descriptionContext);
+    const numericObservationDiagnostics = collectTrace ? descriptionExtractor?.diagnose(fragment, descriptionContext) : undefined;
     const classification = collectTrace ? extractor.classifyEventDecision(prominent, text) : { type: extractor.classifyEvent(prominent, text) };
-    if (collectTrace) trace.news.push({ newsId: item.id, eventId, observations: extraction.observations, classification, ...(actionAssessment ? { actionAssessment } : {}), inputs: { text, prominent, fragment, search: searchText } });
+    if (collectTrace) trace.news.push({ newsId: item.id, eventId, observations: extraction.observations, classification, ...descriptions, ...(numericObservationDiagnostics ? { numericObservationDiagnostics } : {}), ...(actionAssessment ? { actionAssessment } : {}), inputs: { text, prominent, fragment, search: searchText } });
     const candidateKeys = [];
     for (const candidate of candidates) {
       candidateKeys.push(candidate.key);
@@ -65,6 +71,7 @@ export function buildKnowledgeGraph({ dataset, rawPages, ontology, rules, genera
       // Only this news fragment may supply evidence, never the containing page.
       topicEvidence: extractor.matchTopicEvidence(fragment),
       ...(actionAssessment ? { actionAssessment } : {}),
+      ...descriptions,
       searchText,
       sourceIds: [item.pageId],
       significance: "",
@@ -143,6 +150,7 @@ export function buildKnowledgeGraph({ dataset, rawPages, ontology, rules, genera
       newsOverrideVersion: newsDataset.segmentation.overrideVersion,
       extractionVersion: extractor.version,
       ...(actionExtractor ? { actionExtractionVersion: rules.actionExtraction.version, actionNormalizationVersion: rules.actionExtraction.normalizationVersion } : {}),
+      ...(descriptionEnabled ? { reportDescriptionVersion: "1.0.0", reportDescriptionNormalizationVersion: "visible-fragment-v1" } : {}),
       ontologyCompilation: ontology.compilation,
     },
     entities,

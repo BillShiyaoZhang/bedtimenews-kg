@@ -51,9 +51,17 @@ npm run dev
 npm test
 ```
 
-## 更新与重建
+## 当前维护模式
 
-日常上游更新使用：
+本仓库已在 2026-09-30 完成首个版本化接受，并保存 `data/accepted-release.json`。
+[首次同步](https://github.com/BillShiyaoZhang/bedtimenews-kg/actions/runs/36788236991)、
+[匹配接受提交的 Pages 部署](https://github.com/BillShiyaoZhang/bedtimenews-kg/actions/runs/36789775976)
+均已成功。当前维护应使用下方的版本化接受与审查迁移流程；这些历史结果不代替后续运行检查。
+已有 state4/接受清单时，旧 update、rebuild、bootstrap 命令会在写入前拒绝。
+
+## 更新与重建（仅无接受清单的旧模式）
+
+以下保留为旧模式说明，不适用于本仓库当前已接受状态。旧模式日常上游更新使用：
 
 ```bash
 git -C sources/bedtimenews-archive-contents fetch origin main
@@ -85,14 +93,15 @@ npm run ontology:check
 `npm run kg:candidate -- --output work/candidates/review` 可生成隔离的完整候选、
 抽取支持账本和稳定 ID 差异报告。`npm run kg:candidate:validate -- work/candidates/review`
 从固定源重新拆分、验签并重放。账本压缩保存于候选目录，不进入 Git 历史或前端。
-这套命令不会更新 accepted 数据，也不放开来源内容修改或删除；普通同步继续使用
-原来的 `kg:update`。完整契约见 [候选与支持账本](docs/candidate-lifecycle.md)。
+这套命令不会更新 accepted 数据，也不放开来源内容修改或删除；它是独立候选工具，
+不能代替当前的 `kg:release:sync` 接受流程。完整契约见 [候选与支持账本](docs/candidate-lifecycle.md)。
 
-## 版本化接受与恢复（启用前需单独审批）
+## 版本化接受与恢复
 
 [版本化发布操作指南](docs/accepted-releases.md) 提供完整候选重算、支持账本、
-草稿审计包读回、原子接受和发布恢复。实现合并不等于启用：公开审计存储与
-自动接受仍需单独授权，默认继续使用下方的旧同步流程。
+草稿审计包读回、原子接受和发布恢复。本仓库已完成获准后的首次接受与公开审计发布；
+具体历史证据及仍需满足的开关见该指南。新部署仍需单独的存储与启用批准，
+实现合并本身不是授权。不要因开关缺失而尝试用旧同步命令绕过已有接受清单。
 
 启用后的日常来源更新由 Actions 运行 `kg:release:sync`；历史修改、删除或
 撤回必须提供精确哈希绑定的审查。无变化时复用原版本。失败先核实远端状态，
@@ -189,3 +198,7 @@ tests/                       数据、抽取、增量保护契约
 ### 报道行动与变化
 
 独立于旧领域分类，逐条新闻记录司法、工程及同比/环比数量变化的保守证据分配。计划、预测、条件和否定有各自局部原文限定；未命中默认「尚未确定」，不证明现实发生。界面支持父类及限定筛选，审计账本保留精确支持和可逆撤回，规则变化仍走同一受审查语义迁移。详见 [行动评估与维护](docs/action-assessments.md)。
+
+### 报道形式与数值描述（受审查迁移提案）
+
+新增独立的经审查报道形式和原文数值描述契约。报道形式审查表保持为空；数值仅接受严格整句、明确期间与少量指标字面的同比/环比百分比变化。缺少记录、尚未确定和受支持描述分别展示，既不推断真实事实，也不汇总跨新闻指标。完整支持、撤回、恢复和证据重放随候选验证；正式接受仍需同一套完整迁移与发布审查。详见 [报道形式与数值描述](docs/report-descriptions.md)。

@@ -1,3 +1,4 @@
+import { reportDescriptionDiff } from "./report-description-reporting.mjs";
 import { readFile } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -370,6 +371,7 @@ function restoreArtifacts(context) {
   const diff = { schemaVersion: "2.0.0", epistemicScope: "extraction_assignment",
     graph: diffKnowledgeGraphs(baseline.kg, kg), news: diffRecords(baseline.news, news, { collections: ["pages", "news"] }),
     ...actionAssessmentDiff(baseline.kg, kg),
+    ...reportDescriptionDiff(baseline.kg, kg),
     lifecycle: { baselineBundleId: baseline.manifest.bundleId, transitionsHash: hash(lifecycle.transitions),
       note: "Each assignment belongs to its own news projection. Withdrawn support never labels a real-world claim false." },
     restoration: { targetBundleId: targetBundle.manifest.bundleId, freshSourceReplay: false } };

@@ -1,5 +1,5 @@
 {
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "从新闻存档确定性抽取事件、主体、地点、命名对象与受控主题的规则。规则版本变化必须触发显式全量重建。",
   "topics": [
     {
@@ -2131,5 +2131,24 @@
       }
     ],
     "reviewedAssessments": []
+  },
+  "reportingFormReviews": [],
+  "numericExtraction": {
+    "version": "1.0.0",
+    "normalizationVersion": "visible-fragment-v1",
+    "rules": [
+      {
+        "id": "relative-percent-standalone-v1",
+        "template": "standalone_relative_percent_change_v1",
+        "metricTerms": [
+          "工业增加值",
+          "营业收入",
+          "全国居民消费价格",
+          "越南服装出口额",
+          "我国进出口总值",
+          "民间固投"
+        ]
+      }
+    ]
   }
 }

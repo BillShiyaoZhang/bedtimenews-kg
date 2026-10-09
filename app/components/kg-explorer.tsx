@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState, type CSSProperties } from "react";
+import { FormEvent, useMemo, useState, useSyncExternalStore, type CSSProperties } from "react";
 import {
   formatEventDate,
   type Entity,
@@ -23,6 +23,9 @@ import {
 import { topicEntityIds, topicMatchReason } from "../lib/ontology-hierarchy.mjs";
 import { actionAssessmentLabel, actionFilterOptions, actionMatchReasons, eventMatchesAction } from "../lib/action-assessment.mjs";
 
+import { eventMatchesReportingForm, eventMatchesNumericObservation } from "../lib/report-description-assessment.mjs";
+import { ReportDescriptionDetails } from "./report-description-details";
+
 type SearchMode = "keyword" | "filters";
 type Filters = {
   eventType: string;
@@ -36,6 +39,10 @@ type Filters = {
   actionStatus: string;
   actionPolarity: string;
   actionModality: string;
+  reportingFormConceptId: string;
+  reportingFormStatus: string;
+  numericStatus: string;
+  numericComparison: string;
 };
 
 const EMPTY_FILTERS: Filters = {
@@ -50,26 +57,105 @@ const EMPTY_FILTERS: Filters = {
   actionStatus: "",
   actionPolarity: "",
   actionModality: "",
+  reportingFormConceptId: "",
+  reportingFormStatus: "",
+  numericStatus: "",
+  numericComparison: "",
 };
 const actionFilter = (filters: Filters): ActionFilter => ({ conceptId: filters.actionConceptId, status: filters.actionStatus, polarity: filters.actionPolarity, modality: filters.actionModality });
 const RESULT_LIMIT = 60;
 const ENTITY_RESULT_LIMIT = 12;
 
-export function KGExplorer({
+const SEARCH_LOCATION_EVENT = "kg-search-location-change";
+function subscribeToSearchLocation(callback: () => void) {
+  window.addEventListener("popstate", callback);
+  window.addEventListener(SEARCH_LOCATION_EVENT, callback);
+  return () => {
+    window.removeEventListener("popstate", callback);
+    window.removeEventListener(SEARCH_LOCATION_EVENT, callback);
+  };
+}
+const getSearchLocation = () => window.location.search;
+const getServerSearchLocation = () => "";
+
+type SubmittedSearch = { mode: "keyword"; query: string } | { mode: "filters"; filters: Filters } | null;
+
+// Explicit allowlists keep stale or hand-edited links from throwing in strict
+// filter helpers. Unknown URL parameters are preserved when writing navigation.
+export function readExplorerLocation(search: string, ontology: Ontology) {
+  const parameters = new URLSearchParams(search);
+  const mode: SearchMode = parameters.get("mode") === "filters" ? "filters" : "keyword";
+  const filters = { ...EMPTY_FILTERS };
+  const invalidFilters: string[] = [];
+  for (const key of Object.keys(filters) as (keyof Filters)[]) filters[key] = parameters.get(key) ?? "";
+  const allow = (key: keyof Filters, ids: string[]) => {
+    if (filters[key] && !ids.includes(filters[key])) {
+      invalidFilters.push(key);
+      filters[key] = "";
+    }
+  };
+  allow("eventType", ontology.eventTypes.map((entry) => entry.id));
+  allow("topicId", ontology.hierarchies.topic.nodes.map((entry) => entry.id));
+  allow("actionConceptId", ontology.hierarchies.action.nodes.map((entry) => entry.id));
+  allow("actionStatus", ["applicable", "not_applicable", "undetermined"]);
+  allow("actionPolarity", ["affirmative", "negated", "undetermined"]);
+  allow("actionModality", ["reported", "planned", "predicted", "conditional", "undetermined"]);
+  allow("reportingFormStatus", ["applicable", "not_applicable", "undetermined"]);
+  allow("numericStatus", ["applicable", "undetermined"]);
+  allow("numericComparison", ["year_over_year", "month_over_month"]);
+  allow("reportingFormConceptId", ontology.reportingForm?.concepts.filter((entry) => entry.status === "active").map((entry) => entry.id) ?? []);
+  for (const key of ["fromYear", "toYear"] as const) if (filters[key] && !/^\d{4}$/u.test(filters[key])) {
+    invalidFilters.push(key);
+    filters[key] = "";
+  }
+  const query = parameters.get("q") ?? "";
+  const submitted: SubmittedSearch = mode === "keyword"
+    ? (query.trim() ? { mode, query: query.trim() } : null)
+    : (parameters.get("submitted") === "1" ? { mode, filters } : null);
+  return { mode, query, filters, submitted, invalidFilters };
+}
+
+export function explorerLocationSearch(current: string, mode: SearchMode, search: SubmittedSearch) {
+  const parameters = new URLSearchParams(current);
+  for (const key of ["mode", "q", "submitted", ...Object.keys(EMPTY_FILTERS)]) parameters.delete(key);
+  if (mode === "filters") parameters.set("mode", mode);
+  if (search?.mode === "keyword") parameters.set("q", search.query);
+  if (search?.mode === "filters") {
+    parameters.set("submitted", "1");
+    for (const [key, value] of Object.entries(search.filters)) if (value) parameters.set(key, value);
+  }
+  const query = parameters.toString();
+  return query ? `?${query}` : "";
+}
+
+function writeExplorerLocation(mode: SearchMode, search: SubmittedSearch) {
+  const url = new URL(window.location.href);
+  const next = explorerLocationSearch(url.search, mode, search);
+  if (url.search === next) return;
+  url.search = next;
+  window.history.pushState({}, "", url);
+  window.dispatchEvent(new window.Event(SEARCH_LOCATION_EVENT));
+}
+
+export function KGExplorer({ initialKG, initialOntology }: { initialKG: KnowledgeBase; initialOntology: Ontology }) {
+  const locationSearch = useSyncExternalStore(subscribeToSearchLocation, getSearchLocation, getServerSearchLocation);
+  return <KGExplorerView key={locationSearch} initialKG={initialKG} initialOntology={initialOntology} locationSearch={locationSearch} />;
+}
+
+function KGExplorerView({
   initialKG,
   initialOntology,
+  locationSearch,
 }: {
   initialKG: KnowledgeBase;
   initialOntology: Ontology;
+  locationSearch: string;
 }) {
-  const [mode, setMode] = useState<SearchMode>("keyword");
-  const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [search, setSearch] = useState<
-    | { mode: "keyword"; query: string }
-    | { mode: "filters"; filters: Filters }
-    | null
-  >(null);
+  const initial = useMemo(() => readExplorerLocation(locationSearch, initialOntology), [locationSearch, initialOntology]);
+  const [mode, setMode] = useState<SearchMode>(initial.mode);
+  const [query, setQuery] = useState(initial.query);
+  const [filters, setFilters] = useState<Filters>(initial.filters);
+  const [search, setSearch] = useState<SubmittedSearch>(initial.submitted);
 
   const entityById = useMemo(
     () => new Map(initialKG.entities.map((entity) => [entity.id, entity])),
@@ -170,7 +256,7 @@ export function KGExplorer({
   );
 
   const result = useMemo(() => {
-    if (!search) {
+    if (!search || (search.mode === "filters" && initial.invalidFilters.length)) {
       return {
         total: 0,
         events: [] as Event[],
@@ -212,6 +298,8 @@ export function KGExplorer({
         }
         if (selectedTopicIds && !event.entityIds.some((id: string) => selectedTopicIds.has(id))) return false;
         if (!eventMatchesAction(initialOntology, event, actionFilter(selected))) return false;
+        if (!eventMatchesReportingForm(event, { status: selected.reportingFormStatus, conceptId: selected.reportingFormConceptId })) return false;
+        if (!eventMatchesNumericObservation(event, { status: selected.numericStatus, comparison: selected.numericComparison })) return false;
         const year = Number(event.date.slice(0, 4));
         if (selected.fromYear && year < Number(selected.fromYear)) return false;
         if (selected.toYear && year > Number(selected.toYear)) return false;
@@ -252,7 +340,7 @@ export function KGExplorer({
       totalEntities: matchingEntities.length,
       entities: matchingEntities.slice(0, ENTITY_RESULT_LIMIT),
     };
-  }, [entityById, search, searchableEntities, searchableEvents, initialOntology]);
+  }, [entityById, search, searchableEntities, searchableEvents, initialOntology, initial.invalidFilters]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -260,13 +348,16 @@ export function KGExplorer({
       const normalized = query.trim();
       if (!normalized) return;
       setSearch({ mode, query: normalized });
+      writeExplorerLocation(mode, { mode, query: normalized });
     } else {
       setSearch({ mode, filters: { ...filters } });
+      writeExplorerLocation(mode, { mode, filters: { ...filters } });
     }
   };
   const switchMode = (nextMode: SearchMode) => {
     setMode(nextMode);
     setSearch(null);
+    writeExplorerLocation(nextMode, null);
   };
   const updateFilter = (key: keyof Filters, value: string) => {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -330,6 +421,7 @@ export function KGExplorer({
             </button>
           </div>
 
+          {initial.invalidFilters.length > 0 && mode === "filters" && <p className="invalid-filter-notice" role="status">链接包含此版本不支持的筛选条件，未扩大匹配范围。请重新选择条件并搜索，或清空条件。</p>}
           <form onSubmit={submit}>
             {mode === "keyword" ? (
               <div className="keyword-search">
@@ -461,10 +553,57 @@ export function KGExplorer({
                   placeholder="全部模态"
                 />
                 <small style={{ gridColumn: "1 / -1" }}>行动选项按全库独立新闻计数；类别、极性和模态必须由同一条分配同时满足。描述来自报道，不表示现实已经发生或得到独立证实。</small>
+                <FilterSelect
+                  id="reporting-form"
+                  label="报道形式（经审查）"
+                  value={filters.reportingFormConceptId}
+                  onChange={(value) => updateFilter("reportingFormConceptId", value)}
+                  options={initialOntology.reportingForm?.concepts.filter((entry) => entry.status === "active") ?? []}
+                  placeholder="全部审查标签"
+                />
+                <FilterSelect
+                  id="reporting-form-status"
+                  label="报道形式审查状态"
+                  value={filters.reportingFormStatus}
+                  onChange={(value) => updateFilter("reportingFormStatus", value)}
+                  options={[
+                    { id: "applicable", label: "已有审查标签" },
+                    { id: "undetermined", label: "尚未确定" },
+                    { id: "not_applicable", label: "经审查不适用" },
+                  ]}
+                  placeholder="全部状态"
+                />
+                <FilterSelect
+                  id="numeric-status"
+                  label="报道中的数值描述"
+                  value={filters.numericStatus}
+                  onChange={(value) => updateFilter("numericStatus", value)}
+                  options={[
+                    { id: "applicable", label: "已有受支持描述" },
+                    { id: "undetermined", label: "尚未确定" },
+                  ]}
+                  placeholder="全部状态"
+                />
+                <FilterSelect
+                  id="numeric-comparison"
+                  label="数值比较方式"
+                  value={filters.numericComparison}
+                  onChange={(value) => updateFilter("numericComparison", value)}
+                  options={[
+                    { id: "year_over_year", label: "同比" },
+                    { id: "month_over_month", label: "环比" },
+                  ]}
+                  placeholder="全部比较方式"
+                />
+                <small className="report-description-filter-note">报道形式只来自对本条片段的明确审查；词表不表示已有分类覆盖。数值状态与比较方式须由同一条数值描述满足；尚未确定不等于原文没有数值。</small>
                 <div className="filter-actions">
                   <button
                     type="button"
-                    onClick={() => setFilters(EMPTY_FILTERS)}
+                    onClick={() => {
+                      setFilters({ ...EMPTY_FILTERS });
+                      setSearch(null);
+                      writeExplorerLocation("filters", null);
+                    }}
                   >
                     清空条件
                   </button>
@@ -673,6 +812,7 @@ function SearchResults({
                   {selectedTopicId && <small className="topic-match-reason">主题命中：{topicMatchReason(ontology, event, selectedTopicId).map((match) => `${match.label}（${match.inherited ? "由下级归入" : "直接关联"}）`).join("、")}</small>}
                   <p>{event.summary || "原文未提供摘要，请查看出处。"}</p>
                   <ActionAssessmentEvidence ontology={ontology} event={event} filter={selectedActionFilter} />
+                  <ReportDescriptionDetails ontology={ontology} event={event} />
                   {!!event.identityAssignments?.length && <small>含经审查的新闻级实体归属；原始抽取与证据单独保留</small>}
                   <div className="entity-tags">
                     {entities.slice(0, 8).map((entity) => (

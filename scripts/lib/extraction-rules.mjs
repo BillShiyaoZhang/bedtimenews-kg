@@ -1,3 +1,4 @@
+import { assertNumericExtractionConfig, assertReportingFormReviews } from "./report-description-extraction.mjs";
 // Configuration is the only authority for topic names and extraction triggers.
 // Fail closed on the old overloaded field instead of silently restoring aliases.
 const object = (value) => Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -121,6 +122,10 @@ export function assertExtractionRules(rules) {
       const topic = rules.topics.find((topic) => topic.conceptId === link.conceptId);
       if (!topic || link.label !== topic.label || link.entityId !== topic.entityId || JSON.stringify(link.aliases) !== JSON.stringify(topic.aliases)) throw new Error("Reviewed topic links must use the compiled stable concept and entity identity");
     }
+  }
+  if (Object.hasOwn(rules, "numericExtraction") || Object.hasOwn(rules, "reportingFormReviews")) {
+    assertNumericExtractionConfig(rules.numericExtraction);
+    assertReportingFormReviews(rules.reportingFormReviews);
   }
   // Historical pre-action rule artifacts remain readable during reviewed migration.
   if (Object.hasOwn(rules, "actionExtraction")) assertActionExtractionConfig(rules.actionExtraction);
