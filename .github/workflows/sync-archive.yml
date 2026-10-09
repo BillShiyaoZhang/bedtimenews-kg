@@ -29,10 +29,7 @@ on:
   repository_dispatch:
     types: [archive-updated]
 
-permissions:
-  actions: write
-  contents: write
-  issues: write
+permissions: {}
 
 concurrency:
   group: kg-main-writer
@@ -44,11 +41,94 @@ env:
   LC_ALL: en_US.UTF-8
 
 jobs:
+  reconstruct:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/fix/actions-audit-successor-20261009' && github.actor_id == '18454625' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version-file: .node-version
+      - name: Read and verify historical audit using trusted operator code
+        run: node scripts/fetch-actions-checkpoint.mjs "$RUNNER_TEMP/verified-checkpoint"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Reconstruct frozen bytes inside a credential-free container
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/audit-build"
+          docker run --rm --cap-drop ALL --security-opt no-new-privileges --pids-limit 256 --memory 6g \
+            --user "$(id -u):$(id -g)" \
+            -e HOME=/build/home -e LANG=en_US.UTF-8 -e LC_ALL=en_US.UTF-8 -e TZ=UTC -e CIRCLE_NODE_TOTAL=2 \
+            -v "$GITHUB_WORKSPACE:/operator:ro" -v "$RUNNER_TEMP/audit-build:/build" \
+            -v "$RUNNER_TEMP/verified-checkpoint:/checkpoint:ro" \
+            node:22.23.2-bookworm@sha256:dd5847a04b0deee391fa145f1f4c6d214196668b6bcc7988ebed67249f226844 \
+            bash --noprofile --norc -euc '
+              mkdir -p /build/home
+              test "$(node --version)" = v22.23.2
+              npm install --prefix /build/npm-runtime --no-audit --no-fund npm@10.9.9
+              export PATH=/build/npm-runtime/node_modules/.bin:$PATH
+              test "$(npm --version)" = 10.9.9
+              git clone --no-checkout https://github.com/BillShiyaoZhang/bedtimenews-kg.git /build/proposal
+              git -C /build/proposal checkout --detach bbd24dc433cbe02fba502663f76bb808c1edc5d5
+              test "$(git -C /build/proposal rev-parse refs/remotes/origin/main)" = 0e014c785404f546699bd236d1f4100c9a045540
+              git -C /build/proposal submodule update --init -- sources/bedtimenews-archive-contents
+              test "$(git -C /build/proposal/sources/bedtimenews-archive-contents rev-parse HEAD)" = 907bde68b02b8c2cfd82617ea3555c6d81a9ea43
+              cd /build/proposal
+              npm ci
+              node --max-old-space-size=4096 /operator/scripts/build-actions-audit.mjs /build/proposal /operator
+            '
+      - name: Transfer data only to the fresh writer runner
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: frozen-stage-h-audit
+          path: ${{ runner.temp }}/audit-build/bundle/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  upload:
+    needs: reconstruct
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version-file: .node-version
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: frozen-stage-h-audit
+          path: ${{ runner.temp }}/frozen-stage-h-audit
+      - name: Execute reviewed successor with durable one-attempt fence
+        run: node scripts/actions-audit-successor.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KG_RELEASE_ACTIVATED: ${{ vars.KG_RELEASE_ACTIVATED }}
+          KG_RELEASE_STORAGE_APPROVED: ${{ vars.KG_RELEASE_STORAGE_APPROVED }}
+          AUDIT_BUNDLE_DIRECTORY: ${{ runner.temp }}/frozen-stage-h-audit
+
   # Disabled until explicit repository-specific storage/publication consent.
   # Only trusted main executes with write permissions; PR validation stays read-only.
   release-sync:
-    if: vars.KG_RELEASE_ACTIVATED == 'true'
+    if: vars.KG_RELEASE_ACTIVATED == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      issues: write
     steps:
       - name: Checkout accepted main without requiring upstream availability
         uses: actions/checkout@v6
@@ -84,8 +164,12 @@ jobs:
         run: bash scripts/notify-coverage.sh
 
   sync:
-    if: vars.KG_RELEASE_ACTIVATED != 'true'
+    if: vars.KG_RELEASE_ACTIVATED != 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      issues: write
     steps:
       - name: Checkout with archive
         uses: actions/checkout@v6
@@ -190,7 +274,7 @@ jobs:
   # The daily Codex task also checks failed runs directly if reporting cannot run.
   notify-sync-failure:
     needs: [sync, release-sync]
-    if: always() && (needs.sync.result == 'failure' || needs.release-sync.result == 'failure')
+    if: always() && github.ref == 'refs/heads/main' && (needs.sync.result == 'failure' || needs.release-sync.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       actions: read
