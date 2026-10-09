@@ -14,7 +14,65 @@ env:
   LC_ALL: en_US.UTF-8
 
 jobs:
+  audit-download:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      verified: ${{ steps.audit.outputs.verified }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 22.23.2
+      - name: Fetch exact head as data and verify current base
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] && [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ ]] && [[ "$HEAD_SHA" =~ ^[a-f0-9]{40}$ ]]
+          git fetch --no-tags origin "refs/pull/$PR_NUMBER/head" refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$BASE_SHA"
+          git cat-file -e "$HEAD_SHA^{commit}"
+      - name: Run exact base downloader or bounded infrastructure bootstrap
+        id: audit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {execFileSync} from 'node:child_process';
+          import {appendFileSync} from 'node:fs';
+          const git=(...a)=>execFileSync('git',['--no-replace-objects',...a],{maxBuffer:1024*1024});
+          const path='scripts/download-pr-audit.mjs';
+          const entry=git('ls-tree','-z',process.env.BASE_SHA,'--',path);
+          if(entry.length) execFileSync(process.execPath,[path],{stdio:'inherit'});
+          else {
+            const before=git('show',process.env.BASE_SHA+':data/accepted-release.json');
+            const after=git('show',process.env.HEAD_SHA+':data/accepted-release.json');
+            if(!before.equals(after))throw Error('New migration requires trusted base downloader');
+            appendFileSync(process.env.GITHUB_OUTPUT,'verified=false\n');
+          }
+          NODE
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: steps.audit.outputs.verified == 'true'
+        with:
+          name: verified-pr-audit
+          path: ${{ runner.temp }}/verified-pr-audit/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0
   validate:
+    needs: audit-download
+    if: always() && (github.event_name != 'pull_request' || needs.audit-download.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -30,9 +88,15 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        if: needs.audit-download.outputs.verified == 'true'
+        with:
+          name: verified-pr-audit
+          path: ${{ runner.temp }}/verified-pr-audit
       - name: Independently verify proposed migration against exact PR base
         if: github.event_name == 'pull_request'
         env:
+          KG_RELEASE_AUDIT_SNAPSHOT: ${{ needs.audit-download.outputs.verified == 'true' && format('{0}/verified-pr-audit', runner.temp) || '' }}
           KG_RELEASE_BASE_COMMIT: ${{ github.event.pull_request.base.sha }}
           KG_RELEASE_PR_SAME_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
           GH_TOKEN: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.token || '' }}

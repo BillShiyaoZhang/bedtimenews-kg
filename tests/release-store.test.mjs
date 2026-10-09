@@ -926,3 +926,35 @@ test("published or immutable observations cannot silently downgrade to draft or 
   f.state.releases[0].immutable = true; f.state.releases[0].draft = true;
   await assert.rejects(f.store().readBundle({ receipt }), { code: "IMMUTABLE_CONFLICT" });
 });
+
+test("durable normal production outcomes never authorize reupload of deleted or replaced assets", async (t) => {
+  const { createAuditProductionJournal } = await import("../scripts/lib/audit-production-journal.mjs");
+  for (const damage of ["deleted", "replaced"]) {
+    const f = await fixture(t), gh = fakeGitHub(), described = await prepareAuditBundle(f.dir);
+    const refs = new Map(), objects = new Map(); let serial = 0;
+    const api = async (path, { method = "GET", body, missing = false } = {}) => {
+      if (method === "GET") {
+        const value = path.startsWith("/git/ref/") ? refs.get(path.slice(9)) : objects.get(path);
+        if (!value && missing) return null;
+        assert.ok(value); return structuredClone(value);
+      }
+      const sha = (++serial).toString(16).padStart(40,"0");
+      if (path === "/git/blobs") objects.set(`/git/blobs/${sha}`, { encoding: "base64", content: Buffer.from(body.content).toString("base64"), size: Buffer.byteLength(body.content) });
+      else if (path === "/git/trees") objects.set(`/git/trees/${sha}`, { truncated: false, tree: body.tree });
+      else if (path === "/git/commits") objects.set(`/git/commits/${sha}`, { tree: { sha: body.tree } });
+      else if (path === "/git/refs") {
+        const key = body.ref.slice(5); assert.ok(!refs.has(key)); refs.set(key, { ref: body.ref, object: { type: "commit", sha: body.sha } });
+      } else throw Error("Unexpected journal mutation");
+      return { sha };
+    };
+    const journalOptions = { api, plan: { repository, bundleId: f.manifest.bundleId, proposalCommit: targetCommit, files: described.files }, planSha256: "d".repeat(64), producer: { runId: 1 }, checkFrozen: async () => {} };
+    await gh.store(await createAuditProductionJournal(journalOptions)).stageBundle(optionsFor(f));
+    const asset = [...gh.state.assets.values()][0], before = mutations(gh.state).length;
+    if (damage === "deleted") { gh.state.assets.delete(asset.id); gh.state.bytes.delete(asset.id); }
+    else gh.state.bytes.set(asset.id, Buffer.from("corrupted"));
+    const restored = await createAuditProductionJournal({ ...journalOptions, producer: { runId: 2 } });
+    assert.deepEqual(restored.pendingOperations, []);
+    await assert.rejects(gh.store(restored).stageBundle(optionsFor(f)));
+    assert.equal(mutations(gh.state).length, before, "no repeated POST after earlier positively reconciled upload");
+  }
+});

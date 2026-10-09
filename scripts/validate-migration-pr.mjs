@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import { execFile as execFileCallback } from "node:child_process";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { createGitHubReleaseStore } from "./lib/release-store.mjs";
+import { createOfflineCheckpointStore } from "./lib/offline-checkpoint-store.mjs";
+import { createSnapshotSplitStore } from "./lib/audit-snapshot.mjs";
 import { validateMigrationPullRequest } from "./lib/migration-pr-validation.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -16,7 +18,7 @@ if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repository ?? "") || !/^[a-f0-9]
 // Missing/unknown PR identity must not expose collaborator-only draft assets.
 const sameRepository = process.env.KG_RELEASE_PR_SAME_REPOSITORY === "true";
 let client;
-const store = { async readBundle(options) {
+const publishedStore = { async readBundle(options) {
   if (!sameRepository) throw new Error("Semantic migration draft audit needs a same-repository maintainer branch");
   const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
   if (!token) throw new Error("Semantic migration audit is unavailable: contents:read access is required");
@@ -29,6 +31,13 @@ const store = { async readBundle(options) {
   }
   return client.readBundle(options);
 } };
+let store = publishedStore;
+if (process.env.KG_RELEASE_AUDIT_SNAPSHOT) {
+  const candidate = JSON.parse(await readFile(new URL("../data/accepted-release.json", import.meta.url)));
+  const base = JSON.parse((await execFile("git", ["--no-replace-objects", "-C", root, "show", `${baseCommit}:data/accepted-release.json`], { maxBuffer: 1024 * 1024 })).stdout);
+  store = createSnapshotSplitStore({ candidateReceipt: candidate.auditReceipt, predecessorReceipt: base.auditReceipt,
+    candidateStore: createOfflineCheckpointStore({ directory: process.env.KG_RELEASE_AUDIT_SNAPSHOT, receipt: candidate.auditReceipt }), publishedStore });
+}
 async function acquireSource({ directory, repository: source, commit }) {
   if (source.name !== "bedtimenews/bedtimenews-archive-contents" || source.url !== "https://github.com/bedtimenews/bedtimenews-archive-contents" || !/^[a-f0-9]{40}$/u.test(commit)) {
     throw new Error("PR source replay accepts only the fixed reviewed upstream and exact commit");
