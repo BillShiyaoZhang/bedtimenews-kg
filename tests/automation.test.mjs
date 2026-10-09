@@ -104,7 +104,7 @@ test("notification reuses an existing advisory issue without dispatch", async (c
 
 test("sync failures are reported independently of checkout, npm, and coverage", () => {
   assert.match(failureJob, /^    needs: \[sync, release-sync\]$/mu);
-  assert.match(failureJob, /^    if: always\(\) && \(needs\.sync\.result == 'failure' \|\| needs\.release-sync\.result == 'failure'\)$/mu);
+  assert.match(failureJob, /^    if: always\(\) && github\.ref == 'refs\/heads\/main' && \(needs\.sync\.result == 'failure' \|\| needs\.release-sync\.result == 'failure'\)$/mu);
   assert.match(failureJob, /^      actions: read$/mu);
   assert.match(failureJob, /^      issues: write$/mu);
   assert.match(failureJob, /uses: actions\/github-script@v9/u);

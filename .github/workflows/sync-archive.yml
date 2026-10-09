@@ -1,14 +1,36 @@
-name: Reviewed Stage H audit successor
+name: Sync Bedtime News archive
 
 on:
+  schedule:
+    - cron: "17 */6 * * *"
   workflow_dispatch:
     inputs:
-      source_review:
-        description: Exact independently reviewed authority.json SHA256
-        required: true
+      recover_only:
+        description: Recover the existing accepted audit and Pages without upstream acquisition
+        required: false
+        type: boolean
+        default: false
+      rollback_commit:
+        description: Optional exact previously accepted commit to restore forward (same epoch)
+        required: false
         type: string
+      rollback_review:
+        description: Required committed restoration review JSON path when rollback_commit is set
+        required: false
+        type: string
+      resolved_attempts:
+        description: Exact comma-separated run:attempt IDs manually reconciled by the operator; leave blank normally
+        required: false
+        type: string
+      source_review:
+        description: Optional committed exact source-review JSON path for release mode
+        required: false
+        type: string
+  repository_dispatch:
+    types: [archive-updated]
 
 permissions: {}
+
 concurrency:
   group: kg-main-writer
   cancel-in-progress: false
@@ -20,7 +42,7 @@ env:
 
 jobs:
   reconstruct:
-    if: github.ref == 'refs/heads/fix/actions-audit-successor-20261009' && github.actor_id == '18454625' && github.run_attempt == 1
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/fix/actions-audit-successor-20261009' && github.actor_id == '18454625' && github.run_attempt == 1
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -76,7 +98,7 @@ jobs:
           submodules: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
-          node-version: 22.23.2
+          node-version-file: .node-version
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: frozen-stage-h-audit
@@ -88,3 +110,237 @@ jobs:
           KG_RELEASE_ACTIVATED: ${{ vars.KG_RELEASE_ACTIVATED }}
           KG_RELEASE_STORAGE_APPROVED: ${{ vars.KG_RELEASE_STORAGE_APPROVED }}
           AUDIT_BUNDLE_DIRECTORY: ${{ runner.temp }}/frozen-stage-h-audit
+
+  # Disabled until explicit repository-specific storage/publication consent.
+  # Only trusted main executes with write permissions; PR validation stays read-only.
+  release-sync:
+    if: vars.KG_RELEASE_ACTIVATED == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout accepted main without requiring upstream availability
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          submodules: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: "Operator-reviewed release attempts: ${{ inputs.resolved_attempts }}"
+        if: github.event_name == 'workflow_dispatch' && inputs.resolved_attempts != ''
+        run: echo "Exact operator-reviewed attempts will be checked against Actions history"
+      - name: Fully materialize, validate, accept and recover publication
+        id: release
+        run: npm run kg:release:sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KG_RELEASE_ACTIVATED: ${{ vars.KG_RELEASE_ACTIVATED }}
+          KG_RELEASE_STORAGE_APPROVED: ${{ vars.KG_RELEASE_STORAGE_APPROVED }}
+          KG_RELEASE_RECOVER_ONLY: ${{ inputs.recover_only }}
+          KG_RELEASE_SOURCE_REVIEW: ${{ inputs.source_review }}
+          KG_RELEASE_ROLLBACK_COMMIT: ${{ inputs.rollback_commit }}
+          KG_RELEASE_ROLLBACK_REVIEW: ${{ inputs.rollback_review }}
+          KG_RELEASE_RESOLVED_ATTEMPTS: ${{ inputs.resolved_attempts }}
+      - name: Notify repository owner of accepted coverage advisory
+        if: steps.release.outputs.coverage_outcome == 'advisory-failed'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/notify-coverage.sh
+
+  sync:
+    if: vars.KG_RELEASE_ACTIVATED != 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout with archive
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Refuse legacy acceptance after release activation
+        run: |
+          node --input-type=module -e 'import { existsSync, readFileSync } from "node:fs"; if (existsSync("data/accepted-release.json") || JSON.parse(readFileSync("data/archive-state.json")).schemaVersion === 4) throw new Error("Accepted releases require explicitly enabled release sync; legacy acceptance is disabled")'
+
+      - name: Advance archive submodule
+        run: |
+          git -C sources/bedtimenews-archive-contents fetch origin main
+          git -C sources/bedtimenews-archive-contents checkout --detach origin/main
+
+      - name: Append safe archive additions
+        run: npm run kg:update
+
+      - name: Validate ontology and generated knowledge graph
+        run: |
+          npm run kg:validate
+          npm run test:required
+
+      - name: Check semantic coverage (advisory)
+        id: coverage
+        continue-on-error: true
+        run: npm run test:coverage
+
+      - name: Report semantic coverage warning
+        if: steps.coverage.outcome == 'failure'
+        run: |
+          echo "::warning title=Semantic coverage below threshold::Coverage is advisory and did not block the archive sync. Review the coverage test output above."
+          echo "### ⚠️ Semantic coverage is below the reviewed threshold" >> "$GITHUB_STEP_SUMMARY"
+          echo "The archive sync will continue because coverage is an advisory quality signal." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify repository owner through GitHub
+        if: steps.coverage.outcome == 'failure'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/notify-coverage.sh
+
+      - name: Build GitHub Pages artifact
+        run: npm run build:pages
+
+      - name: Commit and push validated archive sync
+        id: commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            sources/bedtimenews-archive-contents \
+            data/archive-state.json \
+            data/extraction-rules.json \
+            data/news-overrides.json \
+            data/ontology.json \
+            data/processed/news.json \
+            data/generated/kg.json \
+            data/review/upstream-changes.json \
+            data/review/news-segmentation.json \
+            data/review/ontology-candidates.json
+
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "data: sync Bedtime News archive"
+            git push origin HEAD:main
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          # GITHUB_SHA can be the original event SHA, including on a rerun.
+          echo "target_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # Pushes made by GITHUB_TOKEN do not start workflows triggered by `push`,
+      # so reconcile Pages even when this attempt did not create a new commit.
+      - name: Deploy updated GitHub Pages
+        uses: actions/github-script@v9
+        env:
+          TARGET_SHA: ${{ steps.commit.outputs.target_sha }}
+        with:
+          script: |
+            const { pathToFileURL } = require("node:url");
+            const { reconcilePagesDeployment } = await import(pathToFileURL(
+              `${process.env.GITHUB_WORKSPACE}/scripts/reconcile-pages-deployment.mjs`,
+            ).href);
+            await reconcilePagesDeployment({
+              github, core, repo: context.repo, targetSha: process.env.TARGET_SHA,
+            });
+
+  # A separate job can report failures even when checkout or npm never ran.
+  # The daily Codex task also checks failed runs directly if reporting cannot run.
+  notify-sync-failure:
+    needs: [sync, release-sync]
+    if: always() && github.ref == 'refs/heads/main' && (needs.sync.result == 'failure' || needs.release-sync.result == 'failure')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      issues: write
+    steps:
+      - name: Open or refresh archive sync failure issue
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const repo = context.repo;
+            const label = "sync-failure";
+            const title = "Bedtime News archive sync failed";
+            const runUrl = `${context.serverUrl}/${repo.owner}/${repo.repo}/actions/runs/${context.runId}`;
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              ...repo,
+              run_id: context.runId,
+              filter: "latest",
+              per_page: 100,
+            });
+            const failedSteps = jobs
+              .filter((job) => ["failure", "timed_out"].includes(job.conclusion))
+              .flatMap((job) => {
+                const steps = (job.steps ?? []).filter((step) =>
+                  ["failure", "timed_out"].includes(step.conclusion),
+                );
+                return steps.length
+                  ? steps.map((step) => `- ${job.name}: ${step.name} (${step.conclusion})`)
+                  : [`- ${job.name}: ${job.conclusion}; step details unavailable`];
+              });
+            const start = "<!-- sync-failure-report:start -->";
+            const end = "<!-- sync-failure-report:end -->";
+            const report = [
+              start,
+              `Latest failed run: [${context.workflow} #${context.runNumber}, attempt ${process.env.GITHUB_RUN_ATTEMPT}](${runUrl})`,
+              `Workflow SHA: \`${context.sha}\``,
+              "",
+              "Failed steps:",
+              ...(failedSteps.length ? failedSteps : ["- Sync failed before step details were available; inspect the run logs."]),
+              end,
+            ].join("\n");
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              ...repo,
+              state: "open",
+              labels: label,
+              per_page: 100,
+            });
+            const existing = issues.find((issue) => !issue.pull_request && issue.title === title);
+            if (existing) {
+              const previous = existing.body ?? "";
+              const startIndex = previous.indexOf(start);
+              const endIndex = previous.indexOf(end, startIndex);
+              const body = startIndex >= 0 && endIndex >= startIndex
+                ? previous.slice(0, startIndex) + report + previous.slice(endIndex + end.length)
+                : `${previous}\n\n${report}`;
+              if (body !== previous) {
+                await github.rest.issues.update({ ...repo, issue_number: existing.number, body });
+              }
+              core.info(`Reused sync failure issue #${existing.number}; no repeat comment sent.`);
+            } else {
+              try {
+                await github.rest.issues.getLabel({ ...repo, name: label });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({
+                  ...repo,
+                  name: label,
+                  color: "D73A4A",
+                  description: "Archive sync failed before completion",
+                });
+              }
+              const { data: issue } = await github.rest.issues.create({
+                ...repo,
+                title,
+                labels: [label],
+                body: "Archive synchronization failed. The daily Codex scheduled task should inspect the run logs and repair the cause before closing this issue.\n\n" + report,
+              });
+              core.info(`Opened sync failure issue #${issue.number}.`);
+            }

@@ -88,3 +88,20 @@ test("legacy local prepare and recovery Actions guards remain in place", () => {
   assert.match(readFileSync("scripts/prepare-migration-pr.mjs", "utf8"), /process\.env\.GITHUB_ACTIONS === "true"/u);
   assert.match(readFileSync("scripts/recover-audit-upload.mjs", "utf8"), /process\.env\.GITHUB_ACTIONS !== "true"/u);
 });
+
+test('successor dispatch cannot enter any original main writer or failure notification job', () => {
+  const workflow = readFileSync('.github/workflows/sync-archive.yml', 'utf8');
+  for (const name of ['sync', 'release-sync', 'notify-sync-failure']) {
+    const section = workflow.split(`\n  ${name}:\n`)[1]?.split(/\n  [a-z][a-z-]*:\n/u)[0];
+    assert.ok(section);
+    const guard = section.split('\n').find((line) => line.startsWith('    if: '));
+    assert.ok(guard.includes("github.ref == 'refs/heads/main'"));
+  }
+  const build = workflow.split('\n  reconstruct:\n')[1].split('\n  upload:\n')[0];
+  assert.match(build, /github\.event_name == 'workflow_dispatch'/u);
+  assert.match(build, /contents: read/u);
+  assert.doesNotMatch(build, /GH_TOKEN:|GITHUB_TOKEN:|contents: write/u);
+  const writer = workflow.split('\n  upload:\n')[1].split('\n  release-sync:\n')[0];
+  assert.doesNotMatch(writer, /npm ci|npm install|run:.*proposal/u);
+  assert.match(writer, /persist-credentials: false/u);
+});

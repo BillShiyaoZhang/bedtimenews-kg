@@ -2,8 +2,10 @@
 
 This operational branch does not advance accepted main, the Stage H proposal,
 the source submodule, the candidate bytes or its existing draft Release. Its
-version of the already registered `sync-archive.yml` is dispatch-only and has no
-archive sync, acceptance, publication, Pages or notification jobs.
+version of the already registered `sync-archive.yml` adds dispatch-only successor
+jobs. Existing archive sync, acceptance, publication, Pages and notification
+jobs remain present for their regression tests and are explicitly main-only, so
+none can execute on the successor branch.
 
 The user's authorization at 2026-10-09T11:12:54Z permits this temporary-token
 adapter and one new manifest convergence attempt. The original journal remains
