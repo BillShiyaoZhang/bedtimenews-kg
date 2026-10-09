@@ -82,6 +82,9 @@ try {
       && release.tag_name === `kg-audit-${scope.bundleId}`);
   };
   await checkFrozen();
+  const failure = JSON.parse(await readFile(`${evidenceDir}/failed-read-only-build.json`));
+  const { verifyFailedBuildRecovery } = await import("./lib/actions-build-recovery.mjs");
+  evidence.failedReadOnlyBuild = { record: failure, reconciliation: await verifyFailedBuildRecovery({ api, failure, scope }) };
   const { createActionsUploadFence } = await import("./lib/actions-upload-fence.mjs");
   const fence = createActionsUploadFence({ api, scope, run, authoritySha256: hash(authorityBytes) });
   await fence.retainEvidence(evidence); // Required even if the asset already exists.

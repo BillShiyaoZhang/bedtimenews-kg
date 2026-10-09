@@ -25,6 +25,22 @@ run attempt, clean tree, and the single-file difference from the operator commit
 Existing local CLI Actions rejections are intentionally retained.
 
 The build container receives no GitHub/Actions credentials or Docker socket.
+The initial dispatch `37929002037` failed in independent replay while downloading
+the historical checkpoint (HTTP 403; the particular URL/cause is not established).
+Its upload job was skipped. `failed-read-only-build.json` preserves this outcome.
+This did not obtain an upload reservation. A new reviewed dispatch, never a rerun
+of that attempt, must verify its completed failure and skipped writer, zero audit
+assets and zero authority refs before any evidence or upload writes. Ordinal 1
+and all existing uncertain-operation records remain unchanged.
+
+A trusted operator step now uses the read-only job token and original release
+store to fetch/verify the seven historical assets against the exact accepted Git
+checkpoint. It imports no proposal code, installs no dependencies, and writes
+only verified data into a separate directory. The container receives this data
+as a read-only mount; no token or HTTP response headers are retained. Its offline
+store accepts only the exact Git checkpoint receipt, rechecks every file and the
+manifest on each build/replay read, and has no network fallback. The ordinary
+accepted-candidate verifier still checks the full checkpoint semantic bindings.
 Its Node image and actions are digest/SHA pinned. The builder has an explicit
 4 GiB V8 heap within a 6 GiB container limit, matching the successful local
 operator runtime budget without changing the candidate runtime binding.

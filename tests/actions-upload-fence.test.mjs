@@ -100,7 +100,14 @@ test('successor dispatch cannot enter any original main writer or failure notifi
   const build = workflow.split('\n  reconstruct:\n')[1].split('\n  upload:\n')[0];
   assert.match(build, /github\.event_name == 'workflow_dispatch'/u);
   assert.match(build, /contents: read/u);
-  assert.doesNotMatch(build, /GH_TOKEN:|GITHUB_TOKEN:|contents: write/u);
+  assert.doesNotMatch(build, /contents: write/u);
+  const trustedRead = build.split('      - name: Read and verify historical audit using trusted operator code\n')[1].split('      - name: Reconstruct frozen bytes inside a credential-free container\n')[0];
+  assert.match(trustedRead, /run: node scripts\/fetch-actions-checkpoint\.mjs/u);
+  assert.doesNotMatch(trustedRead, /npm |proposal/u);
+  assert.match(trustedRead, /GH_TOKEN: \$\{\{ github.token \}\}/u);
+  const container = build.split('      - name: Reconstruct frozen bytes inside a credential-free container\n')[1];
+  assert.doesNotMatch(container, /GH_TOKEN|GITHUB_TOKEN|ACTIONS_RUNTIME_TOKEN/u);
+  assert.match(container, /verified-checkpoint:\/checkpoint:ro/u);
   const writer = workflow.split('\n  upload:\n')[1].split('\n  release-sync:\n')[0];
   assert.doesNotMatch(writer, /npm ci|npm install|run:.*proposal/u);
   assert.match(writer, /persist-credentials: false/u);
