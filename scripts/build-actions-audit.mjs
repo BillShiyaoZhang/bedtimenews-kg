@@ -32,10 +32,10 @@ const store = createGitHubReleaseStore({ owner, repo, fetchImpl: async (url, opt
   const saved = { bytes: Buffer.concat(chunks), headers: response.headers };
   reads.set(key, saved); return new Response(saved.bytes, { status: 200, headers: saved.headers });
 } });
-const options = { checkpoint, store, source: `${root}/sources/bedtimenews-archive-contents`, migrationReview: `${operator}/audit-recovery/stage-h/migration-review.json`, proposalCommit: scope.proposalCommit };
+const options = { checkpoint, store, generatedAt: scope.generatedAt, source: `${root}/sources/bedtimenews-archive-contents`, migrationReview: `${operator}/audit-recovery/stage-h/migration-review.json`, proposalCommit: scope.proposalCommit };
 const candidate = await buildAcceptedCandidate(root, options);
-await verifyAcceptedCandidate(root, candidate.output, options);
 must(candidate.manifest.bundleId === scope.bundleId);
+await verifyAcceptedCandidate(root, candidate.output, options);
 must(JSON.stringify((await readdir(candidate.output)).sort()) === JSON.stringify(Object.keys(scope.files).sort()));
 await mkdir("/build/bundle", { recursive: true });
 for (const [name, binding] of Object.entries(scope.files)) {

@@ -27,7 +27,11 @@ Existing local CLI Actions rejections are intentionally retained.
 The build container receives no GitHub/Actions credentials or Docker socket.
 Its Node image and actions are digest/SHA pinned. The builder has an explicit
 4 GiB V8 heap within a 6 GiB container limit, matching the successful local
-operator runtime budget without changing the candidate runtime binding. It reconstructs the frozen
+operator runtime budget without changing the candidate runtime binding.
+The recipe's `generatedAt` string is copied exactly from the frozen manifest;
+it is never regenerated from Git's version-dependent `%cI` formatting. The
+frozen spelling is `2026-09-29T01:05:06Z`, including the final `Z`.
+It reconstructs the frozen
 proposal from public source and public accepted history, runs npm ci and an
 independent candidate replay, then compares all seven byte counts and SHA256s.
 Actions artifacts transfer only these fixed data files between jobs. The writer
