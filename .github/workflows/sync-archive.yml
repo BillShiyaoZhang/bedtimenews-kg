@@ -73,7 +73,7 @@ jobs:
               test "$(git -C /build/proposal/sources/bedtimenews-archive-contents rev-parse HEAD)" = 907bde68b02b8c2cfd82617ea3555c6d81a9ea43
               cd /build/proposal
               npm ci
-              node /operator/scripts/build-actions-audit.mjs /build/proposal /operator
+              node --max-old-space-size=4096 /operator/scripts/build-actions-audit.mjs /build/proposal /operator
             '
       - name: Transfer data only to the fresh writer runner
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

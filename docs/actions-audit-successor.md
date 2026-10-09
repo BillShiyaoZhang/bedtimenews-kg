@@ -25,7 +25,9 @@ run attempt, clean tree, and the single-file difference from the operator commit
 Existing local CLI Actions rejections are intentionally retained.
 
 The build container receives no GitHub/Actions credentials or Docker socket.
-Its Node image and actions are digest/SHA pinned. It reconstructs the frozen
+Its Node image and actions are digest/SHA pinned. The builder has an explicit
+4 GiB V8 heap within a 6 GiB container limit, matching the successful local
+operator runtime budget without changing the candidate runtime binding. It reconstructs the frozen
 proposal from public source and public accepted history, runs npm ci and an
 independent candidate replay, then compares all seven byte counts and SHA256s.
 Actions artifacts transfer only these fixed data files between jobs. The writer
