@@ -9,6 +9,7 @@ import { canonicalJson, publishCandidateBundle, sha256 } from "../scripts/lib/ca
 import { loadAcceptedGitCheckpoint } from "../scripts/lib/accepted-git.mjs";
 import { acceptedReleaseIdentity, validateAcceptedReleaseStructure } from "../scripts/lib/accepted-release.mjs";
 import { AUDIT_STORE_LIMITS, createGitHubReleaseStore, prepareAuditBundle } from "../scripts/lib/release-store.mjs";
+import { createUploadRecoveryReservation } from "../scripts/lib/upload-recovery-journal.mjs";
 
 const targetCommit = "a".repeat(40);
 const token = "fake-test-token-never-a-real-credential";
@@ -26,7 +27,7 @@ async function fixture(t, artifacts = { "kg.json": { entities: [] }, "lifecycle.
 }
 
 function fakeGitHub({ onRequest, immutable = false } = {}) {
-  const state = { releases: [], assets: new Map(), bytes: new Map(), tagObject: null, calls: [], nextId: 10, onRequest, immutable, commitShas: new Set([targetCommit]), mainCommit: null, remoteAncestry: new Set() };
+  const state = { releases: [], assets: new Map(), bytes: new Map(), tagObject: null, calls: [], nextId: 10, onRequest, immutable, commitShas: new Set([targetCommit]), mainCommit: null, remoteAncestry: new Set(), proposalCommit: null };
   const fetchImpl = async (input, options) => {
     const url = new URL(input);
     const call = { url, method: options.method, headers: options.headers, body: options.body, signal: options.signal, redirect: options.redirect };
@@ -38,6 +39,7 @@ function fakeGitHub({ onRequest, immutable = false } = {}) {
     if (url.origin === "https://api.github.com" && options.method === "GET") {
       if (path.startsWith(`${base}/git/commits/`)) { const sha = path.split("/").at(-1); return state.commitShas.has(sha) ? json({ sha }) : json({}, 404); }
       if (path === `${base}/git/ref/heads/main`) return state.mainCommit ? json({ ref: "refs/heads/main", object: { type: "commit", sha: state.mainCommit } }) : json({}, 404);
+      if (path === `${base}/git/ref/heads/review/fixture`) return state.proposalCommit ? json({ ref: "refs/heads/review/fixture", object: { type: "commit", sha: state.proposalCommit } }) : json({}, 404);
       if (path.startsWith(`${base}/compare/`)) {
         const pair = path.split("/").at(-1); const [accepted] = pair.split("...");
         const ancestor = state.remoteAncestry.has(pair);
@@ -60,6 +62,7 @@ function fakeGitHub({ onRequest, immutable = false } = {}) {
       return json(release, 201);
     }
     if (url.origin === "https://uploads.github.com" && options.method === "POST") {
+      if ([...state.assets.values()].some((asset) => asset.releaseId === Number(path.split("/").at(-2)) && asset.name === url.searchParams.get("name"))) return json({}, 422);
       const id = state.nextId++;
       const bytes = Buffer.from(options.body);
       const asset = { id, releaseId: Number(path.split("/").at(-2)), name: url.searchParams.get("name"), size: bytes.length, digest: `sha256:${sha256(bytes)}`, state: "uploaded" };
@@ -530,6 +533,76 @@ test("known HTTP errors retain only safe status when read-only reconciliation fi
   });
 });
 
+test("create and upload use the same explicit bearer with manual redirects", async (t) => {
+  const f = await fixture(t); const gh = fakeGitHub();
+  await gh.store().stageBundle(optionsFor(f));
+  const writes = mutations(gh.state);
+  assert(writes.some(({ url }) => url.origin === "https://api.github.com"));
+  assert(writes.some(({ url }) => url.origin === "https://uploads.github.com"));
+  for (const call of writes) {
+    assert.equal(call.headers.Authorization, `Bearer ${token}`);
+    assert.equal(call.redirect, "manual");
+  }
+});
+
+test("upload 401 retains safe diagnostics and pending intent across restart without retry", async (t) => {
+  const f = await fixture(t); const durable = new Set();
+  const requestId = "E385:35E2EC:1105D7:1D1490:6AC8C358";
+  const gh = fakeGitHub({ onRequest: ({ url, method }) => {
+    if (url.origin === "https://uploads.github.com" && method === "POST") return new Response(token,
+      { status: 401, headers: { "x-github-request-id": requestId, "x-secret": token } });
+  } });
+  const hooks = { onMutationIntent: ({ operation }) => durable.add(operation), onMutationReconciled: ({ operation }) => durable.delete(operation) };
+  await assert.rejects(gh.store(hooks).stageBundle(optionsFor(f)), (error) => {
+    assert.equal(error.code, "UNCERTAIN_MUTATION");
+    assert.equal(error.requestStatus, 401);
+    assert.equal(error.requestHost, "uploads.github.com");
+    assert.equal(error.requestMethod, "POST");
+    assert.equal(error.githubRequestId, requestId);
+    assert.equal(JSON.stringify(error).includes(token), false);
+    return true;
+  });
+  assert.equal(durable.size, 1);
+  assert.equal(gh.state.releases.length, 1);
+  assert.equal(gh.state.assets.size, 0);
+  const before = mutations(gh.state).length;
+  const resumed = gh.store({ ...hooks, pendingOperations: [...durable] });
+  assert.deepEqual((await resumed.reconcilePending(optionsFor(f))).outcomes.map(({ state }) => state), ["unknown"]);
+  await assert.rejects(resumed.stageBundle(optionsFor(f)), { code: "UNCERTAIN_MUTATION" });
+  assert.equal(mutations(gh.state).length, before);
+  assert.equal(durable.size, 1);
+});
+
+test("upload intent can fail in its preflight GET before any upload POST", async (t) => {
+  const f = await fixture(t); let uploadIntent = false;
+  const gh = fakeGitHub({ onRequest: ({ url, method }) => uploadIntent && method === "GET"
+    && /\/releases\/\d+$/u.test(url.pathname) ? json({}, 401) : undefined });
+  await assert.rejects(gh.store({ onMutationIntent: ({ action }) => { if (action === "upload") uploadIntent = true; } })
+    .stageBundle(optionsFor(f)), (error) => {
+    assert.equal(error.code, "UNCERTAIN_MUTATION");
+    assert.match(error.operation, /:upload:/u);
+    assert.equal(error.requestStatus, 401);
+    assert.equal(error.requestHost, "api.github.com");
+    assert.equal(error.requestMethod, "GET");
+    return true;
+  });
+  assert.equal(gh.state.calls.filter(({ url, method }) => url.origin === "https://uploads.github.com" && method === "POST").length, 0);
+});
+
+test("HTTP diagnostics exclude arbitrary headers and credential-shaped request IDs", async (t) => {
+  const f = await fixture(t);
+  for (const requestId of [token, "A".repeat(1024), "https://example.invalid/private", "ABCD:1234:ABCD:1234:ABCD"]) {
+    const gh = fakeGitHub({ onRequest: ({ method }) => method === "POST"
+      ? new Response("private response", { status: 401, headers: { "x-github-request-id": requestId } }) : undefined });
+    await assert.rejects(gh.store({ token: requestId }).stageBundle(optionsFor(f)), (error) => {
+      assert.equal(error.githubRequestId, undefined);
+      assert.equal(error.requestHost, "api.github.com");
+      assert.equal(JSON.stringify(error).includes(requestId), false);
+      return true;
+    });
+  }
+});
+
 test("upload uncertainty with no asset stops and is not retried", async (t) => {
   for (const operation of ["upload"]) {
     const f = await fixture(t);
@@ -925,4 +998,205 @@ test("published or immutable observations cannot silently downgrade to draft or 
   await assert.rejects(f.store().readBundle({ receipt }), { code: "IMMUTABLE_CONFLICT" });
   f.state.releases[0].immutable = true; f.state.releases[0].draft = true;
   await assert.rejects(f.store().readBundle({ receipt }), { code: "IMMUTABLE_CONFLICT" });
+});
+
+async function recoveryFixture(t) {
+  const f = await fixture(t); const durable = new Set();
+  const gh = fakeGitHub({ onRequest: ({ url, method }) => url.origin === "https://uploads.github.com" && method === "POST" ? json({}, 401) : undefined });
+  await assert.rejects(gh.store({ onMutationIntent: ({ operation }) => durable.add(operation), onMutationReconciled: ({ operation }) => durable.delete(operation) }).stageBundle(optionsFor(f)), { code: "UNCERTAIN_MUTATION" });
+  gh.state.onRequest = undefined;
+  gh.state.mainCommit = "b".repeat(40); gh.state.proposalCommit = targetCommit;
+  const bundle = await prepareAuditBundle(f.dir); const binding = bundle.files["manifest.json"];
+  const operation = [...durable][0]; const release = gh.state.releases[0];
+  const original = join(f.root, "original.json");
+  const originalBytes = `${canonicalJson({ schemaVersion: 1, repository, pendingOperations: [operation], candidate: { bundleId: bundle.bundleId, targetCommit } })}\n`;
+  await writeFile(original, originalBytes);
+  const approval = { schemaVersion: 1, kind: "same-target-upload-convergence", operation, action: "upload", repository,
+    expectedMain: "b".repeat(40), proposalRef: "refs/heads/review/fixture", recoveryCodeCommit: "c".repeat(40),
+    originalJournalPath: original, recoveryDirectory: join(f.root, "recovery"),
+    tag: f.tag, bundleId: bundle.bundleId, targetCommit, manifestSha256: bundle.manifestSha256, releaseId: release.id,
+    asset: { name: binding.assetName, bytes: binding.bytes, sha256: binding.sha256 }, originalJournalSha256: sha256(originalBytes),
+    reviewedAt: "2026-10-09T10:00:00.000Z", reason: "Fixture-only explicit recovery review" };
+  const reservationOptions = { directory: join(f.root, "recovery"), originalJournalPath: original };
+  const reserveAttempt = createUploadRecoveryReservation(reservationOptions);
+  const options = { ...optionsFor(f), approval, reserveAttempt };
+  const store = () => gh.store({ pendingOperations: [operation] });
+  const insert = async (overrides = {}, bytes) => {
+    const content = bytes ?? await readFile(join(f.dir, "manifest.json")); const id = gh.state.nextId++;
+    const asset = { id, releaseId: release.id, name: binding.assetName, size: content.length, digest: `sha256:${sha256(content)}`, state: "uploaded", ...overrides };
+    gh.state.assets.set(id, asset); gh.state.bytes.set(id, content); return asset;
+  };
+  return { ...f, gh, binding, operation, approval, options, store, insert, original, originalBytes, reservationOptions };
+}
+
+test("explicit upload convergence verifies exact bytes and preserves original journal", async (t) => {
+  const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+  const result = await f.store().recoverPendingUpload(f.options);
+  assert.equal(result.state, "verified"); assert.equal(result.originalOperationStillPending, true);
+  assert.equal(result.asset.sha256, f.binding.sha256);
+  assert.equal(mutations(f.gh.state).length, before + 1);
+  assert.equal(await readFile(f.original, "utf8"), f.originalBytes);
+  const after = mutations(f.gh.state).length;
+  assert.equal((await f.store().recoverPendingUpload(f.options)).state, "verified");
+  assert.equal(mutations(f.gh.state).length, after); // restart is read-only
+});
+
+test("old upload wins before new POST: 422 converges only by downloaded content", async (t) => {
+  const f = await recoveryFixture(t); let appeared = false;
+  f.gh.state.onRequest = async ({ url, method }) => {
+    if (url.origin === "https://uploads.github.com" && method === "POST" && !appeared) {
+      appeared = true; await f.insert(); return json({}, 422);
+    }
+  };
+  const before = mutations(f.gh.state).length;
+  const result = await f.store().recoverPendingUpload(f.options);
+  assert.equal(result.state, "verified"); assert.equal(f.gh.state.assets.size, 1);
+  assert.equal(mutations(f.gh.state).length, before + 1);
+});
+
+test("new upload wins before late old delivery: server rejects duplicate name", async (t) => {
+  const f = await recoveryFixture(t); let delivered = false; let oldStatus;
+  f.gh.state.onRequest = async ({ url, method }, state) => {
+    if (method === "GET" && /\/releases\/\d+\/assets$/u.test(url.pathname) && state.assets.size && !delivered) {
+      delivered = true;
+      const response = await f.gh.fetchImpl(`https://uploads.github.com${base}/releases/${f.approval.releaseId}/assets?name=${f.binding.assetName}`,
+        { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: await readFile(join(f.dir, "manifest.json")), redirect: "manual" });
+      oldStatus = response.status;
+    }
+  };
+  assert.equal((await f.store().recoverPendingUpload(f.options)).state, "verified");
+  assert.equal(oldStatus, 422); assert.equal(f.gh.state.assets.size, 1);
+});
+
+test("asset appearing at reservation boundary is verified without a new POST", async (t) => {
+  const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+  const reserveAttempt = async (approval) => { const reservation = await f.options.reserveAttempt(approval); await f.insert(); return reservation; };
+  assert.equal((await f.store().recoverPendingUpload({ ...f.options, reserveAttempt })).state, "verified");
+  assert.equal(mutations(f.gh.state).length, before);
+});
+
+test("starter, wrong content and duplicate assets block convergence without mutation", async (t) => {
+  for (const mode of ["starter", "wrong-content", "duplicate"]) {
+    const f = await recoveryFixture(t);
+    if (mode === "starter") await f.insert({ state: "starter" });
+    if (mode === "wrong-content") await f.insert({ size: f.binding.bytes, digest: `sha256:${f.binding.sha256}` }, Buffer.alloc(f.binding.bytes));
+    if (mode === "duplicate") { await f.insert(); await f.insert(); }
+    const before = mutations(f.gh.state).length;
+    await assert.rejects(f.store().recoverPendingUpload(f.options));
+    assert.equal(mutations(f.gh.state).length, before);
+    assert.equal(await readFile(f.original, "utf8"), f.originalBytes);
+  }
+});
+
+test("persistence failure and changed original journal prevent recovery writes", async (t) => {
+  const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+  await assert.rejects(f.store().recoverPendingUpload({ ...f.options, reserveAttempt: async () => { throw new Error(token); } }), { code: "JOURNAL_ERROR" });
+  await writeFile(f.original, `${f.originalBytes}\n`);
+  await assert.rejects(f.store().recoverPendingUpload(f.options), { code: "JOURNAL_ERROR" });
+  assert.equal(mutations(f.gh.state).length, before);
+});
+
+test("draft changing at durable boundary blocks POST and retains intent", async (t) => {
+  const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+  const reserveAttempt = async (approval) => { const reservation = await f.options.reserveAttempt(approval); f.gh.state.releases[0].draft = false; return reservation; };
+  await assert.rejects(f.store().recoverPendingUpload({ ...f.options, reserveAttempt }), { code: "UNCERTAIN_MUTATION" });
+  assert.equal(mutations(f.gh.state).length, before);
+  assert.equal(await readFile(f.original, "utf8"), f.originalBytes);
+});
+
+test("timeout, 502, 401 and unverified 422 remain unknown; restart cannot POST again", async (t) => {
+  for (const failure of ["timeout", 502, 401, 422]) {
+    const f = await recoveryFixture(t);
+    f.gh.state.onRequest = async ({ url, method, signal }) => {
+      if (url.origin !== "https://uploads.github.com" || method !== "POST") return;
+      if (failure === "timeout") return new Promise((_, reject) => signal.addEventListener("abort", () => reject(new Error(token)), { once: true }));
+      return json({}, failure);
+    };
+    const before = mutations(f.gh.state).length;
+    const store = f.gh.store({ pendingOperations: [f.operation], timeoutMs: 50 });
+    await assert.rejects(store.recoverPendingUpload(f.options), { code: "UNCERTAIN_MUTATION" });
+    assert.equal(mutations(f.gh.state).length, before + 1);
+    f.gh.state.onRequest = undefined;
+    await assert.rejects(f.store().recoverPendingUpload({ ...f.options, reserveAttempt: createUploadRecoveryReservation(f.reservationOptions) }), { code: "JOURNAL_ERROR" });
+    assert.equal(mutations(f.gh.state).length, before + 1);
+    assert.equal(await readFile(f.original, "utf8"), f.originalBytes);
+  }
+});
+
+test("lost successful response stops; restart only verifies positively observed asset", async (t) => {
+  const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+  f.gh.state.onRequest = async ({ url, method }) => {
+    if (url.origin === "https://uploads.github.com" && method === "POST") { await f.insert(); throw new Error(token); }
+  };
+  await assert.rejects(f.store().recoverPendingUpload(f.options), { code: "UNCERTAIN_MUTATION" });
+  f.gh.state.onRequest = undefined;
+  assert.equal((await f.store().recoverPendingUpload(f.options)).state, "verified");
+  assert.equal(mutations(f.gh.state).length, before + 1);
+  assert.equal(await readFile(f.original, "utf8"), f.originalBytes);
+});
+
+test("different approval binding or extra pending operation cannot use upload recovery", async (t) => {
+  const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+  for (const change of [{ targetCommit: "b".repeat(40) }, { releaseId: f.approval.releaseId + 1 }, { asset: { ...f.approval.asset, sha256: "0".repeat(64) } }]) {
+    await assert.rejects(f.store().recoverPendingUpload({ ...f.options, approval: { ...f.approval, ...change } }));
+  }
+  await assert.rejects(f.gh.store({ pendingOperations: [f.operation, `${f.tag}:create`] }).recoverPendingUpload(f.options));
+  assert.equal(mutations(f.gh.state).length, before);
+});
+
+test("two recovery processes share an exclusive one-attempt reservation", async (t) => {
+  const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+  let announce; const started = new Promise((resolve) => { announce = resolve; });
+  let finish; const gate = new Promise((resolve) => { finish = resolve; });
+  f.gh.state.onRequest = async ({ url, method }) => {
+    if (url.origin === "https://uploads.github.com" && method === "POST") { announce(); await gate; }
+  };
+  const first = f.store().recoverPendingUpload(f.options);
+  await started;
+  await assert.rejects(f.store().recoverPendingUpload({ ...f.options, reserveAttempt: createUploadRecoveryReservation(f.reservationOptions) }), { code: "JOURNAL_ERROR" });
+  finish();
+  assert.equal((await first).state, "verified");
+  assert.equal(mutations(f.gh.state).length, before + 1);
+});
+
+test("main movement, local byte changes and outcome persistence failure stop recovery", async (t) => {
+  for (const mode of ["main", "bytes", "outcome"]) {
+    const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+    const reserveAttempt = async (approval) => {
+      const reservation = await f.options.reserveAttempt(approval);
+      if (mode === "main") f.gh.state.mainCommit = "d".repeat(40);
+      if (mode === "bytes") await writeFile(join(f.dir, "manifest.json"), Buffer.alloc(f.binding.bytes));
+      if (mode === "outcome") return { recordOutcome: async () => { throw new Error("Fixture storage failure"); } };
+      return reservation;
+    };
+    await assert.rejects(f.store().recoverPendingUpload({ ...f.options, reserveAttempt }));
+    assert.equal(mutations(f.gh.state).length, before + (mode === "outcome" ? 1 : 0));
+    assert.equal(await readFile(f.original, "utf8"), f.originalBytes);
+  }
+});
+
+test("502 starter is retained and cannot be deleted or retried by recovery", async (t) => {
+  const f = await recoveryFixture(t); const before = mutations(f.gh.state).length;
+  f.gh.state.onRequest = async ({ url, method }) => {
+    if (url.origin === "https://uploads.github.com" && method === "POST") { await f.insert({ state: "starter" }); return json({}, 502); }
+  };
+  await assert.rejects(f.store().recoverPendingUpload(f.options), { code: "UNCERTAIN_MUTATION" });
+  f.gh.state.onRequest = undefined;
+  await assert.rejects(f.store().recoverPendingUpload(f.options), { code: "IMMUTABLE_CONFLICT" });
+  assert.equal(mutations(f.gh.state).length, before + 1);
+  assert.equal(f.gh.state.assets.size, 1);
+  assert.equal([...f.gh.state.assets.values()][0].state, "starter");
+});
+
+test("asset ID substitution during download prevents a verified recovery outcome", async (t) => {
+  const f = await recoveryFixture(t); let replaced = false;
+  f.gh.state.onRequest = async ({ url, method }, state) => {
+    if (method === "GET" && /\/releases\/assets\/\d+$/u.test(url.pathname) && !replaced) {
+      replaced = true;
+      const old = [...state.assets.values()][0]; state.assets.delete(old.id);
+      await f.insert();
+    }
+  };
+  await assert.rejects(f.store().recoverPendingUpload(f.options), { code: "UNCERTAIN_MUTATION" });
+  assert.equal(await readFile(f.original, "utf8"), f.originalBytes);
 });
