@@ -1,3 +1,4 @@
+import { assertReportDescriptionConfig } from "./report-description-extraction.mjs";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -12,9 +13,9 @@ const assert = (condition, message) => { if (!condition) fail(message); };
 // No time, locale ordering, source archive or runtime observations enter compilation.
 export function compileOntology(source, patterns) {
   assert(source && typeof source === "object" && !Array.isArray(source), "authored blueprint must be an object");
-  assert(Object.keys(source).every((key) => ["formatVersion", "version", "label", "description", "recordUnit", "facets", "eventEntityConstraint", "eventEntityRoles", "relationTypes", "hierarchies", "legacyEntityTypes", "legacyEventDomains", "mappings", "semantics", "actionAssessment"].includes(key)), "unknown authored blueprint field");
+  assert(Object.keys(source).every((key) => ["formatVersion", "version", "label", "description", "recordUnit", "facets", "eventEntityConstraint", "eventEntityRoles", "relationTypes", "hierarchies", "legacyEntityTypes", "legacyEventDomains", "mappings", "semantics", "actionAssessment", "reportingForm", "numericObservation"].includes(key)), "unknown authored blueprint field");
   assert(patterns && typeof patterns === "object" && !Array.isArray(patterns), "authored extraction patterns must be an object");
-  assert(Object.keys(patterns).every((key) => ["version", "description", "topics", "eventClassification", "placeAliases", "organizationSuffixes", "organizationAliases", "facilitySuffixes", "personRoles", "isoRegionCodes", "reviewedNewsEntityLinks", "actionExtraction"].includes(key)), "unknown authored extraction patterns field");
+  assert(Object.keys(patterns).every((key) => ["version", "description", "topics", "eventClassification", "placeAliases", "organizationSuffixes", "organizationAliases", "facilitySuffixes", "personRoles", "isoRegionCodes", "reviewedNewsEntityLinks", "actionExtraction", "reportingFormReviews", "numericExtraction"].includes(key)), "unknown authored extraction patterns field");
   assert(source.formatVersion === 1, "unknown blueprint formatVersion");
   assert(/^\d+\.\d+\.\d+$/u.test(source.version ?? ""), "version must be explicit semver");
   assert(source.recordUnit?.id === "news" && source.eventEntityConstraint?.minimumEntities === 1, "news projection and minimum entity constraint must be preserved");
@@ -134,7 +135,14 @@ export function compileOntology(source, patterns) {
     assert(Array.isArray(rule.keywords) && rule.keywords.length && rule.keywords.every((keyword) => typeof keyword === "string" && keyword.trim() && keyword === keyword.trim()) && new Set(rule.keywords).size === rule.keywords.length, `event classification ${rule.id} must have unique nonempty keywords`);
     assert(eventIds.has(rule.id), `unknown event classification domain ${rule.id}`);
   }
-  const compilation = { formatVersion: 1, compilerVersion: "1.1.0", sourceHash: digest(source), patternsHash: digest(patterns) };
+  const descriptionEnabled = [source.reportingForm, source.numericObservation, patterns.reportingFormReviews, patterns.numericExtraction].some((value) => value !== undefined);
+  if (descriptionEnabled) {
+    assertReportDescriptionConfig({ reportingForm: source.reportingForm, numericObservation: source.numericObservation, reportingFormReviews: patterns.reportingFormReviews, numericExtraction: patterns.numericExtraction });
+    assert(source.semantics?.reportDescriptions === "news_scoped_reported_text_annotations_not_verified_measurements", "report descriptions must remain news-scoped text annotations");
+    assert(source.version !== "2.4.0" && patterns.version !== "4.2.0", "report descriptions require explicit ontology and extraction version changes");
+    for (const concept of source.reportingForm.concepts) assert(!allIds.has(concept.id), "reporting form IDs must not substitute hierarchy concepts");
+  }
+  const compilation = { formatVersion: 1, compilerVersion: descriptionEnabled ? "1.2.0" : "1.1.0", sourceHash: digest(source), patternsHash: digest(patterns) };
   const { mappings, legacyEventDomains } = source;
   const metadata = Object.fromEntries(Object.entries(source).filter(([key]) => !["formatVersion", "mappings", "legacyEntityTypes", "legacyEventDomains", "hierarchies"].includes(key)));
   const ontology = { ...metadata, compilation, entityTypes, eventTypes: legacyEventDomains, hierarchies, mappings };

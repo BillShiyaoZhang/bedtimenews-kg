@@ -1,11 +1,15 @@
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { entityKey } from "./extraction.mjs";
+import { reportedNumericObservationId } from "./report-description-extraction.mjs";
+import { REPORTING_FORM_IDS, validateReportingFormAssessment, validateNumericObservationAssessment } from "../../app/lib/report-description-assessment.mjs";
 import { ENTITY_IDENTITY_SCOPE, assignedEntityAssertionId, validateEntityIdentities, buildReviewedIdentityInputHash } from "./entity-identities.mjs";
 
 const SCOPE = "extraction_assignment";
 const HASH = /^[a-f0-9]{64}$/u;
 const KINDS = ["entities", "news", "assertions"];
 const LEDGER_COLLECTIONS = ["sourceRevisions", "newsRevisions", "dateDerivations", "inputs", "evidence", "observations", "retention", "classifications", "chronologyGroups", "assertions", "supports", "assertionRevisions", "duplicateContentGroups"];
+const REPORT_DESCRIPTION_COLLECTIONS = ["reportingFormAssessments", "numericObservationAssessments", "reportedNumericObservations"];
+const REPORT_DESCRIPTION_PREDICATES = ["reporting_form_applicability", "assigned_reporting_form", "numeric_observation_applicability", "reported_numeric_description"];
 const GRAPH_COLLECTIONS = ["entities", "events", "eventRelations", "entityRelations", "sources"];
 const ensure = (value, message) => { if (!value) throw new Error(`Candidate lifecycle: ${message}`); };
 const hash = (value) => sha256(canonicalJson(value));
@@ -33,11 +37,16 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
   ensure(kg && news && provenance?.epistemicScope === SCOPE, "expected a KG, news dataset and extraction-assignment ledger");
   const newsRecords = Array.isArray(news) ? news : news.news;
   const pageRecords = Array.isArray(news) ? kg.sources : news.pages;
+  const reportDescriptionEnabled = kg.source?.reportDescriptionVersion === "1.0.0";
+  ensure(!Object.hasOwn(kg.source ?? {}, "reportDescriptionVersion") || reportDescriptionEnabled, "unsupported report description version");
+  ensure(reportDescriptionEnabled ? kg.source.reportDescriptionNormalizationVersion === "visible-fragment-v1" : !Object.hasOwn(kg.source ?? {}, "reportDescriptionNormalizationVersion"), "unsupported report description normalization");
+  ensure(reportDescriptionEnabled ? provenance.reportDescriptionVersion === "1.0.0" && provenance.reportDescriptionWitnessPolicy === "exact_occurrence_in_offset_preserving_visible_news_fragment" : !Object.hasOwn(provenance, "reportDescriptionVersion") && !Object.hasOwn(provenance, "reportDescriptionWitnessPolicy"), "report description ledger version differs");
+  for (const name of REPORT_DESCRIPTION_COLLECTIONS) ensure(Object.hasOwn(provenance, name) === reportDescriptionEnabled, `missing or unexpected ${name}`);
   const collections = new Map();
   for (const name of GRAPH_COLLECTIONS) collections.set(`kg.${name}`, recordsById(kg[name], `kg.${name}`));
   collections.set("news.news", recordsById(newsRecords, "news.news"));
   collections.set("news.pages", recordsById(pageRecords, "news.pages"));
-  for (const name of [...LEDGER_COLLECTIONS, ...(Object.hasOwn(provenance, "actionAssessments") ? ["actionAssessments"] : [])]) collections.set(`provenance.${name}`, recordsById(provenance[name] ?? [], `provenance.${name}`));
+  for (const name of [...LEDGER_COLLECTIONS, ...(Object.hasOwn(provenance, "actionAssessments") ? ["actionAssessments"] : []), ...(reportDescriptionEnabled ? REPORT_DESCRIPTION_COLLECTIONS : [])]) collections.set(`provenance.${name}`, recordsById(provenance[name] ?? [], `provenance.${name}`));
   const hashes = new Map([...collections].map(([name, rows]) => [name, new Map([...rows].map(([id, row]) => [id, hash(row)]))]));
   const get = (table, id) => {
     const value = collections.get(table)?.get(id);
@@ -87,6 +96,114 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
       ensure(canonicalJson({ status: decision.status, reasonCode: decision.reasonCode, assignments, review }) === canonicalJson(event.actionAssessment), `action witnesses differ from projection ${decision.id}`);
     }
   } else ensure(!actionDecisions, "historical graph has unexpected action decisions");
+  const descriptionSupportSets = new Map();
+  const descriptionInputByEvent = new Map();
+  const descriptionEvidenceIds = new Set();
+  const exactKeys = (value, keys) => value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
+  const contentIdentity = (prefix, value) => `${prefix}-${hash(value).slice(0, 24)}`;
+  const descriptionAssertion = (event, predicate, object, details) => {
+    const basis = { subject: event.id, predicate, object, epistemicScope: SCOPE };
+    const id = contentIdentity("assertion", basis);
+    ensure(!descriptionSupportSets.has(id), `duplicate report description assertion ${id}`);
+    const actual = get("provenance.assertions", id);
+    ensure(canonicalJson(actual) === canonicalJson({ id, ...basis }), `report description assertion differs ${id}`);
+    descriptionSupportSets.set(id, details.map((item) => {
+      const support = { assertionId: id, ...item };
+      return { id: contentIdentity("support", support), ...support };
+    }));
+  };
+  function descriptionDecision(decision, prefix, fields) {
+    ensure(exactKeys(decision, ["id", "eventId", "newsRevisionId", "inputId", "status", "reasonCode", "evidenceIds", ...fields]), `unknown or missing report description decision fields ${decision.id}`);
+    const { id, ...basis } = decision;
+    ensure(id === contentIdentity(prefix, basis), `report description decision identity differs ${id}`);
+    const event = get("kg.events", decision.eventId);
+    ensure(revisionByNews.get(event.newsId)?.id === decision.newsRevisionId, `cross-news report description decision ${id}`);
+    const input = get("provenance.inputs", decision.inputId);
+    ensure(exactKeys(input, ["id", "newsRevisionId", "kind", "normalizationId", "contentHash", "origin"]) && HASH.test(input.contentHash), `invalid report description input fields ${id}`);
+    const { id: inputId, ...inputBasis } = input;
+    ensure(inputId === contentIdentity("input", inputBasis), `report description input identity differs ${id}`);
+    ensure(!descriptionInputByEvent.has(event.id) || descriptionInputByEvent.get(event.id) === inputId, `report description axes use different inputs ${event.id}`);
+    descriptionInputByEvent.set(event.id, inputId);
+    ensure(input.newsRevisionId === decision.newsRevisionId && input.kind === "visible_report_description_fragment" && input.normalizationId === "visible-fragment-v1" && input.origin === "verified_fragment", `cross-news or invalid report description input ${id}`);
+    const referenced = [];
+    const witness = (evidenceId, normalized = false) => {
+      const row = get("provenance.evidence", evidenceId); referenced.push(evidenceId); descriptionEvidenceIds.add(evidenceId);
+      ensure(exactKeys(row, ["id", "inputId", "text", "firstRange", "occurrenceCount", "spanPolicy"]) && row.inputId === decision.inputId && row.spanPolicy === "exact_report_description_occurrence" && row.occurrenceCount === 1 && Array.isArray(row.firstRange) && row.firstRange.length === 2, `cross-news or invalid report description witness ${evidenceId}`);
+      const [start, end] = row.firstRange;
+      ensure(Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && end > start && typeof row.text === "string" && row.text.trim() && row.text.length === end - start, `invalid report description witness range ${evidenceId}`);
+      ensure(evidenceId === contentIdentity("report-description-evidence", { inputId: row.inputId, start, end, text: row.text }), `report description witness identity differs ${evidenceId}`);
+      return { ...(normalized ? { normalizationVersion: "visible-fragment-v1" } : {}), start, end, text: row.text };
+    };
+    return { event, witness, referenced };
+  }
+  if (reportDescriptionEnabled) {
+    const forms = ledger("reportingFormAssessments"); const numerics = ledger("numericObservationAssessments");
+    ensure(forms.size === eventsByNews.size && numerics.size === eventsByNews.size, "missing report description assessment decisions");
+    const formEvents = new Set(); const numericEvents = new Set(); const observedIds = new Set();
+    for (const decision of forms.values()) {
+      const { event, witness, referenced } = descriptionDecision(decision, "reporting-form-assessment", ["assignments", "review"]);
+      ensure(!formEvents.has(event.id), `duplicate reporting form assessment ${event.id}`); formEvents.add(event.id);
+      const assignments = decision.assignments.map((item) => {
+        ensure(exactKeys(item, ["conceptId", "evidenceIds"]), `invalid reporting form assignment ${decision.id}`);
+        return { conceptId: item.conceptId, evidence: item.evidenceIds.map((id) => witness(id, true)) };
+      });
+      let review = null;
+      if (decision.review) {
+        ensure(exactKeys(decision.review, ["id", "newsId", "fragmentHash", "reviewedAt", "reason", "evidenceIds"]), `invalid reporting form review ${decision.id}`);
+        const { evidenceIds, ...metadata } = decision.review;
+        const item = get("news.news", event.newsId);
+        ensure(metadata.newsId === event.newsId && metadata.fragmentHash === item.fragment.contentHash, `stale or cross-news reporting form review ${decision.id}`);
+        review = { ...metadata, evidence: evidenceIds.map((id) => witness(id, true)) };
+      }
+      const assessment = { status: decision.status, reasonCode: decision.reasonCode, assignments, review };
+      ensure(validateReportingFormAssessment(assessment, { concepts: REPORTING_FORM_IDS.map((id) => ({ id, status: "active" })) }).length === 0, `invalid reporting form assessment ${decision.id}`);
+      ensure(canonicalJson(decision.evidenceIds) === canonicalJson(unique(referenced)), `reporting form evidence index differs ${decision.id}`);
+      ensure(canonicalJson(assessment) === canonicalJson(event.reportingFormAssessment), `reporting form witnesses differ from projection ${decision.id}`);
+      descriptionAssertion(event, "reporting_form_applicability", decision.status, [{ method: "reporting_form_assessment", reportingFormAssessmentId: decision.id }]);
+      for (const assignment of decision.assignments) descriptionAssertion(event, "assigned_reporting_form", assignment.conceptId, [{ method: "reviewed_reporting_form", reportingFormAssessmentId: decision.id, reviewId: decision.review.id, evidenceIds: [...assignment.evidenceIds].sort() }]);
+    }
+    for (const decision of numerics.values()) {
+      const { event, witness, referenced } = descriptionDecision(decision, "numeric-observation-assessment", ["observations", "diagnostics"]);
+      ensure(!numericEvents.has(event.id), `duplicate numeric observation assessment ${event.id}`); numericEvents.add(event.id);
+      const observations = decision.observations.map((item) => {
+        ensure(exactKeys(item, ["reportedNumericObservationId", "ruleIds"]) && !observedIds.has(item.reportedNumericObservationId), `duplicate or invalid numeric observation reference ${decision.id}`);
+        observedIds.add(item.reportedNumericObservationId);
+        const observation = get("provenance.reportedNumericObservations", item.reportedNumericObservationId);
+        ensure(exactKeys(observation, ["id", "eventId", "newsRevisionId", "inputId", "metric", "value", "comparison", "referencePeriod", "populationOrPlace", "polarity", "modality", "evidence", "evidenceIds"]), `invalid reported numeric observation fields ${observation.id}`);
+        ensure(observation.eventId === event.id && observation.newsRevisionId === decision.newsRevisionId && observation.inputId === decision.inputId, `cross-news numeric observation ${observation.id}`);
+        const local = [];
+        const exact = (id) => { local.push(id); return witness(id); };
+        ensure(exactKeys(observation.evidence, ["normalizationVersion", "scopeEvidenceId", "metricEvidenceId", "comparisonEvidenceId", "directionEvidenceId", "valueEvidenceId", "unitEvidenceId", "referencePeriodEvidenceId"]), `invalid numeric occurrence evidence ${observation.id}`);
+        const evidence = { normalizationVersion: observation.evidence.normalizationVersion };
+        for (const key of ["scope", "metric", "comparison", "direction", "value", "unit", "referencePeriod"]) evidence[key] = observation.evidence[`${key}EvidenceId`] === null ? null : exact(observation.evidence[`${key}EvidenceId`]);
+        const literal = (value) => {
+          ensure(exactKeys(value, ["text", "evidenceId"]), `invalid numeric literal ${observation.id}`);
+          return { text: value.text, span: exact(value.evidenceId) };
+        };
+        const result = { id: observation.id, metric: literal(observation.metric), value: observation.value, comparison: observation.comparison,
+          referencePeriod: observation.referencePeriod === null ? null : literal(observation.referencePeriod), populationOrPlace: observation.populationOrPlace,
+          polarity: observation.polarity, modality: observation.modality, evidence, ruleIds: item.ruleIds };
+        ensure(canonicalJson(observation.evidenceIds) === canonicalJson(unique(local)), `numeric observation evidence index differs ${observation.id}`);
+        ensure(result.id === reportedNumericObservationId(result, { newsId: event.newsId, fragmentHash: get("news.news", event.newsId).fragment.contentHash }), `numeric observation identity differs ${observation.id}`);
+        return result;
+      });
+      const assessment = { status: decision.status, reasonCode: decision.reasonCode, observations };
+      ensure(validateNumericObservationAssessment(assessment).length === 0, `invalid numeric observation assessment ${decision.id}`);
+      ensure(canonicalJson(decision.evidenceIds) === canonicalJson(unique(referenced)), `numeric assessment evidence index differs ${decision.id}`);
+      ensure(canonicalJson(assessment) === canonicalJson(event.numericObservationAssessment), `numeric witnesses differ from projection ${decision.id}`);
+      const diagnostic = decision.diagnostics;
+      ensure(exactKeys(diagnostic, ["partialCoverage", "rejectedCandidateCount", "supportedObservationCount"]) && Number.isSafeInteger(diagnostic.rejectedCandidateCount) && diagnostic.rejectedCandidateCount >= 0 && diagnostic.supportedObservationCount === observations.length && diagnostic.partialCoverage === Boolean(diagnostic.rejectedCandidateCount && observations.length), `invalid numeric diagnostics ${decision.id}`);
+      descriptionAssertion(event, "numeric_observation_applicability", decision.status, [{ method: "numeric_observation_assessment", numericObservationAssessmentId: decision.id }]);
+      for (const item of decision.observations) descriptionAssertion(event, "reported_numeric_description", item.reportedNumericObservationId, item.ruleIds.map((ruleId) => ({
+        method: "fragment_numeric_rule", numericObservationAssessmentId: decision.id, reportedNumericObservationId: item.reportedNumericObservationId, ruleId,
+        evidenceIds: get("provenance.reportedNumericObservations", item.reportedNumericObservationId).evidenceIds,
+      })));
+    }
+    ensure(observedIds.size === ledger("reportedNumericObservations").size, "orphan reported numeric observation");
+  } else for (const event of collections.get("kg.events").values()) ensure(!Object.hasOwn(event, "reportingFormAssessment") && !Object.hasOwn(event, "numericObservationAssessment"), "historical graph has unexpected report descriptions");
+  for (const row of ledger("evidence").values()) if (row.spanPolicy === "exact_report_description_occurrence" || row.id.startsWith("report-description-evidence-")) ensure(descriptionEvidenceIds.has(row.id), `orphan report description witness ${row.id}`);
+  const descriptionInputIds = new Set(descriptionInputByEvent.values());
+  for (const row of ledger("inputs").values()) if (row.kind === "visible_report_description_fragment") ensure(descriptionInputIds.has(row.id), `orphan report description input ${row.id}`);
   const supportIds = new Map();
   for (const support of ledger("supports").values()) {
     get("provenance.assertions", support.assertionId);
@@ -94,6 +211,11 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
     ids.push(support.id);
     supportIds.set(support.assertionId, ids);
   }
+  for (const [assertionId, expectedSupports] of descriptionSupportSets) {
+    const actualSupports = (supportIds.get(assertionId) ?? []).map((id) => get("provenance.supports", id));
+    ensure(canonicalJson(sorted(actualSupports)) === canonicalJson(sorted(expectedSupports)), `report description assertion requires its own exact assessment support set ${assertionId}`);
+  }
+  for (const assertion of ledger("assertions").values()) if (REPORT_DESCRIPTION_PREDICATES.includes(assertion.predicate)) ensure(descriptionSupportSets.has(assertion.id), `unexpected report description assertion ${assertion.id}`);
   const revisionByAssertion = new Map();
   for (const revision of ledger("assertionRevisions").values()) {
     get("provenance.assertions", revision.assertionId);
@@ -122,7 +244,7 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
     const row = get(`provenance.${table}`, id);
     const dependencies = [];
     const add = (name, ids) => { for (const value of ids ?? []) dependencies.push([name, value, fingerprint(name, value)]); };
-    for (const [field, name] of Object.entries({ sourceRevisionId: "sourceRevisions", newsRevisionId: "newsRevisions", inputId: "inputs", observationId: "observations", decisionId: "classifications", actionAssessmentId: "actionAssessments", groupId: "chronologyGroups", evidenceId: "evidence" })) {
+    for (const [field, name] of Object.entries({ sourceRevisionId: "sourceRevisions", newsRevisionId: "newsRevisions", inputId: "inputs", observationId: "observations", decisionId: "classifications", actionAssessmentId: "actionAssessments", reportingFormAssessmentId: "reportingFormAssessments", numericObservationAssessmentId: "numericObservationAssessments", reportedNumericObservationId: "reportedNumericObservations", groupId: "chronologyGroups", evidenceId: "evidence" })) {
       if (row[field]) add(name, [row[field]]);
     }
     for (const [field, name] of Object.entries({ newsRevisionIds: "newsRevisions", evidenceIds: "evidence", observationIds: "observations", dateDerivationIds: "dateDerivations", supportIds: "supports" })) add(name, row[field]);
@@ -132,6 +254,7 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
       ensure(inRetention !== inAssertions, `missing or ambiguous prerequisite ${prerequisite}`);
       add(inRetention ? "retention" : "assertions", [prerequisite]);
     }
+    if (table === "numericObservationAssessments") add("reportedNumericObservations", row.observations.map((item) => item.reportedNumericObservationId));
     if (table === "assertions") add("supports", unique(supportIds.get(id) ?? []));
     if (table === "classifications") for (const step of row.steps ?? []) {
       add("inputs", [step.inputId]);
@@ -150,7 +273,7 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
     const from = get("kg.events", assertion.subject);
     let newsIds = [from.newsId];
     if (assertion.predicate === "news_date_precedes") newsIds.push(get("kg.events", assertion.object).newsId);
-    else ensure(["assigned_entity", "assigned_legacy_domain", "action_applicability", "assigned_reported_action"].includes(assertion.predicate), `unknown extraction predicate ${assertion.predicate}`);
+    else ensure(["assigned_entity", "assigned_legacy_domain", "action_applicability", "assigned_reported_action", ...REPORT_DESCRIPTION_PREDICATES].includes(assertion.predicate), `unknown extraction predicate ${assertion.predicate}`);
     newsIds = unique(newsIds);
     const sourcePaths = pathsForNews(newsIds);
     if (assertion.predicate === "assigned_entity") {
@@ -179,6 +302,12 @@ export function summarizeCandidateLifecycleInput({ kg, news, provenance }) {
           const assignment = assessment.assignments.find((row) => canonicalJson({ conceptId: row.conceptId, polarity: row.polarity, modality: row.modality }) === canonicalJson(assertion.object));
           ensure(assignment?.evidence.some((match) => match.ruleId === support.ruleId && canonicalJson(unique([match.predicateEvidenceId, match.scopeEvidenceId, ...match.qualifiers.map((row) => row.evidenceId)])) === canonicalJson(support.evidenceIds)), `action support is not a qualified assessment witness ${id}`);
         }
+      }
+      for (const [field, table] of [["reportingFormAssessmentId", "reportingFormAssessments"], ["numericObservationAssessmentId", "numericObservationAssessments"], ["reportedNumericObservationId", "reportedNumericObservations"]]) if (support[field]) {
+        ensure(REPORT_DESCRIPTION_PREDICATES.includes(assertion.predicate) && descriptionSupportSets.has(assertion.id), `incorrect report description support scope ${id}`);
+        const record = get(`provenance.${table}`, support[field]);
+        ensure(record.eventId === from.id, `cross-news report description support ${id}`);
+        revisionIds.push(record.newsRevisionId);
       }
       const supportedNews = unique(revisionIds.map((newsRevisionId) => get("provenance.newsRevisions", newsRevisionId).newsId));
       ensure(canonicalJson(supportedNews) === canonicalJson(newsIds), `cross-news support ${id}`);

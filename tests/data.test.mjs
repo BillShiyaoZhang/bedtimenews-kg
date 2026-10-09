@@ -18,7 +18,8 @@ const [kg, ontology, newsDataset, coverageReport, extractionRules, archiveState]
 ]);
 
 test("generated semantic knowledge graph passes schema and reference checks", () => {
-  assert.deepEqual(validate(kg, ontology), []);
+  const issues = validate(kg, ontology);
+  assert.equal(issues.length, 0, `Generated KG validation failed (${issues.length} issues); first 10: ${JSON.stringify(issues.slice(0, 10))}`);
   assert.deepEqual(validateNewsDataset(newsDataset), []);
   assert.deepEqual(
     validateKnowledgeBaseNewsProjection(kg, newsDataset),

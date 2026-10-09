@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { validateActionEvidenceSources } from "./lib/action-evidence.mjs";
+import { validateReportDescriptionEvidenceSources } from "./lib/report-description-evidence.mjs";
 
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -43,6 +44,7 @@ const issues = [
   ...validateNewsDataset(newsDataset),
   ...validate(kg, ontology),
   ...(await validateActionEvidenceSources(kg, newsDataset, rules, sourceRoot)),
+  ...(await validateReportDescriptionEvidenceSources(kg, newsDataset, ontology, rules, sourceRoot)),
   ...(await validateTopicEvidence(kg, newsDataset, rules, sourceRoot)),
   ...validateKnowledgeBaseNewsProjection(kg, newsDataset),
   ...(await validateNewsFragments(newsDataset, sourceRoot)),

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { validateActionEvidenceSources } from "./lib/action-evidence.mjs";
+import { validateReportDescriptionEvidenceSources } from "./lib/report-description-evidence.mjs";
 import { canonicalJson } from "./lib/candidate-bundle.mjs";
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -60,6 +61,7 @@ const { entities, events, eventRelations } = kg;
 const issues = [
   ...validate(kg, ontology),
   ...(await validateActionEvidenceSources(kg, newsDataset, extractionRules, sourceRoot, { rawPages })),
+  ...(await validateReportDescriptionEvidenceSources(kg, newsDataset, ontology, extractionRules, sourceRoot, { rawPages })),
   ...validateKnowledgeBaseNewsProjection(kg, newsDataset),
   ...(await validateTopicEvidence(kg, newsDataset, extractionRules, sourceRoot)),
 ];

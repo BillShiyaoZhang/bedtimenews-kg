@@ -1,13 +1,23 @@
 # Accepted release lifecycle (E)
 
-## Activation is off
+## Activation gates and verified production history
 
-The implementation is reviewable with no production upload, Release, push or
-workflow dispatch. The legacy sync remains selected until `KG_RELEASE_ACTIVATED`
-is exactly `true`. No approval is inferred from a merged implementation.
+This repository completed its first accepted release on September 30, 2026.
+[Sync run 36788236991](https://github.com/BillShiyaoZhang/bedtimenews-kg/actions/runs/36788236991)
+succeeded; the accepted output commit was
+`848bd8ab611e7dad2e2acc76c1cab0ed6b9bdf3e`, and
+[Pages run 36789775976](https://github.com/BillShiyaoZhang/bedtimenews-kg/actions/runs/36789775976)
+succeeded for that exact commit. The
+[first public audit release](https://github.com/BillShiyaoZhang/bedtimenews-kg/releases/tag/kg-audit-f221cc97ce887daadb32d5da27560c5557e25cd50cc30654b3208d432d6ca390)
+was published at 2026-09-30T23:11:23Z. These are historical verified outcomes,
+not a promise that future runs or current variable settings are healthy.
 
-An operator must separately approve and configure both repository variables
-(the local CLIs read the equivalent explicit environment variables):
+The repository now contains an accepted receipt; the legacy update, rebuild and
+bootstrap commands are not the maintenance path. The accepted-release workflow
+still requires its explicit activation gates. In a new deployment, an operator
+must separately approve and configure both repository variables (the local CLIs
+read the equivalent explicit environment variables). A merged implementation
+alone does not grant storage or publication approval:
 
 - `KG_RELEASE_ACTIVATED=true`
 - `KG_RELEASE_STORAGE_APPROVED=<exact owner/repository>`: audit staging in private
@@ -318,7 +328,9 @@ an explicit policy and authorization, never a hidden expiry assumption.
 - Cross-epoch rollback/code restoration and news-boundary identity migrations
   remain separate; all-version rollback is not claimed
 - Reviewed semantic/runtime migration and same-epoch forward restoration are
-  implemented; the production activation gate remains off pending final review
-- Live first acceptance and publication remain unperformed; local benchmarks
-  are isolated fixtures, not production acceptance receipts
-- Production activation/storage/publication consent is still pending
+  implemented. First production acceptance, publication and matching Pages
+  deployment are verified above; do not repeat bootstrap to prove them again
+- Live production rollback remains unverified by those acceptance/deployment
+  records. Local rollback tests are not evidence of a production rollback
+- Storage and activation gates remain mandatory. Existing repository approval
+  does not imply permission to expand the payload, change access or delete assets

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { validateActionEvidenceSources } from "./lib/action-evidence.mjs";
+import { validateReportDescriptionEvidenceSources } from "./lib/report-description-evidence.mjs";
 import { canonicalJson } from "./lib/candidate-bundle.mjs";
 import { summarizeActionAssessments } from "./lib/action-reporting.mjs";
 
@@ -336,6 +337,7 @@ const issues = validate(kg, ontology);
 issues.push(...validateKnowledgeBaseNewsProjection(kg, newsDataset));
 issues.push(...await validateTopicEvidence(kg, newsDataset, extractionRules, sourceRoot));
 issues.push(...await validateActionEvidenceSources(kg, newsDataset, extractionRules, sourceRoot));
+issues.push(...await validateReportDescriptionEvidenceSources(kg, newsDataset, ontology, extractionRules, sourceRoot));
 if (issues.length) throwValidationError(issues);
 throwNewsValidationError(await validateNewsFragments(newsDataset, sourceRoot));
 

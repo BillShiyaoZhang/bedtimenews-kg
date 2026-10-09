@@ -2,6 +2,7 @@ import { sameOntologyCompilation, validateCompiledHierarchy } from "./ontology-h
 import { validateTopicEvidenceStructure } from "./topic-evidence.mjs";
 import { applyIdentityResolution } from "./identity-projection.mjs";
 import { validateActionAssessmentStructure } from "./action-assessment.mjs";
+import { validateReportDescriptionStructure } from "./report-description-assessment.mjs";
 
 export type EntityType = {
   id: string;
@@ -62,6 +63,49 @@ export type ActionAssessment = {
   review: null | { id: string; reviewedAt: string; reason: string; evidence: ActionSpan };
 };
 
+// Optional only on retained historical versions; absence is never "undetermined".
+export type ReportDescriptionSpan = { start: number; end: number; text: string };
+export type ReportingFormEvidence = ReportDescriptionSpan & { normalizationVersion: "visible-fragment-v1" };
+export type ReportingFormAssessment = {
+  status: "applicable" | "undetermined" | "not_applicable";
+  reasonCode: "reviewed_description" | "reviewed_not_applicable" | "reviewed_undetermined" | "no_review";
+  assignments: { conceptId: string; evidence: ReportingFormEvidence[] }[];
+  review: null | {
+    id: string;
+    newsId: string;
+    fragmentHash: string;
+    reviewedAt: string;
+    reason: string;
+    evidence: ReportingFormEvidence[];
+  };
+};
+export type ReportedNumericObservation = {
+  id: string;
+  metric: { text: string; span: ReportDescriptionSpan };
+  value: { raw: string; decimal: string; unit: "percent"; measureKind: "relative_change"; direction: "increase" | "decrease" };
+  comparison: "year_over_year" | "month_over_month";
+  referencePeriod: null | { text: string; span: ReportDescriptionSpan };
+  populationOrPlace: null;
+  polarity: "affirmative";
+  modality: "reported";
+  evidence: {
+    normalizationVersion: "visible-fragment-v1";
+    scope: ReportDescriptionSpan;
+    metric: ReportDescriptionSpan;
+    comparison: ReportDescriptionSpan;
+    direction: ReportDescriptionSpan;
+    value: ReportDescriptionSpan;
+    unit: ReportDescriptionSpan;
+    referencePeriod: ReportDescriptionSpan | null;
+  };
+  ruleIds: string[];
+};
+export type NumericObservationAssessment = {
+  status: "applicable" | "undetermined";
+  reasonCode: "supported_description" | "no_supported_template" | "ambiguous_scope" | "excluded_context";
+  observations: ReportedNumericObservation[];
+};
+
 export type Ontology = {
   compilation: OntologyCompilation;
   hierarchies: Record<"entity" | "action" | "topic", OntologyHierarchy>;
@@ -83,6 +127,16 @@ export type Ontology = {
   entityTypes: EntityType[];
   eventTypes: EventType[];
   relationTypes: RelationType[];
+  reportingForm?: {
+    schemaVersion: number;
+    normalizationVersion: string;
+    concepts: (ActionVocabularyEntry & { status: "active" | "draft" })[];
+  };
+  numericObservation?: {
+    schemaVersion: number;
+    normalizationVersion: string;
+    namespaceVersion: string;
+  };
   actionAssessment?: {
     schemaVersion: number;
     normalizationVersion: string;
@@ -128,6 +182,8 @@ export type Event = {
   topicEvidence: TopicEvidence[];
   // Mandatory for compiler 1.1 data; absent only in retained historical graphs.
   actionAssessment?: ActionAssessment;
+  reportingFormAssessment?: ReportingFormAssessment;
+  numericObservationAssessment?: NumericObservationAssessment;
   identityAssignments?: { assignmentId: string; rawEntityId: string; rawLabel: string; identityId: string }[];
 };
 
@@ -194,6 +250,8 @@ export type KnowledgeBase = {
     ontologyCompilation: OntologyCompilation;
     actionExtractionVersion?: string;
     actionNormalizationVersion?: string;
+    reportDescriptionVersion?: string;
+    reportDescriptionNormalizationVersion?: string;
   };
   identityRegistrations?: { id: string; label: string; type: string; state: "active" | "dormant" | "tombstoned" }[];
   identityNavigation?: { rawEntityId: string; label: string; type: string; state: "active" | "dormant" | "cleared"; targets: { id: string; label: string; newsCount: number }[] }[];
@@ -374,6 +432,7 @@ export function validateKnowledgeBase(
   const issues = validateOntology(ontology);
   issues.push(...validateTopicEvidenceStructure(kg));
   issues.push(...validateActionAssessmentStructure(kg, ontology));
+  issues.push(...validateReportDescriptionStructure(kg, ontology));
   try { applyIdentityResolution(kg); } catch (cause) { issues.push({ level: "error", path: "identityResolution", message: cause instanceof Error ? cause.message : String(cause) }); }
   if (kg.schemaVersion !== ontology.version) {
     issues.push({ level: "error", path: "schemaVersion", message: "KG 与 ontology 版本不一致" });

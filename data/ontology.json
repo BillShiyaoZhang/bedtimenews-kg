@@ -1,5 +1,5 @@
 {
-  "version": "2.4.0",
+  "version": "2.5.0",
   "label": "睡前消息新闻知识本体",
   "description": "作为新闻知识抽取的蓝图，分别定义实体类、事件行动与议题层级；抽取后的知识图谱是独立的版本化结果。",
   "recordUnit": {
@@ -144,7 +144,8 @@
     "identity": "subClassOf / broaderTopic / instanceOf / partOf are distinct",
     "actionVerification": "never_verified_real_world_occurrences",
     "actionEvidence": "exact_utf16_spans_in_visible_fragment_v1_bound_to_news_fragment_hash",
-    "actionAssessment": "unmatched_is_undetermined_not_applicable_requires_reviewed_fragment_and_span"
+    "actionAssessment": "unmatched_is_undetermined_not_applicable_requires_reviewed_fragment_and_span",
+    "reportDescriptions": "news_scoped_reported_text_annotations_not_verified_measurements"
   },
   "actionAssessment": {
     "schemaVersion": 1,
@@ -266,11 +267,40 @@
       }
     ]
   },
+  "reportingForm": {
+    "schemaVersion": 1,
+    "normalizationVersion": "visible-fragment-v1",
+    "concepts": [
+      {
+        "id": "reporting-form-interview",
+        "label": "访谈",
+        "description": "经逐片段审查确认的问答或采访呈现形式；不由来源栏目推断。",
+        "status": "active"
+      },
+      {
+        "id": "reporting-form-commentary",
+        "label": "评论",
+        "description": "经逐片段审查确认的观点评论呈现形式；不表示内容真假。",
+        "status": "active"
+      },
+      {
+        "id": "reporting-form-analysis",
+        "label": "分析",
+        "description": "经逐片段审查确认的解释分析呈现形式；不表示事实已经核实。",
+        "status": "active"
+      }
+    ]
+  },
+  "numericObservation": {
+    "schemaVersion": 1,
+    "normalizationVersion": "visible-fragment-v1",
+    "namespaceVersion": "reported-numeric-observation-v1"
+  },
   "compilation": {
     "formatVersion": 1,
-    "compilerVersion": "1.1.0",
-    "sourceHash": "df1126ccad25954321fc7ed3a97656de67d4b8c3b6345fe48ba9c442a39a3c6a",
-    "patternsHash": "34cedde9a7c5ea34378c30ec37ab59ec54cc76030001e2f439cd41c8fff7532a"
+    "compilerVersion": "1.2.0",
+    "sourceHash": "14f7230e7ad585425762802344379f41f1b635631dad5a3f7fed12e3beb31354",
+    "patternsHash": "48d4dbc9c5e5bedeeb8bae0c33b5debb79cb903db4085eec661412a18cb69e04"
   },
   "entityTypes": [
     {

@@ -1,3 +1,4 @@
+import { summarizeReportDescriptions } from "./report-description-reporting.mjs";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { buildSegmentationReport } from "./news.mjs";
 import { summarizeActionAssessments } from "./action-reporting.mjs";
@@ -21,7 +22,7 @@ export function buildAcceptedReports({ candidateManifest, artifacts, previousKG 
   }
   const previousIds = new Set((previousKG?.events ?? []).map((event) => event.id));
   const newEvents = kg.events.filter((event) => !previousIds.has(event.id));
-  const coverage = buildAcceptedOntologyReport({ kg, ontology, newEvents, commit: recipe.archiveCommit, timestamp: recipe.generatedAt });
+  const coverage = buildAcceptedOntologyReport({ kg, ontology, newEvents, commit: recipe.archiveCommit, timestamp: recipe.generatedAt, provenance: artifacts["provenance.json.gz"] });
   coverage.currentIncrementSemantics = "Newly materialized news projections relative to the accepted predecessor, including restorations; not newly occurring real-world events.";
   const upstream = {
     schemaVersion: 4,
@@ -46,7 +47,7 @@ export function buildAcceptedReports({ candidateManifest, artifacts, previousKG 
   ]);
 }
 
-export function buildAcceptedOntologyReport({ kg, ontology, newEvents, commit, timestamp }) {
+export function buildAcceptedOntologyReport({ kg, ontology, newEvents, commit, timestamp, provenance = null }) {
   const entitiesById = new Map(
     kg.entities.map((entity) => [entity.id, entity]),
   );
@@ -95,6 +96,7 @@ export function buildAcceptedOntologyReport({ kg, ontology, newEvents, commit, t
     segmentationVersion: kg.source.segmentationVersion,
     extractionVersion: kg.source.extractionVersion,
     ...(kg.source.actionExtractionVersion ? { actionAssessments: summarizeActionAssessments(kg) } : {}),
+    ...(kg.source.reportDescriptionVersion ? { reportDescriptions: summarizeReportDescriptions(kg, provenance) } : {}),
     policy:
       "Coverage describes the complete accepted extraction projection. Sources are acquired separately; every accepted candidate fully rematerializes the graph. Topic assignments and legacy event domains are extraction annotations, not independent claims that real-world events occurred.",
     coverage: {

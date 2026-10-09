@@ -37,7 +37,7 @@ function fixture(custom = {}) {
 test("candidate ledger covers every link, classification and chronology with replayable supports", () => {
   const value = fixture();
   assert.deepEqual(validateCandidateProvenance(value.provenance, value), []);
-  assert.equal(value.provenance.assertions.length, value.kg.events.reduce((sum, event) => sum + event.entityIds.length + 1 + (event.actionAssessment ? 1 + event.actionAssessment.assignments.length : 0), 0) + value.kg.eventRelations.length);
+  assert.equal(value.provenance.assertions.length, value.kg.events.reduce((sum, event) => sum + event.entityIds.length + 1 + (event.actionAssessment ? 1 + event.actionAssessment.assignments.length : 0) + (event.reportingFormAssessment ? 1 + event.reportingFormAssessment.assignments.length : 0) + (event.numericObservationAssessment ? 1 + event.numericObservationAssessment.observations.length : 0), 0) + value.kg.eventRelations.length);
   assert.ok(value.provenance.observations.length > value.provenance.retention.length);
   assert.equal(value.provenance.epistemicScope, "extraction_assignment");
   assert.ok(value.provenance.supports.every((support) => value.provenance.assertions.some((assertion) => assertion.id === support.assertionId)));
