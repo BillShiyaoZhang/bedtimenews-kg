@@ -82,7 +82,7 @@ if (mode === "history") {
   const snapshot = {schemaVersion:1,kind:"verified-audit-snapshot",operation:mode,verification,plan,planCommit:event.inputs.plan_commit,planSha256:event.inputs.plan_sha256,receipt,producer};
   await writeFile(resolve(output,"snapshot.json"),`${canonicalJson(snapshot)}\n`,{flag:"wx"});
   await validateSnapshotDirectory({directory:output,policy,baseCommit:plan.expectedMain,receipt,producer,approvedPlanBytes:planBytes});
-  console.log(JSON.stringify({status:"live-verified",bundleId:plan.bundleId,releaseId:receipt.releaseId,receiptSha256:sha256(canonicalJson(receipt)),mode}));
+  console.log(JSON.stringify({status:"live-verified",bundleId:plan.bundleId,releaseId:receipt.releaseId,receiptSha256:sha256(canonicalJson(receipt)),mode,verification}));
 }
 
 } catch {
