@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { verifyAuditSourceCheckout } from "./lib/audit-source-checkout.mjs";
 import { createOfflineCheckpointStore } from "./lib/offline-checkpoint-store.mjs";
 const must = (v) => { if (!v) throw new Error("Audit production reconstruction rejected"); };
 must(!process.env.GH_TOKEN && !process.env.GITHUB_TOKEN && !process.env.ACTIONS_RUNTIME_TOKEN);
@@ -13,7 +14,7 @@ must(process.versions.node === "22.23.2" && execFileSync("npm",["--version"],{en
   && new Intl.DateTimeFormat().resolvedOptions().locale === "en-US" && new Intl.DateTimeFormat().resolvedOptions().timeZone === "UTC");
 const git = (...args) => execFileSync("git",["-C",root,...args],{encoding:"utf8"}).trim();
 must(git("rev-parse","HEAD") === plan.proposalCommit && git("rev-parse","refs/remotes/origin/main") === plan.expectedMain);
-must(execFileSync("git",["-C",`${root}/sources/bedtimenews-archive-contents`,"rev-parse","HEAD"],{encoding:"utf8"}).trim() === plan.sourceCommit);
+verifyAuditSourceCheckout({ root, plan });
 const load = (file) => import(pathToFileURL(`${root}/scripts/lib/${file}`));
 const { loadAcceptedGitCheckpoint, readVerifiedAcceptedCheckpoint } = await load("accepted-git.mjs");
 const { buildAcceptedCandidate, verifyAcceptedCandidate } = await load("accepted-candidate.mjs");
