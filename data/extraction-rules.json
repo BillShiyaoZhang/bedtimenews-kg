@@ -1,5 +1,5 @@
 {
-  "version": "4.3.0",
+  "version": "4.3.1",
   "description": "从新闻存档确定性抽取事件、主体、地点、命名对象与受控主题的规则。规则版本变化必须触发显式全量重建。",
   "topics": [
     {
@@ -394,7 +394,8 @@
         "成瘾性物质",
         "生物制药",
         "村医",
-        "精神障碍"
+        "精神障碍",
+        "食用银鳕鱼导致汞超标"
       ]
     },
     {
@@ -2236,7 +2237,7 @@
     "formatVersion": 1,
     "compilerVersion": "1.2.0",
     "sourceHash": "14f7230e7ad585425762802344379f41f1b635631dad5a3f7fed12e3beb31354",
-    "patternsHash": "48d4dbc9c5e5bedeeb8bae0c33b5debb79cb903db4085eec661412a18cb69e04"
+    "patternsHash": "3290db2202da7323387fa96af3607d91e48e19e66c3a14b5070f772eb95394e6"
   },
   "ontologyVersion": "2.5.0",
   "topicEventTypes": {
