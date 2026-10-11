@@ -122,7 +122,9 @@ export async function prepareAuditBundle(bundleDir, { limits: overrides } = {}) 
  * Call stageBundle only after authorized collaborator-visible storage and semantic validation.
  * Only publishAcceptedBundle may publish, after proving acceptance on remote main.
  * Existing assets are never deleted, edited, or replaced. No settings are changed.
- * Unknown mutation outcomes are reconciled by GET/list; mutations are never retried.
+ * Normal staging reconciles unknown outcomes by GET/list and never retries.
+ * Explicit reviewed recoverPendingUpload is a separate, one-reservation
+ * same-target convergence protocol; it preserves the original pending operation.
  * Creation readback alone retries bounded absent/transient reads, never the POST.
  * Awaited journal hooks must persist intent before each network mutation and clear
  * it only after verified reconciliation. Restore their operation keys through
@@ -182,8 +184,16 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
         return { redirect: location };
       }
       if (response.status < 200 || response.status >= 300) {
+        // Keep only bounded diagnostic metadata, never bodies, URLs or arbitrary
+        // headers. This is evidence for an operator, not permission to retry.
+        const requestId = response.headers.get("x-github-request-id");
+        const githubRequestId = typeof requestId === "string" && /^[A-Fa-f0-9]{1,16}(?::[A-Fa-f0-9]{1,16}){4}$/u.test(requestId)
+          && !(token && requestId.includes(token)) ? requestId : undefined;
+        const requestHost = parsed.origin === API ? "api.github.com" : parsed.origin === UPLOADS ? "uploads.github.com" : "audit-download";
         await response.body?.cancel();
-        throw new AuditStoreError("HTTP_ERROR", `GitHub request failed with HTTP ${response.status}`, { status: response.status });
+        throw new AuditStoreError("HTTP_ERROR", `GitHub request failed with HTTP ${response.status}`,
+          { status: response.status, requestHost, requestMethod: ["GET", "HEAD", "POST", "PATCH"].includes(method) ? method : "other",
+            ...(githubRequestId ? { githubRequestId } : {}) });
       }
       const contentLength = response.headers.get("content-length");
       must(contentLength === null || (/^\d+$/u.test(contentLength) && Number(contentLength) <= maxBytes), "response exceeds byte limit", "BYTE_LIMIT");
@@ -299,7 +309,9 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
       pending.add(key);
       try { response = await action(); } catch (error) {
         // Safe metadata only; never retain a transport error or response body.
-        failure = { requestCode: error.code, ...(error.status ? { requestStatus: error.status } : {}) };
+        failure = { requestCode: error.code, ...(error.status ? { requestStatus: error.status } : {}),
+          ...(error instanceof AuditStoreError && error.code === "HTTP_ERROR" ? { requestHost: error.requestHost, requestMethod: error.requestMethod,
+            ...(error.githubRequestId ? { githubRequestId: error.githubRequestId } : {}) } : {}) };
       }
     }
     let result;
@@ -367,6 +379,30 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
       rawSourceArchiveIncluded: false,
       sourceReplay: "Restoring accepted outputs does not guarantee raw upstream re-extraction; upstream Git history must be available separately." };
   }
+  /** Read-only preflight for a partially uploaded, explicitly bound draft.
+   * Absence is not a retry authorization; the caller still needs its fixed fence.
+   */
+  async function verifyExistingDraftAssets({ bundleDir, targetCommit, releaseId }) {
+    must(COMMIT.test(targetCommit ?? "") && Number.isSafeInteger(releaseId) && releaseId > 0, "exact draft preflight identity required");
+    const bundle = await prepareAuditBundle(bundleDir, { limits });
+    const inspect = async () => {
+      const release = validateRelease(await get(`/releases/${releaseId}`), bundle, targetCommit);
+      must(release.id === releaseId && release.draft && !release.immutable, "preflight requires the same mutable draft", "IMMUTABLE_CONFLICT");
+      await checkTarget(targetCommit, release.tag_name);
+      const discovered = await lookup(release.tag_name);
+      must(discovered?.id === releaseId, "preflight draft tag identity changed", "IMMUTABLE_CONFLICT");
+      return assetsFor(release, bundle);
+    };
+    const before = await inspect();
+    for (const asset of before.values()) {
+      const binding = Object.values(bundle.files).find(file => file.assetName === asset.name);
+      await download(asset, binding);
+    }
+    const after = await inspect();
+    must(after.size === before.size && [...before].every(([name,asset]) => after.get(name)?.id === asset.id), "draft assets changed during preflight", "IMMUTABLE_CONFLICT");
+    for (const asset of after.values()) validateAsset(asset, Object.values(bundle.files).find(file => file.assetName === asset.name));
+    return freeze({ releaseId, bundleId: bundle.bundleId, existingAssets: before.size, readbackVerified: true });
+  }
   async function reconcilePrepared(bundle, targetCommit) {
     const tag = `kg-audit-${bundle.bundleId}`;
     const allowed = new Map([
@@ -418,6 +454,107 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
     active.add(tag);
     try { return await reconcilePrepared(bundle, targetCommit); }
     finally { active.delete(tag); }
+  }
+
+  /** Explicit operator recovery only; never called by normal staging or sync.
+   * Preserve the original unknown operation. A separate durable reservation
+   * permits at most one same-name/same-bytes POST, never delete or replacement.
+   * GitHub rejects an already-uploaded filename with 422. Only positive content
+   * verification can establish convergence; no conclusion about the old request
+   * is drawn from absence or from the outcome of this new attempt.
+   */
+  async function recoverPendingUpload({ bundleDir, targetCommit, approval, reserveAttempt }) {
+    must(COMMIT.test(targetCommit ?? ""), "exact recovery target required");
+    must(isObject(approval) && typeof reserveAttempt === "function", "reviewed recovery and durable reservation required");
+    const bundle = await prepareAuditBundle(bundleDir, { limits });
+    const tag = `kg-audit-${bundle.bundleId}`;
+    const binding = Object.values(bundle.files).find((file) => file.assetName === approval.asset?.name);
+    must(binding && Number.isSafeInteger(approval.releaseId) && approval.releaseId > 0, "exact recovery asset and release required");
+    const operation = operationFor(bundle, targetCommit, "upload", { id: approval.releaseId }, binding);
+    const expected = { ...operation, schemaVersion: 1, kind: "same-target-upload-convergence",
+      expectedMain: approval.expectedMain, proposalRef: approval.proposalRef, recoveryCodeCommit: approval.recoveryCodeCommit,
+      originalJournalPath: approval.originalJournalPath, recoveryDirectory: approval.recoveryDirectory,
+      originalJournalSha256: approval.originalJournalSha256, reviewedAt: approval.reviewedAt, reason: approval.reason };
+    must(canonicalJson(approval) === canonicalJson(expected) && HASH.test(approval.originalJournalSha256 ?? "")
+      && COMMIT.test(approval.expectedMain ?? "") && COMMIT.test(approval.recoveryCodeCommit ?? "")
+      && typeof approval.originalJournalPath === "string" && resolve(approval.originalJournalPath) === approval.originalJournalPath
+      && typeof approval.recoveryDirectory === "string" && resolve(approval.recoveryDirectory) === approval.recoveryDirectory
+      && typeof approval.proposalRef === "string" && /^refs\/heads\/[A-Za-z0-9_/-]+$/u.test(approval.proposalRef) && approval.proposalRef !== "refs/heads/main"
+      && typeof approval.reviewedAt === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/u.test(approval.reviewedAt)
+      && Number.isFinite(Date.parse(approval.reviewedAt)) && typeof approval.reason === "string"
+      && approval.reason.trim().length > 0 && approval.reason.length <= 4096, "recovery review does not match exact operation");
+    must(pending.size === 1 && pending.has(operation.operation), "recovery requires exactly the reviewed pending upload");
+    must(!active.has(tag), "bundle operation already in progress", "BUSY");
+    active.add(tag);
+    try {
+      const inspect = async () => {
+        await checkTarget(targetCommit, tag);
+        const main = await get("/git/ref/heads/main");
+        const proposal = await get(`/git/ref/${approval.proposalRef.slice(5)}`);
+        must(main?.ref === "refs/heads/main" && main.object?.type === "commit" && main.object.sha === approval.expectedMain
+          && proposal?.ref === approval.proposalRef && proposal.object?.type === "commit" && proposal.object.sha === targetCommit, "main or proposal advanced before recovery", "IMMUTABLE_CONFLICT");
+        const release = validateRelease(await get(`/releases/${approval.releaseId}`), bundle, targetCommit);
+        must(release.id === approval.releaseId && release.draft && !release.immutable, "recovery release must remain the same mutable draft", "IMMUTABLE_CONFLICT");
+        const discovered = await lookup(tag);
+        must(discovered?.id === release.id, "recovery tag/release identity changed", "IMMUTABLE_CONFLICT");
+        const assets = await assetsFor(release, bundle);
+        for (const asset of assets.values()) validateAsset(asset, Object.values(bundle.files).find((file) => file.assetName === asset.name));
+        return { release, assets, asset: assets.get(binding.assetName) };
+      };
+      const verify = async (observed, expectedId) => {
+        must(observed.asset && (expectedId === undefined || observed.asset.id === expectedId), "recovery asset absent or ID changed", "UNCERTAIN_MUTATION");
+        await download(observed.asset, binding);
+        const after = await inspect();
+        must(after.asset?.id === observed.asset.id && after.assets.size === observed.assets.size
+          && [...observed.assets].every(([name, asset]) => after.assets.get(name)?.id === asset.id), "assets changed during recovery verification", "IMMUTABLE_CONFLICT");
+        return freeze({ state: "verified", operation: operation.operation, releaseId: approval.releaseId,
+          asset: { id: observed.asset.id, name: binding.assetName, bytes: binding.bytes, sha256: binding.sha256 }, originalOperationStillPending: true });
+      };
+      const initial = await inspect();
+      if (initial.asset) return verify(initial);
+      // This callback must exclusively create and fsync a separate attempt
+      // record. Existing records block another POST across calls/processes.
+      let reservation;
+      try { reservation = await reserveAttempt(freeze({ ...approval })); }
+      catch { throw new AuditStoreError("JOURNAL_ERROR", "recovery reservation failed or already exists; no upload allowed"); }
+      must(reservation && typeof reservation.recordOutcome === "function", "durable recovery outcome recorder required", "JOURNAL_ERROR");
+      const saveOutcome = async (outcome) => {
+        try { await reservation.recordOutcome(outcome); }
+        catch { throw new AuditStoreError("JOURNAL_ERROR", "recovery outcome could not be persisted; retain attempt and original pending operation"); }
+      };
+      try {
+        let observed = await inspect();
+        let expectedId;
+        if (!observed.asset) {
+          const bytes = await readBoundedFile(bundle.bundleDir, Object.keys(bundle.files).find((name) => bundle.files[name].assetName === binding.assetName), binding.bytes);
+          must(bytes.length === binding.bytes && sha256(bytes) === binding.sha256, "recovery bytes changed before upload");
+          // Last remote visibility/identity check after the durable I/O boundary.
+          observed = await inspect();
+          if (!observed.asset) {
+            try {
+              const response = await request(`${observed.release.upload_url.replace(/\{\?name,label\}$/u, "")}?name=${encodeURIComponent(binding.assetName)}`,
+                { method: "POST", body: bytes });
+              validateAsset(response, binding); expectedId = response.id;
+            } catch (error) {
+              // 422 alone is not success. A matching immutable asset must be
+              // independently observed and downloaded; every other error stops.
+              if (!(error instanceof AuditStoreError && error.code === "HTTP_ERROR" && error.status === 422)) throw error;
+            }
+            observed = await inspect();
+          }
+        }
+        const result = await verify(observed, expectedId);
+        await saveOutcome(result);
+        return result;
+      } catch (error) {
+        const knownCodes = new Set(["HTTP_ERROR", "REQUEST_FAILED", "REQUEST_TIMEOUT", "UNCERTAIN_MUTATION", "IMMUTABLE_CONFLICT", "READBACK_MISMATCH", "JOURNAL_ERROR", "BYTE_LIMIT", "UNSAFE_URL", "INVALID_RESPONSE"]);
+        const diagnostic = error instanceof AuditStoreError && knownCodes.has(error.code) ? { failureCode: error.code,
+          ...(error.status ? { requestStatus: error.status } : {}), ...(error.requestHost ? { requestHost: error.requestHost } : {}),
+          ...(error.requestMethod ? { requestMethod: error.requestMethod } : {}), ...(error.githubRequestId ? { githubRequestId: error.githubRequestId } : {}) } : { failureCode: "RECOVERY_FAILED" };
+        await saveOutcome({ state: "unknown", operation: operation.operation, ...diagnostic });
+        throw new AuditStoreError("UNCERTAIN_MUTATION", "explicit recovery remains unverified; no further upload attempt is allowed", diagnostic);
+      }
+    } finally { active.delete(tag); }
   }
   /**
    * Recover exact bytes, without disk writes or semantic trust claims. The caller
@@ -608,6 +745,8 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
     publishAcceptedBundle,
     verifyBundle: (options) => perform(options, false),
     reconcilePending,
+    recoverPendingUpload,
     readBundle,
+    verifyExistingDraftAssets,
   });
 }

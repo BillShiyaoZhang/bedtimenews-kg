@@ -1,12 +1,14 @@
 import { canonicalJson } from "./candidate-bundle.mjs";
 import { ALLOWED_ACCEPTED_PATHS, validateAcceptedReleaseStructure } from "./accepted-release.mjs";
 const must = (v) => { if (!v) throw new Error("Live audit combined-head binding rejected"); };
+const sourcePath = "sources/bedtimenews-archive-contents";
+const commitSha = /^[a-f0-9]{40}$/u;
 const paths = new Set(["data/accepted-release.json", ...ALLOWED_ACCEPTED_PATHS]);
-// Strict canonical prepare shape: one parent P, only accepted output changes.
+// Strict canonical prepare shape: one parent P, accepted outputs and the exact reviewed source gitlink.
 // The ordinary PR gate independently replays all semantics; this GET-only
 // premerge check binds a fresh live receipt to that exact reviewed combined head.
 export async function verifyLiveCombinedHead({ api, plan, combinedHead, receipt }) {
-  must(/^[a-f0-9]{40}$/u.test(combinedHead));
+  must([combinedHead, plan.proposalCommit, plan.expectedMain, plan.sourceCommit].every((sha) => commitSha.test(sha ?? "")));
   const proposal = await api(`/git/commits/${plan.proposalCommit}`), combined = await api(`/git/commits/${combinedHead}`);
   must(proposal.sha === plan.proposalCommit && combined.sha === combinedHead && combined.parents.length === 1 && combined.parents[0].sha === plan.proposalCommit);
   const entries = async (commit) => {
@@ -15,7 +17,11 @@ export async function verifyLiveCombinedHead({ api, plan, combinedHead, receipt 
     return new Map(tree.tree.filter((entry) => entry.type !== "tree").map((entry) => [entry.path, entry]));
   };
   const before = await entries(proposal), after = await entries(combined);
+  const originalSource = before.get(sourcePath), acceptedSource = after.get(sourcePath);
+  must(originalSource?.type === "commit" && originalSource.mode === "160000" && commitSha.test(originalSource.sha ?? ""));
+  must(acceptedSource?.type === "commit" && acceptedSource.mode === "160000" && acceptedSource.sha === plan.sourceCommit);
   for (const path of new Set([...before.keys(), ...after.keys()])) {
+    if (path === sourcePath) continue;
     if (paths.has(path)) { must(after.get(path)?.type === "blob" && after.get(path)?.mode === "100644"); continue; }
     must(canonicalJson(before.get(path) ?? null) === canonicalJson(after.get(path) ?? null));
   }
