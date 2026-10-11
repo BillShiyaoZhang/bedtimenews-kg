@@ -8,6 +8,24 @@ const rules = JSON.parse(
 );
 const extractor = createExtractionEngine(rules);
 
+// Reference 658, description sentence 6, source c9a22c186104aa9b81eb566af6e5a4f6222801a6.
+// This links the reported health subject; it does not verify the causal claim.
+test("reported fish-consumption mercury exposure has a literal health-topic witness", () => {
+  const text = "多名婴幼儿食用银鳕鱼导致汞超标。";
+  const topic = rules.topics.find((item) => item.conceptId === "topic-healthcare");
+  assert.ok(extractor.extractCandidates(text, text).some(
+    (item) => item.type === "topic" && item.label === topic.label,
+  ));
+  assert.deepEqual(extractor.matchTopicEvidence(text), [{
+    entityId: topic.entityId, terms: ["食用银鳕鱼导致汞超标"],
+  }]);
+  for (const unrelated of ["河水汞超标", "银鳕鱼销售", "婴幼儿参加活动"]) {
+    assert.ok(!extractor.matchTopicEvidence(unrelated).some(
+      (item) => item.entityId === topic.entityId,
+    ), unrelated);
+  }
+});
+
 test("extractor separates subjects, places, policies, documents, and topics", () => {
   const text =
     "美国总统拜登在北京市表示，中国人民银行将依据《金融稳定法》推进改革，《金融稳定报告》同时发布，人工智能产业也受到关注。";
