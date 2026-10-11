@@ -4,7 +4,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import { canonicalJson, sha256 } from "./lib/candidate-bundle.mjs";
-import { SUCCESSOR_WORKFLOW, validateSuccessorAuthority, checkSuccessorFrozen, isSuccessorApiRequestAllowed } from "./lib/audit-successor-scope.mjs";
+import { SUCCESSOR_WORKFLOW, validateSuccessorAuthority, checkSuccessorFrozen, checkSuccessorGitFrozen, isSuccessorApiRequestAllowed } from "./lib/audit-successor-scope.mjs";
 import { createGitHubReleaseStore, prepareAuditBundle } from "./lib/release-store.mjs";
 import { loadAcceptedGitCheckpoint, readVerifiedAcceptedCheckpoint } from "./lib/accepted-git.mjs";
 import { createActionsUploadFence } from "./lib/actions-upload-fence.mjs";
@@ -65,11 +65,13 @@ try {
     && run.event==="workflow_dispatch" && run.path===SUCCESSOR_WORKFLOW && run.actor.id===policy.actor.id
     && run.triggering_actor.id===policy.actor.id && run.repository.full_name===policy.repository && run.head_repository.full_name===policy.repository);
   phase="frozen";
-  const checkFrozen=()=>checkSuccessorFrozen({api,scope,operatorCommit:env.GITHUB_SHA});await checkFrozen();
+  const checkFrozen=()=>checkSuccessorFrozen({api,scope,operatorCommit:env.GITHUB_SHA});
+  const checkGitFrozen=()=>checkSuccessorGitFrozen({api,scope,operatorCommit:env.GITHUB_SHA});
+  await (mode === "history" ? checkGitFrozen() : checkFrozen());
   const [owner,repo]=policy.repository.split("/");
   if(mode==="history"){
     // Only this explicitly historical path admits the frozen accepted ancestor;
-    // checkSuccessorFrozen has already bound live main and its exact ancestry.
+    // checkSuccessorGitFrozen has already bound live main and its exact ancestry.
     phase="checkpoint";
     const checkpoint=await readVerifiedAcceptedCheckpoint(await loadAcceptedGitCheckpoint({root,repository:policy.repository,commit:scope.plan.expectedMain,allowAncestor:true}));
     // This historical reconstruction does not trust current-main candidate state.
@@ -81,13 +83,19 @@ try {
     for(const [name,bytes]of downloaded.files)await writeFile(resolve(directory,"checkpoint",name),bytes,{flag:"wx"});
     await writeFile(resolve(directory,"plan.json"),`${canonicalJson(scope.plan)}\n`,{flag:"wx"});
     await writeFile(resolve(directory,"migration-review.json"),`${canonicalJson(scope.plan.migrationReview)}\n`,{flag:"wx"});
-    await checkFrozen();
+    await checkGitFrozen();
   }else{
     must(env.KG_RELEASE_ACTIVATED==="true" && env.KG_RELEASE_STORAGE_APPROVED===policy.repository);
     phase="bundle";
     const bundle=await prepareAuditBundle(directory);
     must(bundle.bundleId===scope.plan.bundleId && Object.keys(bundle.files).length===7);
     for(const [name,file]of Object.entries(scope.plan.files))must(bundle.files[name].sha256===file.sha256 && bundle.files[name].bytes===file.bytes);
+    phase="draft-preflight";
+    const readOnlyStore=createGitHubReleaseStore({owner,repo,token:env.GH_TOKEN,fetchImpl:(url,options={})=>{
+      must(["GET","HEAD"].includes(options.method??"GET"));return fetch(url,options);
+    }});
+    await readOnlyStore.verifyExistingDraftAssets({bundleDir:directory,targetCommit:scope.plan.proposalCommit,releaseId:scope.releaseId});
+    await checkFrozen();
     phase="fence";
     const fence=createActionsUploadFence({api,scope:uploadScope,run:{id:run.id,attempt:1,workflowSha:env.GITHUB_SHA},authoritySha256:sha256(authorityBytes)});
     await fence.retainEvidence({kind:"original-unknown-upload",scope,authority,authorityCommit:event.inputs.authority_commit,authoritySha256:sha256(authorityBytes)});

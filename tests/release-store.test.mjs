@@ -1339,3 +1339,63 @@ for (const failure of ['422-absent','422-starter','422-wrong-bytes','timeout']) 
     assert.equal(f.intents.size,2);
   });
 }
+
+test("partial draft preflight downloads all present assets without writes or granting retry authority",async t=>{
+  const f=await fixture(t),remote=fakeGitHub();
+  const receipt=await remote.store().stageBundle(optionsFor(f));
+  const removed=Object.values(receipt.assets)[0].id;
+  remote.state.assets.delete(removed);remote.state.bytes.delete(removed);remote.state.calls=[];
+  const result=await remote.store().verifyExistingDraftAssets({...optionsFor(f),releaseId:receipt.releaseId});
+  assert.equal(result.existingAssets,Object.keys(receipt.assets).length-1);
+  assert.equal(mutations(remote.state).length,0);
+  for(const asset of remote.state.assets.values())assert.ok(remote.state.calls.some(c=>c.url.pathname===`${base}/releases/assets/${asset.id}`));
+});
+test("draft preflight rejects corrupt bytes, starter, changed release and denied read without writes",async t=>{
+  for(const change of ["bytes","starter","release","denied"]){
+    const f=await fixture(t),remote=fakeGitHub();
+    const receipt=await remote.store().stageBundle(optionsFor(f));
+    const asset=remote.state.assets.values().next().value;
+    if(change==="bytes")remote.state.bytes.set(asset.id,Buffer.alloc(asset.size,120));
+    if(change==="starter")asset.state="starter";
+    if(change==="release")remote.state.releases[0].draft=false;
+    if(change==="denied")remote.state.onRequest=c=>c.url.pathname===`${base}/releases/${receipt.releaseId}`?json({},403):undefined;
+    remote.state.calls=[];
+    await assert.rejects(remote.store().verifyExistingDraftAssets({...optionsFor(f),releaseId:receipt.releaseId}));
+    assert.equal(mutations(remote.state).length,0,change);
+  }
+});
+test("empty draft preflight remains read-only; assets changing during readback fail closed",async t=>{
+  const f=await fixture(t),remote=fakeGitHub();
+  const receipt=await remote.store().stageBundle(optionsFor(f));
+  const savedAssets=new Map(remote.state.assets);
+  remote.state.assets.clear();remote.state.calls=[];
+  assert.equal((await remote.store().verifyExistingDraftAssets({...optionsFor(f),releaseId:receipt.releaseId})).existingAssets,0);
+  assert.equal(mutations(remote.state).length,0);
+  remote.state.assets=savedAssets;
+  let changed=false;
+  remote.state.onRequest=c=>{
+    if(!changed&&c.url.pathname.startsWith(`${base}/releases/assets/`)){
+      changed=true;const asset=remote.state.assets.values().next().value;remote.state.assets.delete(asset.id);
+    }
+  };
+  remote.state.calls=[];
+  await assert.rejects(remote.store().verifyExistingDraftAssets({...optionsFor(f),releaseId:receipt.releaseId}));
+  assert.equal(mutations(remote.state).length,0);
+});
+test("draft preflight rejects same-ID metadata changes during asset download",async t=>{
+  for(const field of ["state","size","digest"]){
+    const f=await fixture(t),remote=fakeGitHub();
+    const receipt=await remote.store().stageBundle(optionsFor(f));
+    const asset=remote.state.assets.values().next().value;
+    remote.state.onRequest=c=>{
+      if(c.url.pathname===`${base}/releases/assets/${asset.id}`){
+        if(field==="state")asset.state="starter";
+        if(field==="size")asset.size++;
+        if(field==="digest")asset.digest=`sha256:${"0".repeat(64)}`;
+      }
+    };
+    remote.state.calls=[];
+    await assert.rejects(remote.store().verifyExistingDraftAssets({...optionsFor(f),releaseId:receipt.releaseId}));
+    assert.equal(mutations(remote.state).length,0,field);
+  }
+});
