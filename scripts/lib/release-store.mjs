@@ -379,6 +379,30 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
       rawSourceArchiveIncluded: false,
       sourceReplay: "Restoring accepted outputs does not guarantee raw upstream re-extraction; upstream Git history must be available separately." };
   }
+  /** Read-only preflight for a partially uploaded, explicitly bound draft.
+   * Absence is not a retry authorization; the caller still needs its fixed fence.
+   */
+  async function verifyExistingDraftAssets({ bundleDir, targetCommit, releaseId }) {
+    must(COMMIT.test(targetCommit ?? "") && Number.isSafeInteger(releaseId) && releaseId > 0, "exact draft preflight identity required");
+    const bundle = await prepareAuditBundle(bundleDir, { limits });
+    const inspect = async () => {
+      const release = validateRelease(await get(`/releases/${releaseId}`), bundle, targetCommit);
+      must(release.id === releaseId && release.draft && !release.immutable, "preflight requires the same mutable draft", "IMMUTABLE_CONFLICT");
+      await checkTarget(targetCommit, release.tag_name);
+      const discovered = await lookup(release.tag_name);
+      must(discovered?.id === releaseId, "preflight draft tag identity changed", "IMMUTABLE_CONFLICT");
+      return assetsFor(release, bundle);
+    };
+    const before = await inspect();
+    for (const asset of before.values()) {
+      const binding = Object.values(bundle.files).find(file => file.assetName === asset.name);
+      await download(asset, binding);
+    }
+    const after = await inspect();
+    must(after.size === before.size && [...before].every(([name,asset]) => after.get(name)?.id === asset.id), "draft assets changed during preflight", "IMMUTABLE_CONFLICT");
+    for (const asset of after.values()) validateAsset(asset, Object.values(bundle.files).find(file => file.assetName === asset.name));
+    return freeze({ releaseId, bundleId: bundle.bundleId, existingAssets: before.size, readbackVerified: true });
+  }
   async function reconcilePrepared(bundle, targetCommit) {
     const tag = `kg-audit-${bundle.bundleId}`;
     const allowed = new Map([
@@ -723,5 +747,6 @@ export function createGitHubReleaseStore({ owner, repo, token, fetchImpl = globa
     reconcilePending,
     recoverPendingUpload,
     readBundle,
+    verifyExistingDraftAssets,
   });
 }

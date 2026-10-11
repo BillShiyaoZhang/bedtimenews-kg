@@ -133,3 +133,24 @@ infrastructure merge and new preview. Approval must explicitly cover this bounde
 re-binding and a new audit package, or publication must wait for approval of that
 concrete package. Old Release `409240538`, old pending journal, PR30 and all earlier
 historical drafts are retained; none is deleted or silently relabeled.
+
+## Phase permissions
+
+The history job validates the authority and current Git main/proposal/ancestry,
+then downloads only the already published accepted predecessor. It cannot read
+the private historical draft with its `contents: read` token. Both history
+boundary checks are therefore Git-only; they do not authorize any write.
+
+The existing trusted `contents: write` converge job performs the full fixed-ID
+draft check. After verifying the reconstructed seven local files, it downloads
+and hashes every already-present draft asset, rechecks membership/IDs and the
+exact mutable Release/tag identity, and checks frozen Git/Release state again.
+All of this precedes even the first evidence/fence write. Missing assets only
+allow later execution of the existing fixed-fence protocol; absence does not
+resolve the old unknown or grant a fresh budget. Per-upload frozen checks and
+final complete seven-file readback remain mandatory.
+
+No workflow token permissions change. The normal producer's history also reads
+only the published predecessor; draft production and live verification remain
+in its existing trusted writer. No proposal import or npm install runs with a
+writer token, and the reconstruction container remains credential-free.

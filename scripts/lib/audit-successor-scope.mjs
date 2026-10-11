@@ -12,6 +12,7 @@ const commit = (v) => /^[a-f0-9]{40}$/u.test(v);
 export function isSuccessorApiRequestAllowed(path, method, mode) {
   if (!["history", "converge"].includes(mode) || typeof path !== "string"
     || !path.startsWith("/") || /[?%#\\]/u.test(path)) return false;
+  if (mode === "history" && path.startsWith("/releases")) return false;
   const compare = /^\/compare\/[a-f0-9]{40}\.\.\.[a-f0-9]{40}$/u.test(path);
   if (path.includes("..") && !compare) return false;
   return method === "GET" || mode === "converge" && method === "POST"
@@ -48,14 +49,21 @@ export function validateSuccessorAuthority({ scopeBytes, authorityBytes, operato
   return {scope,authority,journal,approval,uploadScope:{...scope,...plan,expectedMain:operatorCommit}};
 }
 
-export async function checkSuccessorFrozen({ api, scope, operatorCommit }) {
+export async function checkSuccessorGitFrozen({ api, scope, operatorCommit }) {
   const plan = scope.plan;
-  const [main,proposal,release,ancestry] = await Promise.all([
-    api("/git/ref/heads/main"),api(`/git/ref/${plan.proposalRef.slice(5)}`),api(`/releases/${scope.releaseId}`),
+  const [main,proposal,ancestry] = await Promise.all([
+    api("/git/ref/heads/main"),api(`/git/ref/${plan.proposalRef.slice(5)}`),
     api(`/compare/${plan.expectedMain}...${operatorCommit}`)]);
   must(main.ref === "refs/heads/main" && main.object?.type === "commit" && main.object.sha === operatorCommit
     && proposal.ref === plan.proposalRef && proposal.object?.type === "commit" && proposal.object.sha === plan.proposalCommit
-    && release.id === scope.releaseId && release.draft === true && !release.immutable
-    && release.target_commitish === plan.proposalCommit && release.tag_name === `kg-audit-${plan.bundleId}`
     && ancestry.merge_base_commit?.sha === plan.expectedMain && ["ahead","identical"].includes(ancestry.status));
+}
+
+// Only the existing trusted writer can read the fixed private draft. History
+// validates public Git evidence; it never grants permission for a mutation.
+export async function checkSuccessorFrozen({ api, scope, operatorCommit }) {
+  await checkSuccessorGitFrozen({ api, scope, operatorCommit });
+  const release = await api(`/releases/${scope.releaseId}`);
+  must(release.id === scope.releaseId && release.draft === true && !release.immutable
+    && release.target_commitish === scope.plan.proposalCommit && release.tag_name === `kg-audit-${scope.plan.bundleId}`);
 }

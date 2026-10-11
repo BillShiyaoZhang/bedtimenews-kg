@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { canonicalJson } from "../scripts/lib/candidate-bundle.mjs";
-import { SUCCESSOR_SCOPE_SHA256, validateSuccessorAuthority, checkSuccessorFrozen, isSuccessorApiRequestAllowed } from "../scripts/lib/audit-successor-scope.mjs";
+import { SUCCESSOR_SCOPE_SHA256, validateSuccessorAuthority, checkSuccessorFrozen, checkSuccessorGitFrozen, isSuccessorApiRequestAllowed } from "../scripts/lib/audit-successor-scope.mjs";
 const scopeBytes=readFileSync("audit-recovery/reference-658/scope.json");
 const scope=JSON.parse(scopeBytes), operatorCommit="a".repeat(40);
 const policy=JSON.parse(readFileSync("audit-snapshots/policy.json"));
@@ -36,7 +36,7 @@ function responses(){return {
 };}
 test("live successor checks exact main, proposal, draft identity and original-base ancestry",async()=>{
   const good=responses();await checkSuccessorFrozen({api:async p=>{
-    assert.equal(isSuccessorApiRequestAllowed(p,"GET","history"),true);
+    assert.equal(isSuccessorApiRequestAllowed(p,"GET","converge"),true);
     return good[p];
   },scope,operatorCommit});
   for(const mutate of [r=>r["/git/ref/heads/main"].object.sha="b".repeat(40),r=>r[`/git/ref/${scope.plan.proposalRef.slice(5)}`].object.sha="b".repeat(40),
@@ -73,4 +73,13 @@ test("successor isolation never runs proposal code with a write token or exports
   assert.doesNotMatch(writer,/npm |run:.*proposal|kg-audit-snapshot-|verified-snapshot/u);
   assert.match(writer,/historical-upload-convergence-409240538/u);
   assert.match(readFileSync("scripts/prepare-migration-pr.mjs","utf8"),/process.env.GITHUB_ACTIONS === "true"/u);
+});
+
+test("history checks only public Git; the writer still rejects inaccessible or changed draft",async()=>{
+  const calls=[],good=responses();
+  const readOnlyApi=async p=>{calls.push(p);assert.equal(isSuccessorApiRequestAllowed(p,"GET","history"),true);return good[p];};
+  await checkSuccessorGitFrozen({api:readOnlyApi,scope,operatorCommit});
+  assert.equal(calls.length,3);assert.ok(calls.every(p=>!p.startsWith("/releases")));
+  assert.equal(isSuccessorApiRequestAllowed(`/releases/${scope.releaseId}`,"GET","history"),false);
+  await assert.rejects(checkSuccessorFrozen({api:readOnlyApi,scope,operatorCommit}));
 });
