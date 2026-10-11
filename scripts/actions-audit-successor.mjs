@@ -4,7 +4,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import { canonicalJson, sha256 } from "./lib/candidate-bundle.mjs";
-import { SUCCESSOR_WORKFLOW, validateSuccessorAuthority, checkSuccessorFrozen } from "./lib/audit-successor-scope.mjs";
+import { SUCCESSOR_WORKFLOW, validateSuccessorAuthority, checkSuccessorFrozen, isSuccessorApiRequestAllowed } from "./lib/audit-successor-scope.mjs";
 import { createGitHubReleaseStore, prepareAuditBundle } from "./lib/release-store.mjs";
 import { loadAcceptedGitCheckpoint, readVerifiedAcceptedCheckpoint } from "./lib/accepted-git.mjs";
 import { createActionsUploadFence } from "./lib/actions-upload-fence.mjs";
@@ -25,8 +25,7 @@ try {
   const event=JSON.parse(await readFile(env.GITHUB_EVENT_PATH));
   must(/^[a-f0-9]{40}$/u.test(event.inputs?.authority_commit) && /^[a-f0-9]{64}$/u.test(event.inputs?.authority_sha256));
   const api=async(path,{method="GET",body,missing=false,status}={})=>{
-    must(path.startsWith("/") && !path.includes("..") && (method === "GET" || mode === "converge"
-      && method === "POST" && ["/git/blobs","/git/trees","/git/commits","/git/refs"].includes(path)));
+    must(isSuccessorApiRequestAllowed(path, method, mode));
     const r=await fetch(`https://api.github.com/repos/${policy.repository}${path}`,{method,redirect:"error",signal:AbortSignal.timeout(30_000),
       headers:{Authorization:`Bearer ${env.GH_TOKEN}`,Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10",...(body?{"Content-Type":"application/json"}:{})},...(body?{body:canonicalJson(body)}:{})});
     if(missing && r.status===404)return null;
