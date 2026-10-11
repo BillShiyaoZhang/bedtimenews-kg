@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { canonicalJson } from "../scripts/lib/candidate-bundle.mjs";
-import { SUCCESSOR_SCOPE_SHA256, validateSuccessorAuthority, checkSuccessorFrozen } from "../scripts/lib/audit-successor-scope.mjs";
+import { SUCCESSOR_SCOPE_SHA256, validateSuccessorAuthority, checkSuccessorFrozen, isSuccessorApiRequestAllowed } from "../scripts/lib/audit-successor-scope.mjs";
 const scopeBytes=readFileSync("audit-recovery/reference-658/scope.json");
 const scope=JSON.parse(scopeBytes), operatorCommit="a".repeat(40);
 const policy=JSON.parse(readFileSync("audit-snapshots/policy.json"));
@@ -35,12 +35,30 @@ function responses(){return {
   [`/compare/${scope.plan.expectedMain}...${operatorCommit}`]:{status:"ahead",merge_base_commit:{sha:scope.plan.expectedMain}}
 };}
 test("live successor checks exact main, proposal, draft identity and original-base ancestry",async()=>{
-  const good=responses();await checkSuccessorFrozen({api:async p=>good[p],scope,operatorCommit});
+  const good=responses();await checkSuccessorFrozen({api:async p=>{
+    assert.equal(isSuccessorApiRequestAllowed(p,"GET","history"),true);
+    return good[p];
+  },scope,operatorCommit});
   for(const mutate of [r=>r["/git/ref/heads/main"].object.sha="b".repeat(40),r=>r[`/git/ref/${scope.plan.proposalRef.slice(5)}`].object.sha="b".repeat(40),
     r=>r[`/releases/${scope.releaseId}`].draft=false,r=>r[`/releases/${scope.releaseId}`].id++,r=>r[`/releases/${scope.releaseId}`].target_commitish=operatorCommit,
     r=>r[`/compare/${scope.plan.expectedMain}...${operatorCommit}`].merge_base_commit.sha=operatorCommit]){
     const bad=responses();mutate(bad);await assert.rejects(checkSuccessorFrozen({api:async p=>bad[p],scope,operatorCommit}));
   }
+});
+
+test("only exact SHA compare GET bypasses the dot guard; history never gains a mutation",()=>{
+  const compare=`/compare/${scope.plan.expectedMain}...${operatorCommit}`;
+  assert.equal(isSuccessorApiRequestAllowed(compare,"GET","history"),true);
+  assert.equal(isSuccessorApiRequestAllowed(compare,"POST","converge"),false);
+  for(const path of ["/../git/refs","/compare/main...HEAD",compare+"/extra",compare+"?page=1",compare.replace("...",".."),
+    "/git/%2e%2e/refs","/git/refs#fragment","/git/refs\\other","https://api.github.com/git/refs"])
+    assert.equal(isSuccessorApiRequestAllowed(path,"GET","history"),false,path);
+  for(const path of ["/git/blobs","/git/trees","/git/commits","/git/refs"]){
+    assert.equal(isSuccessorApiRequestAllowed(path,"POST","history"),false);
+    assert.equal(isSuccessorApiRequestAllowed(path,"POST","converge"),true);
+  }
+  for(const method of ["POST","PATCH","DELETE"])
+    assert.equal(isSuccessorApiRequestAllowed("/releases/409240538",method,"converge"),false);
 });
 test("successor isolation never runs proposal code with a write token or exports trusted PR snapshot",()=>{
   const workflow=readFileSync(".github/workflows/audit-successor.yml","utf8");

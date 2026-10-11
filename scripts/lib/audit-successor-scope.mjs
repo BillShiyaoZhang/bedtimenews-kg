@@ -6,6 +6,18 @@ const must = (v) => { if (!v) throw new Error("Successor authority rejected"); }
 const same = (a,b) => canonicalJson(a) === canonicalJson(b);
 const commit = (v) => /^[a-f0-9]{40}$/u.test(v);
 
+// GitHub's compare separator is three literal dots, not a parent directory.
+// Admit only two complete object IDs on that GET route; retain traversal and
+// write-route rejection everywhere else.
+export function isSuccessorApiRequestAllowed(path, method, mode) {
+  if (!["history", "converge"].includes(mode) || typeof path !== "string"
+    || !path.startsWith("/") || /[?%#\\]/u.test(path)) return false;
+  const compare = /^\/compare\/[a-f0-9]{40}\.\.\.[a-f0-9]{40}$/u.test(path);
+  if (path.includes("..") && !compare) return false;
+  return method === "GET" || mode === "converge" && method === "POST"
+    && ["/git/blobs", "/git/trees", "/git/commits", "/git/refs"].includes(path);
+}
+
 // This adapter supports exactly the retained 658 incident. An authority for a
 // different upload requires a new code review, not caller-selected scope data.
 export function validateSuccessorAuthority({ scopeBytes, authorityBytes, operatorCommit, policy }) {
