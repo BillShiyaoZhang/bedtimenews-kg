@@ -108,6 +108,7 @@ const GENERIC_LABELS = new Set([
 ]);
 
 const PERSON_STOP_LABELS = new Set([
+  "倒台",
   "国家",
   "中国",
   "美国",

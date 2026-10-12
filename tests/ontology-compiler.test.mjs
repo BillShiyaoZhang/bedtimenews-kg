@@ -62,12 +62,14 @@ test("legacy domains stay distinct from action definitions and evidence", () => 
   assert.ok(kg.entityRelations.every((relation) => !["subClassOf", "broaderTopic", "instanceOf"].includes(relation.type)));
 });
 
-test("reference 658 migration adds only its reviewed health phrase to the frozen legacy surfaces", () => {
+test("reference 658 and 659 migrations add only their reviewed literal phrases to the frozen legacy surfaces", () => {
   const legacyPatterns = structuredClone(Object.fromEntries(Object.entries(patterns).filter(
     ([key]) => !["version", "description", "actionExtraction", "reportingFormReviews", "numericExtraction"].includes(key),
   )));
   const healthcare = legacyPatterns.topics.find((topic) => topic.conceptId === "topic-healthcare");
   assert.equal(healthcare.extractionTriggers.pop(), "食用银鳕鱼导致汞超标");
+  const manufacturing = legacyPatterns.topics.find((topic) => topic.conceptId === "topic-manufacturing");
+  assert.equal(manufacturing.extractionTriggers.pop(), "四部门联手，对“速成车”说不");
   const legacy = {
     entityTypes: source.legacyEntityTypes,
     eventDomains: source.legacyEventDomains,
@@ -78,7 +80,7 @@ test("reference 658 migration adds only its reviewed health phrase to the frozen
   };
   assert.equal(createHash("sha256").update(JSON.stringify(legacy)).digest("hex"), "ac1614a487232ae09c8056884272760b224229643ccfa3d5ae53ac2914dea587");
   assert.equal(ontology.version, "2.5.0");
-  assert.equal(rules.version, "4.3.1");
+  assert.equal(rules.version, "4.3.2");
   assert.equal(ontology.compilation.compilerVersion, "1.2.0");
   assert.equal(ontology.compilation.formatVersion, 1);
 });
