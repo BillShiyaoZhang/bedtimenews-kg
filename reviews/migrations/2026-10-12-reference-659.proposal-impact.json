@@ -1,0 +1,174 @@
+{
+  "kind": "unapproved-in-memory-semantic-proposal",
+  "acceptedMain": "8c7ca768842e58602572ea530840951b5b049ae3",
+  "source": "57709977ff0a3551194e4baae5ab8f0daa7e1870",
+  "term": "四部门联手，对“速成车”说不",
+  "personExclusion": "倒台",
+  "topic": "topic-manufacturing",
+  "beforeIssues": [
+    {
+      "level": "error",
+      "path": "events.9659.entityIds",
+      "message": "事件未满足最小语义实体约束"
+    }
+  ],
+  "afterIssues": [],
+  "counts": {
+    "oldNews": 9659,
+    "newNews": 9665,
+    "oldEvents": 9659,
+    "newEvents": 9665,
+    "oldEntities": 1764,
+    "newEntities": 1764,
+    "oldSources": 2080,
+    "newSources": 2081
+  },
+  "changedOldNews": [],
+  "changedOldEvents": [],
+  "changedOldEventRelations": [],
+  "newEntities": [],
+  "diffs": [
+    {
+      "path": ".entities.entity-person-c67eb1a430e8",
+      "before": {
+        "id": "entity-person-c67eb1a430e8",
+        "label": "倒台",
+        "type": "person",
+        "aliases": [],
+        "description": "由职务后的姓名上下文识别的人物；在 2 条独立新闻中出现。",
+        "extraction": {
+          "method": "role_after",
+          "confidence": 0.86,
+          "eventCount": 2
+        }
+      },
+      "after": null
+    },
+    {
+      "path": ".entities.entity-topic-db818238bf90.description",
+      "before": "受控主题词；由 2749 条独立新闻的关键词规则命中。",
+      "after": "受控主题词；由 2750 条独立新闻的关键词规则命中。"
+    },
+    {
+      "path": ".entities.entity-topic-db818238bf90.extraction.eventCount",
+      "before": 2749,
+      "after": 2750
+    },
+    {
+      "path": ".events.event-030ebf4895d7.entityIds",
+      "before": [
+        "entity-place-a7e2567f856a",
+        "entity-place-1aadfce5b98d",
+        "entity-place-17f0ef645826",
+        "entity-place-231429983435",
+        "entity-place-3268b6f7cec4",
+        "entity-place-5e59af8f1f5d",
+        "entity-place-1bce366de838",
+        "entity-place-1b67f1862ccf",
+        "entity-place-9652164ccd71",
+        "entity-place-7f4138541a96",
+        "entity-organization-8753ddea4e69",
+        "entity-policy-d67e31731df1",
+        "entity-policy-308e0a51e2a9",
+        "entity-person-c67eb1a430e8",
+        "entity-topic-da8baac7a56a",
+        "entity-topic-db818238bf90",
+        "entity-topic-6cf73dbb1b59",
+        "entity-topic-1a28a95ca93c",
+        "entity-topic-2578a308b835",
+        "entity-topic-3619e6a68ba1",
+        "entity-topic-5dd0d821b9a8",
+        "entity-topic-ba1dbbad6e64",
+        "entity-topic-d68c099d5b04",
+        "entity-topic-e3a330ceec3c",
+        "entity-topic-8427f6313373"
+      ],
+      "after": [
+        "entity-place-a7e2567f856a",
+        "entity-place-1aadfce5b98d",
+        "entity-place-17f0ef645826",
+        "entity-place-231429983435",
+        "entity-place-3268b6f7cec4",
+        "entity-place-5e59af8f1f5d",
+        "entity-place-1bce366de838",
+        "entity-place-1b67f1862ccf",
+        "entity-place-9652164ccd71",
+        "entity-place-7f4138541a96",
+        "entity-organization-8753ddea4e69",
+        "entity-policy-d67e31731df1",
+        "entity-policy-308e0a51e2a9",
+        "entity-topic-da8baac7a56a",
+        "entity-topic-db818238bf90",
+        "entity-topic-6cf73dbb1b59",
+        "entity-topic-1a28a95ca93c",
+        "entity-topic-2578a308b835",
+        "entity-topic-3619e6a68ba1",
+        "entity-topic-5dd0d821b9a8",
+        "entity-topic-ba1dbbad6e64",
+        "entity-topic-d68c099d5b04",
+        "entity-topic-e3a330ceec3c",
+        "entity-topic-8427f6313373"
+      ]
+    },
+    {
+      "path": ".events.event-cae1d0b2c1b0.type",
+      "before": "other",
+      "after": "economy_business"
+    },
+    {
+      "path": ".events.event-cae1d0b2c1b0.topicEvidence",
+      "before": [],
+      "after": [
+        {
+          "entityId": "entity-topic-db818238bf90",
+          "terms": [
+            "四部门联手，对“速成车”说不"
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".events.event-cae1d0b2c1b0.entityIds",
+      "before": [],
+      "after": [
+        "entity-topic-db818238bf90"
+      ]
+    },
+    {
+      "path": ".events.event-fc8a9d1d5f8c.entityIds",
+      "before": [
+        "entity-place-1b67f1862ccf",
+        "entity-place-2a1f489d410a",
+        "entity-person-c67eb1a430e8",
+        "entity-topic-ba1dbbad6e64",
+        "entity-topic-d68c099d5b04"
+      ],
+      "after": [
+        "entity-place-1b67f1862ccf",
+        "entity-place-2a1f489d410a",
+        "entity-topic-ba1dbbad6e64",
+        "entity-topic-d68c099d5b04"
+      ]
+    },
+    {
+      "path": ".eventRelations.relation-549b5f69ba31",
+      "before": {
+        "id": "relation-549b5f69ba31",
+        "from": "event-030ebf4895d7",
+        "to": "event-fc8a9d1d5f8c",
+        "type": "precedes",
+        "viaEntityId": "entity-person-c67eb1a430e8",
+        "confidence": 1,
+        "evidence": "两条新闻均明确涉及“倒台”，且日期可确认先后；此关系只表达时间顺序，不表达因果。",
+        "sourceId": "page-e081653e955c"
+      },
+      "after": null
+    }
+  ],
+  "allFormsUnreviewed": true,
+  "numericSupported": [
+    "news-b26b186147b3"
+  ],
+  "candidateNewsSha256": "8234137dcff25b0617301b41558c5eefa431d89e3e180ae717bd3a9d7bb79899",
+  "candidateKGSha256": "3cf4f2b0e9a47c14e3f3bf2151e22d861135a778d9e808a38ca2e20625443cf0"
+}
