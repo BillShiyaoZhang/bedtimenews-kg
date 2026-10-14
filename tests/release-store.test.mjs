@@ -11,6 +11,7 @@ import { acceptedReleaseIdentity, validateAcceptedReleaseStructure } from "../sc
 import { AUDIT_STORE_LIMITS, createGitHubReleaseStore, prepareAuditBundle } from "../scripts/lib/release-store.mjs";
 import { createUploadRecoveryReservation } from "../scripts/lib/upload-recovery-journal.mjs";
 import { runActionsAuditUpload, createObservedUploadTransport } from "../scripts/lib/actions-audit-upload.mjs";
+import { acceptedArtifactNames, NEWS_CONTENT_ARTIFACT } from "../scripts/lib/accepted-content-protocol.mjs";
 
 const targetCommit = "a".repeat(40);
 const token = "fake-test-token-never-a-real-credential";
@@ -18,12 +19,12 @@ const repository = "fixture/audit";
 const base = `/repos/${repository}`;
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
 
-async function fixture(t, artifacts = { "kg.json": { entities: [] }, "lifecycle.json.gz": { transitions: [] } }) {
+async function fixture(t, artifacts = { "kg.json": { entities: [] }, "lifecycle.json.gz": { transitions: [] } }, versions = { generator: "fixture-v1" }) {
   const root = await mkdtemp(join(tmpdir(), "kg-release-store-test-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const dir = join(root, "bundle");
   const { manifest } = await publishCandidateBundle(dir, { artifacts,
-    inputs: { generator: { sha256: sha256("fixture") } }, versions: { generator: "fixture-v1" } });
+    inputs: { generator: { sha256: sha256("fixture") } }, versions });
   return { root, dir, manifest, tag: `kg-audit-${manifest.bundleId}` };
 }
 
@@ -80,6 +81,37 @@ function fakeGitHub({ onRequest, immutable = false } = {}) {
   };
   return { state, fetchImpl, store: (options = {}) => createGitHubReleaseStore({ owner: "fixture", repo: "audit", token, fetchImpl, ...options }) };
 }
+
+test("legacy v1 offline and v2 lifecycle audit bundles retain their exact artifact inventories", async (t) => {
+  const offline = { "diff.json": {}, "kg.json": {}, "news.json": {}, "provenance.json.gz": {} };
+  for (const [candidate, artifacts] of [["1.0.0", offline], ["2.0.0", { ...offline, "lifecycle.json.gz": {}, "source-review.json": null }]]) {
+    const f = await fixture(t, artifacts, { candidate, generator: "fixture-v1" });
+    const prepared = await prepareAuditBundle(f.dir);
+    assert.deepEqual(Object.keys(prepared.files).sort(), [...Object.keys(artifacts), "manifest.json"].sort());
+    const gh = fakeGitHub();
+    const receipt = await gh.store().stageBundle(optionsFor(f));
+    const recovered = await gh.store().readBundle({ receipt });
+    assert.deepEqual([...recovered.files.keys()].sort(), Object.keys(prepared.files).sort());
+    for (const [name, content] of recovered.files) assert.deepEqual(content, await readFile(join(f.dir, name)));
+  }
+});
+
+test("v4 audit storage stages and reads the exact content artifact without source archives", async (t) => {
+  const artifacts = Object.fromEntries(acceptedArtifactNames("4.0.0").map((name) => [name, name === "source-review.json" ? null : { fixture: name }]));
+  const f = await fixture(t, artifacts, { candidate: "4.0.0" });
+  const gh = fakeGitHub();
+  const receipt = await gh.store().stageBundle(optionsFor(f));
+  assert.equal(Object.keys(receipt.assets).length, 8);
+  assert.ok(receipt.assets[NEWS_CONTENT_ARTIFACT]);
+  assert.equal(receipt.rawSourceArchiveIncluded, false);
+  const recovered = await gh.store().readBundle({ receipt });
+  assert.deepEqual(recovered.files.get(NEWS_CONTENT_ARTIFACT), await readFile(join(f.dir, NEWS_CONTENT_ARTIFACT)));
+  const missing = { ...artifacts }; delete missing[NEWS_CONTENT_ARTIFACT];
+  const incomplete = await fixture(t, missing, { candidate: "4.0.0" });
+  await assert.rejects(prepareAuditBundle(incomplete.dir), /artifact inventory differs/u);
+  const unversioned = await fixture(t, artifacts);
+  await assert.rejects(prepareAuditBundle(unversioned.dir), /versioned accepted candidate/u);
+});
 const optionsFor = (f) => ({ bundleDir: f.dir, targetCommit });
 const mutations = (state) => state.calls.filter(({ method }) => method !== "GET");
 
@@ -106,7 +138,7 @@ test("preflight verifies canonical bundle bytes without changing candidate ident
   assert.ok(Object.isFrozen(prepared.files["kg.json"]));
 });
 
-test("preflight rejects noncanonical manifests, hashes, extra/source archive files, and unsafe files", async (t) => {
+test("preflight rejects noncanonical manifests, hashes, extra/source archive files, and linked directories", async (t) => {
   const f = await fixture(t);
   const manifestPath = join(f.dir, "manifest.json");
   const original = await readFile(manifestPath);
@@ -118,13 +150,21 @@ test("preflight rejects noncanonical manifests, hashes, extra/source archive fil
   await rm(join(f.dir, "archive.tar"));
   await writeFile(join(f.dir, "kg.json"), "corruption");
   await assert.rejects(prepareAuditBundle(f.dir));
-  await rm(join(f.dir, "kg.json"));
-  await symlink(manifestPath, join(f.dir, "kg.json"));
-  await assert.rejects(prepareAuditBundle(f.dir), /regular, unlinked/u);
   const outside = await fixture(t, { "source-archive.json": { source: "not allowed" } });
   await assert.rejects(prepareAuditBundle(outside.dir), /source archives/u);
-  await symlink(f.dir, join(f.root, "linked"));
+  await symlink(f.dir, join(f.root, "linked"), process.platform === "win32" ? "junction" : "dir");
   await assert.rejects(prepareAuditBundle(join(f.root, "linked")), /canonical and real/u);
+});
+
+test("preflight rejects physical file symlinks when the host permits creating them", async (t) => {
+  const f = await fixture(t);
+  await rm(join(f.dir, "kg.json"));
+  try { await symlink(join(f.dir, "manifest.json"), join(f.dir, "kg.json"), "file"); }
+  catch (error) {
+    if (process.platform === "win32" && ["EPERM", "EACCES"].includes(error.code)) { t.skip("Windows account does not have file-symlink privilege; directory and hard-link rejection tests remain enabled"); return; }
+    throw error;
+  }
+  await assert.rejects(prepareAuditBundle(f.dir), /regular, unlinked/u);
 });
 
 test("local byte limits apply before any request and cannot be enlarged", async (t) => {
@@ -820,7 +860,9 @@ async function fixtureCommit(root) {
   return fixtureGit(root, ["rev-parse", "HEAD"]);
 }
 async function acceptedFixture(t, { immutable = true } = {}) {
-  const f = await fixture(t, { "kg.json": {}, "news.json": {}, "lifecycle.json.gz": {}, "provenance.json.gz": {}, "source-review.json": null, "diff.json": {} });
+  // A publication checkpoint uses an explicit supported accepted protocol;
+  // generic offline storage fixtures retain their independent version labels.
+  const f = await fixture(t, { "kg.json": {}, "news.json": {}, "lifecycle.json.gz": {}, "provenance.json.gz": {}, "source-review.json": null, "diff.json": {} }, { generator: "fixture-v1", candidate: "3.0.0" });
   const paths = { acceptedState: "data/archive-state.json", acceptedKG: "data/generated/kg.json", acceptedNews: "data/processed/news.json" };
   await fixtureGit(f.root, ["init", "-q"]);
   await fixtureGit(f.root, ["remote", "add", "origin", `https://github.com/${repository}.git`]);
@@ -836,6 +878,7 @@ async function acceptedFixture(t, { immutable = true } = {}) {
   gh.state.commitShas.add(codeCommit);
   const staged = await gh.store().stageBundle({ bundleDir: f.dir, targetCommit: codeCommit });
   const versions = Object.fromEntries(["candidate", "lifecycle", "ontology", "extraction", "news", "segmentation", "overrides", "compiler", "node", "icu"].map((name) => [name, "fixture-v1"]));
+  versions.candidate = "3.0.0";
   const configPaths = { ontologySource: "data/ontology-source.json", ontology: "data/ontology.json", patterns: "data/extraction-patterns.json", rules: "data/extraction-rules.json", newsOverrides: "data/news-overrides.json", compiler: "scripts/lib/ontology-compiler.mjs", segmentation: "scripts/lib/news.mjs" };
   const configuration = Object.fromEntries(Object.entries(configPaths).map(([name, path]) => [name, { path, sha256: sha256(name) }]));
   const generatorFiles = { "scripts/lib/kg-build.mjs": sha256("fixture generator") };

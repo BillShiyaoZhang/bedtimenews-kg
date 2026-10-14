@@ -176,7 +176,9 @@ for (const method of ["issues.listForRepo", "issues.getLabel", "issues.createLab
 }
 
 async function readText(path) {
-  return readFile(new URL(path, root), "utf8");
+  const text = await readFile(new URL(path, root), "utf8");
+  // Workflow assertions inspect logical lines, regardless of checkout EOL.
+  return path.startsWith(".github/workflows/") ? text.replaceAll("\r\n", "\n") : text;
 }
 
 async function createMockGh(existingIssue) {

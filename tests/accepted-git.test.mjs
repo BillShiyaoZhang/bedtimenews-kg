@@ -20,7 +20,10 @@ async function commit(root, message = "accepted fixture") {
 async function fixture(callback) {
   const root = await mkdtemp(resolve(tmpdir(), "accepted-git-"));
   try {
-    await git(root, ["init", "-q"]); await git(root, ["remote", "add", "origin", `https://github.com/${repository}.git`]);
+    await git(root, ["init", "-q"]);
+    await git(root, ["config", "core.autocrlf", "false"]);
+    await git(root, ["config", "core.eol", "lf"]);
+    await git(root, ["remote", "add", "origin", `https://github.com/${repository}.git`]);
     for (const [name, path] of Object.entries(paths)) {
       await mkdir(resolve(root, path, ".."), { recursive: true });
       await writeFile(resolve(root, path), JSON.stringify(name === "acceptedState" ? { schemaVersion: 3, acceptedFiles: {}, includedRoots: ["daily"] } : { schemaVersion: "fixture", name }) + "\n");
@@ -113,9 +116,13 @@ test("unbound schema4 data and symlink Git entries cannot become a bootstrap che
     await assert.rejects(load({ commit: next }), /bootstrap requires legacy/u);
   });
   await fixture(async ({ root, load }) => {
-    const { symlink } = await import("node:fs/promises");
-    await rm(resolve(root, paths.acceptedKG)); await symlink("../archive-state.json", resolve(root, paths.acceptedKG));
-    const next = await commit(root); await git(root, ["update-ref", "refs/remotes/origin/main", next]);
+    // The trust gate reads the committed Git mode, not the current worktree.
+    // Construct mode 120000 directly so Windows symlink privileges are irrelevant.
+    await writeFile(resolve(root, paths.acceptedKG), "../archive-state.json");
+    const blob = await git(root, ["hash-object", "-w", paths.acceptedKG]);
+    await git(root, ["update-index", "--cacheinfo", "120000", blob, paths.acceptedKG]);
+    await git(root, ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "symlink Git entry"]);
+    const next = await git(root, ["rev-parse", "HEAD"]); await git(root, ["update-ref", "refs/remotes/origin/main", next]);
     await assert.rejects(load({ commit: next }), /not regular/u);
   });
 });

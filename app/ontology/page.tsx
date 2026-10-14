@@ -7,9 +7,10 @@ import { eventMatchesTopic } from "../lib/ontology-hierarchy.mjs";
 import { actionNewsCount } from "../lib/action-assessment.mjs";
 import type { KnowledgeBase, Ontology, OntologyHierarchy } from "../lib/kg";
 import type { CSSProperties } from "react";
+import { KnowledgeDirectory } from "../components/knowledge-directory";
 
 export const metadata: Metadata = {
-  title: "Ontology 浏览器｜历史经纬",
+  title: "知识分类｜历史经纬",
   description: "浏览以独立新闻为单位的知识本体、实体类型、事件类型、关系约束与覆盖率。",
 };
 
@@ -107,7 +108,7 @@ export default function OntologyPage() {
   return (
     <main className="ontology-page">
       <header className="site-header detail-header">
-        <Link className="brand" href="/" aria-label="返回历史经纬首页">
+        <Link prefetch={false} className="brand" href="/" aria-label="返回历史经纬首页">
           <span className="brand-mark" aria-hidden="true">
             <i />
             <i />
@@ -119,11 +120,13 @@ export default function OntologyPage() {
           </span>
         </Link>
         <nav aria-label="主要导航">
-          <Link href="/">返回检索</Link>
-          <Link href="/graph">知识图谱</Link>
+          <Link prefetch={false} href="/">返回检索</Link>
+          <Link prefetch={false} href="/graph">知识图谱</Link>
         </nav>
       </header>
 
+      <KnowledgeDirectory entities={knowledgeBase.entities} types={ontology.entityTypes} />
+      <details className="ontology-professional"><summary>本体定义、抽取规则与覆盖率</summary>
       <section className="ontology-hero">
         <span className="eyebrow">Ontology {ontology.version}</span>
         <h1>{ontology.label}</h1>
@@ -315,7 +318,7 @@ export default function OntologyPage() {
               </div>
               <h3>{type.label}</h3>
               <p>{type.description}</p>
-              <Link
+              <Link prefetch={false}
                 href={{
                   pathname: "/graph",
                   query: { type: type.id },
@@ -415,9 +418,10 @@ export default function OntologyPage() {
         </dl>
       </section>
 
+      </details>
       <footer>
         <span>Ontology 与抽取规则独立版本化</span>
-        <Link href="/">回到首页检索</Link>
+        <Link prefetch={false} href="/">回到首页检索</Link>
       </footer>
     </main>
   );

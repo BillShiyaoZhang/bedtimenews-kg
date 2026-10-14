@@ -8,6 +8,7 @@ import zipfile
 
 NAMES = {"diff.json", "kg.json", "lifecycle.json.gz", "manifest.json", "news.json",
          "provenance.json.gz", "source-review.json", "snapshot.json"}
+CONTENT_NAMES = NAMES | {"news-content.json.gz"}
 LIMIT = 129 * 1024 * 1024
 
 
@@ -17,7 +18,8 @@ def extract(archive, destination):
         raise ValueError("Redirected output parent")
     with zipfile.ZipFile(archive) as source:
         entries = source.infolist()
-        if len(entries) != len(NAMES) or {entry.filename for entry in entries} != NAMES:
+        names = {entry.filename for entry in entries}
+        if names not in (NAMES, CONTENT_NAMES) or len(entries) != len(names):
             raise ValueError("Unexpected, duplicate or missing snapshot file")
         total = 0
         for entry in entries:
@@ -42,7 +44,7 @@ def extract(archive, destination):
                     outgoing.write(block)
             if written != entry.file_size:
                 raise ValueError("Truncated snapshot entry")
-    print(json.dumps({"files": len(NAMES), "bytes": total}))
+    print(json.dumps({"files": len(names), "bytes": total}))
 
 
 if __name__ == "__main__":

@@ -7,15 +7,24 @@ import ts from "typescript";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { eventMatchesReportingForm, eventMatchesNumericObservation } from "../app/lib/report-description-assessment.mjs";
+import { readExplorerLocation, explorerLocationSearch } from "../app/lib/explorer-state.mjs";
 
 const require = createRequire(import.meta.url);
 const modules = new Map();
+// Content components are rendered with the public reader contract. Navigation,
+// memory and browser focus are tested at the provider/browser boundary instead.
+const readerContract = `data:text/javascript;base64,${Buffer.from('export function useReader() { return { openNews() {}, openEntity() {}, isRead() { return false; }, isNew() { return false; }, clearReadingHistory() {}, markNewsRead() {}, newCount: 0 }; }').toString("base64")}`;
 // Exercise the actual TSX component and URL helpers without a second UI copy or
 // source-regex-only assertions. Runtime imports stay local; no fixture is saved
 // into production data and these checks do not claim browser/layout coverage.
 async function tsModule(url) {
   if (modules.has(url.href)) return modules.get(url.href);
   const source = await readFile(url, "utf8");
+  if (url.pathname.endsWith(".json")) {
+    const result = `data:text/javascript;base64,${Buffer.from(`export default ${JSON.stringify(JSON.parse(source))};`).toString("base64")}`;
+    modules.set(url.href, result);
+    return result;
+  }
   let output = ts.transpileModule(source, { fileName: fileURLToPath(url), compilerOptions: {
     jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022,
   } }).outputText;
@@ -24,7 +33,9 @@ async function tsModule(url) {
     let resolved;
     if (specifier.startsWith(".")) {
       const dependency = new URL(specifier, url);
-      if (/\.mjs$/u.test(dependency.pathname)) resolved = dependency.href;
+      if (dependency.pathname.endsWith("/reader-provider")) resolved = readerContract;
+      else if (/\.mjs$/u.test(dependency.pathname)) resolved = dependency.href;
+      else if (/\.json$/u.test(dependency.pathname)) resolved = await tsModule(dependency);
       else {
         const base = dependency.href;
         let extension = ".tsx";
@@ -40,7 +51,6 @@ async function tsModule(url) {
 }
 
 const { ReportDescriptionDetails } = await import(await tsModule(new URL("../app/components/report-description-details.tsx", import.meta.url)));
-const { readExplorerLocation, explorerLocationSearch } = await import(await tsModule(new URL("../app/components/kg-explorer.tsx", import.meta.url)));
 const ontology = {
   eventTypes: [{ id: "economy" }],
   hierarchies: { topic: { nodes: [{ id: "topic-economy" }] }, action: { nodes: [{ id: "change-quantitative" }] } },
@@ -178,12 +188,29 @@ test("unsupported filters are signaled rather than silently broadening old links
   assert.deepEqual(readExplorerLocation(clean, ontology).submitted, { mode: "keyword", query: "工业 增加值" });
 });
 
-test("both news surfaces share the details and search retains its existing index document", async () => {
-  const [search, graph] = await Promise.all(["kg-explorer", "entity-graph-explorer"].map((file) => readFile(new URL(`../app/components/${file}.tsx`, import.meta.url), "utf8")));
-  assert.match(search, /<ReportDescriptionDetails ontology=\{ontology\} event=\{event\}/u);
-  assert.match(graph, /<ReportDescriptionDetails ontology=\{ontology\} event=\{selectedEvent\} expanded/u);
-  assert.match(search, /eventMatchesNumericObservation\(event, \{ status: selected\.numericStatus, comparison: selected\.numericComparison \}\)/u);
-  assert.match(search, /search\.mode === "filters" && initial\.invalidFilters\.length/u);
-  assert.match(search, /addEventListener\("popstate", callback\)/u);
-  assert.match(graph, /addEventListener\("popstate", callback\)/u);
+test("news list links and shared reader expose evidence without forcing it into the reading flow", async () => {
+  const [{ KGExplorer }, { NewsArticle }, fullOntology] = await Promise.all([
+    import(await tsModule(new URL("../app/components/kg-explorer.tsx", import.meta.url))),
+    import(await tsModule(new URL("../app/components/news-article.tsx", import.meta.url))),
+    readFile(new URL("../data/ontology.json", import.meta.url), "utf8").then(JSON.parse),
+  ]);
+  const event = { ...unknown, id: "event-synthetic", title: "合成新闻标题", date: "2026-10-14", datePrecision: "day", type: fullOntology.eventTypes[0].id,
+    summary: "一段可点击的新闻摘要", entityIds: [], sourceIds: ["source-synthetic"], significance: "", topicEvidence: [] };
+  const source = { id: "source-synthetic", title: "合成档案", repositoryPath: "daily/test.md", repositoryUrl: "https://example.test/source", archiveUrl: "https://example.test/archive", kind: "日报" };
+  const kg = { entities: [], sources: [source], events: [event], eventRelations: [], entityRelations: [], source: { url: "https://example.test/archive" } };
+  const list = renderToStaticMarkup(createElement(KGExplorer, { initialKG: kg, initialOntology: fullOntology }));
+  assert.match(list, /href="\/news\/news-synthetic\/?"[^>]*>合成新闻标题/u);
+  assert.match(list, /href="\/news\/news-synthetic\/?"[^>]*>一段可点击的新闻摘要/u);
+  assert.match(list, /<details class="card-evidence"><summary>来源与证据/u);
+  const evidenceCard = list.slice(list.indexOf('<details class="card-evidence">')).split("</details>")[0];
+  assert.match(evidenceCard, /来源：合成档案/u);
+  assert.match(evidenceCard, /href="\/news\/news-synthetic\/?"[^>]*>阅读完整来源与证据/u);
+  assert.doesNotMatch(evidenceCard, /尚未确定|未记录|0 处证据|UTF-16/u);
+  assert.doesNotMatch(list, /autofocus/u);
+  const article = renderToStaticMarkup(createElement(NewsArticle, { article: { event, source, entities: [], related: [], markdown: "**合成正文**", contentHash: "test-only", contentStatus: "body", preview: false } }));
+  assert.match(article, /<strong>合成正文<\/strong>/u);
+  assert.match(article, /<details class="reading-evidence"><summary>来源与证据/u);
+  assert.match(article, /报道形式（经审查）/u);
+  assert.match(article, /报道中的数值描述/u);
+  assert.ok(article.indexOf("合成正文") < article.indexOf("来源与证据"));
 });

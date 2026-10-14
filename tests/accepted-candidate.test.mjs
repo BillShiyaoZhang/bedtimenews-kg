@@ -16,6 +16,8 @@ import { verifyLifecycleCandidate } from "../scripts/lib/lifecycle-run.mjs";
 import { rollbackReviewBinding } from "../scripts/lib/accepted-transition.mjs";
 import { readVerifiedAcceptedCheckpoint } from "../scripts/lib/accepted-git.mjs";
 import { assignedEntityAssertionId, buildReviewedIdentityInputHash } from "../scripts/lib/entity-identities.mjs";
+import { NEWS_CONTENT_PATH, NEWS_CONTENT_ARTIFACT } from "../scripts/lib/accepted-content-protocol.mjs";
+import { readContentSnapshot } from "../scripts/lib/news-content.mjs";
 
 const execFile = promisify(execFileCallback);
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -57,15 +59,24 @@ async function workspace(callback, configureArchive) {
     await cp(resolve(root, "app/lib"), resolve(directory, "app/lib"), { recursive: true });
     await mkdir(resolve(directory, "data/generated"), { recursive: true }); await mkdir(resolve(directory, "data/processed"));
     for (const path of ["ontology-source.json", "ontology.json", "extraction-patterns.json", "extraction-rules.json", "news-overrides.json"]) await cp(resolve(root, "data", path), resolve(directory, "data", path));
+    // Production compiler outputs use LF; a Windows checkout can use CRLF.
+    for (const path of ["ontology.json", "extraction-rules.json"]) await writeFile(resolve(directory, "data", path), (await readFile(resolve(directory, "data", path), "utf8")).replaceAll("\r\n", "\n"));
     const archive = resolve(directory, "sources/bedtimenews-archive-contents");
     await mkdir(resolve(archive, "daily"), { recursive: true });
     for (const day of ["2026-01-01", "2026-01-02"]) await writeFile(resolve(archive, `daily/${day}.md`), sourceText(day));
     await writeFile(resolve(archive, "daily/excluded.md"), "---\ntitle: Excluded\npublished: false\n---\nNot published.\n");
     if (configureArchive) await configureArchive(archive);
-    await git(archive, ["init", "-q"]); await commit(archive);
+    await git(archive, ["init", "-q"]);
+    // Fixture hashes bind physical bytes. A later rollback checkout must not
+    // inherit Windows' global autocrlf setting and rewrite LF source fragments.
+    await git(archive, ["config", "core.autocrlf", "false"]);
+    await git(archive, ["config", "core.eol", "lf"]);
+    await commit(archive);
     await run(directory, process.execPath, ["scripts/update-kg.mjs", "--bootstrap", "--source", archive, "--include", "daily"]);
     await writeFile(resolve(directory, ".gitignore"), "work/\n*.review.json\n");
     await git(directory, ["init", "-q"]);
+    await git(directory, ["config", "core.autocrlf", "false"]);
+    await git(directory, ["config", "core.eol", "lf"]);
     await git(directory, ["remote", "add", "origin", `https://github.com/${repository}.git`]);
     await commit(directory);
     await git(directory, ["update-ref", "refs/remotes/origin/main", await head(directory)]);
@@ -150,6 +161,56 @@ test("operational and documentation changes do not force a semantic migration", 
     assert.equal(result.noop, true);
     assert.equal(result.manifest.bundleId, seed.manifest.bundleId);
     assert.equal(result.acceptedFiles.size, 6);
+  });
+});
+
+test("explicit v4 migration binds original content and lifecycle updates through no-op, withdrawal, restoration and source-free rollback", async () => {
+  await workspace(async ({ directory, archive, build, accept, load, store, review }) => {
+    const legacy = await build("content-legacy"); await accept(legacy);
+    assert.equal(legacy.manifest.versions.candidate, "3.0.0");
+    assert.equal(await readContentSnapshot(directory, { receipt: JSON.parse(await readFile(resolve(directory, "data/accepted-release.json"), "utf8")) }), null);
+    const preview = await previewAcceptedMigration(directory, { source: archive, generatedAt, checkpoint: await load(), store, contentProtocol: "v4" });
+    const migrationReview = resolve(directory, "content.review.json");
+    await writeFile(migrationReview, jsonBytes({ ...preview.reviewBinding, reviewedAt: generatedAt, reason: "Review exact complete news content contract" }));
+    const seed = await build("content-seed", { contentProtocol: "v4", migrationReview });
+    assert.equal(seed.manifest.versions.candidate, "4.0.0");
+    assert.equal(seed.artifacts[NEWS_CONTENT_ARTIFACT].rows.length, seed.artifacts["news.json"].news.length);
+    assert.deepEqual(seed.artifacts[NEWS_CONTENT_ARTIFACT].updates.addedNewsIds, []);
+    for (const path of REQUIRED_ACCEPTED_PATHS.slice(0, 2)) assert.ok(seed.acceptedFiles.get(path).equals(legacy.acceptedFiles.get(path)));
+    await verifyAcceptedCandidate(directory, seed.output, { source: archive, checkpoint: await load(), store, migrationReview });
+    const target = await accept(seed);
+    const newPath = "daily/old-date-newly-collected.md";
+    await writeFile(resolve(archive, newPath), sourceText("1990-01-01", "上海市介绍地方情况。").replace("title: 华为工资与排班", "title: 上海地方情况")); await commit(archive);
+    const added = await build("content-added");
+    assert.equal(added.manifest.versions.candidate, "4.0.0");
+    const addedIds = added.artifacts[NEWS_CONTENT_ARTIFACT].updates.addedNewsIds;
+    assert.equal(addedIds.length, 1);
+    await accept(added);
+    assert.equal((await build("content-noop")).noop, true);
+    const withdrawn = await build("content-withdrawn", await review(added, "content-retract", [{ path: newPath, operation: "retract" }]));
+    assert.ok(!withdrawn.artifacts[NEWS_CONTENT_ARTIFACT].rows.some((row) => addedIds.includes(row.newsId)));
+    assert.ok(withdrawn.artifacts[NEWS_CONTENT_ARTIFACT].updates.knownNewsIds.includes(addedIds[0]));
+    await accept(withdrawn);
+    const restored = await build("content-restored", await review(withdrawn, "content-restore", [{ path: newPath, operation: "restore" }]));
+    assert.deepEqual(restored.artifacts[NEWS_CONTENT_ARTIFACT].updates.restoredNewsIds, addedIds);
+    assert.deepEqual(restored.artifacts[NEWS_CONTENT_ARTIFACT].updates.addedNewsIds, []);
+    await accept(restored);
+    const checkpoint = await load();
+    const rollbackCheckpoint = await loadAcceptedGitCheckpoint({ root: directory, repository, commit: target.commit, allowAncestor: true });
+    const rollbackReview = resolve(directory, "content-rollback.review.json");
+    const binding = rollbackReviewBinding(await readVerifiedAcceptedCheckpoint(checkpoint), await readVerifiedAcceptedCheckpoint(rollbackCheckpoint));
+    await writeFile(rollbackReview, jsonBytes({ ...binding, reviewedAt: generatedAt, reason: "Restore exact original fragments while retaining later collection history" }));
+    const away = `${archive}-unavailable`; await rename(archive, away);
+    try {
+      const options = { checkpoint, rollbackCheckpoint, rollbackReview, store, output: "work/accepted/content-rollback" };
+      const rollback = await buildAcceptedRollback(directory, options);
+      assert.deepEqual(rollback.artifacts[NEWS_CONTENT_ARTIFACT].rows, seed.artifacts[NEWS_CONTENT_ARTIFACT].rows);
+      assert.ok(rollback.artifacts[NEWS_CONTENT_ARTIFACT].updates.knownNewsIds.includes(addedIds[0]));
+      assert.deepEqual(rollback.artifacts[NEWS_CONTENT_ARTIFACT].updates.addedNewsIds, []);
+      assert.ok(!rollback.acceptedFiles.get(NEWS_CONTENT_PATH).equals(seed.acceptedFiles.get(NEWS_CONTENT_PATH)));
+      for (const path of REQUIRED_ACCEPTED_PATHS.slice(0, 2)) assert.ok(rollback.acceptedFiles.get(path).equals(seed.acceptedFiles.get(path)));
+      await verifyAcceptedRollback(directory, rollback.output, options);
+    } finally { await rename(away, archive); }
   });
 });
 

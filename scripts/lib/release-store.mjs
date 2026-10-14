@@ -3,6 +3,7 @@ import { lstat, open, readdir, realpath } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { readVerifiedAcceptedCheckpoint } from "./accepted-git.mjs";
+import { acceptedArtifactNames, NEWS_CONTENT_ARTIFACT } from "./accepted-content-protocol.mjs";
 
 // GitHub REST contracts checked against the official 2026-03-10 documentation:
 // https://docs.github.com/en/rest/releases/releases
@@ -12,7 +13,7 @@ const API = "https://api.github.com";
 const UPLOADS = "https://uploads.github.com";
 const HASH = /^[a-f0-9]{64}$/u;
 const COMMIT = /^[a-f0-9]{40}$/u;
-const FILES = new Set(["diff.json", "kg.json", "lifecycle.json.gz", "news.json", "provenance.json.gz", "source-review.json"]);
+const FILES = new Set([...acceptedArtifactNames("3.0.0"), NEWS_CONTENT_ARTIFACT]);
 const DOWNLOAD_HOSTS = new Set(["release-assets.githubusercontent.com", "objects.githubusercontent.com", "github-releases.githubusercontent.com"]);
 const CREATE_READBACK_DELAYS_MS = Object.freeze([0, 250, 1000, 2000]);
 export const AUDIT_STORE_LIMITS = Object.freeze({
@@ -86,6 +87,8 @@ function describeAuditManifest(manifestBytes, limits) {
   must(sha256(canonicalJson(identity)) === bundleId, "bundleId does not bind manifest contents");
   const names = Object.keys(manifest.artifacts).sort();
   must(names.every((name) => FILES.has(name)), "unsupported artifact; source archives are not permitted");
+  if (["2.0.0", "3.0.0", "4.0.0"].includes(manifest.versions.candidate)) must(names.join(",") === acceptedArtifactNames(manifest.versions.candidate).join(","), "candidate artifact inventory differs from its protocol");
+  else must(!names.includes(NEWS_CONTENT_ARTIFACT), "content requires the versioned accepted candidate protocol");
   let totalBytes = manifestBytes.length;
   const files = { "manifest.json": { sha256: sha256(manifestBytes), bytes: manifestBytes.length } };
   for (const name of names) {

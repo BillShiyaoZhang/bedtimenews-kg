@@ -104,7 +104,7 @@ test("candidate storage budgets fail closed without dropping evidence", () => {
 test("candidate output never enters public/build roots and source aliases cannot evade isolation", async () => {
   for (const path of ["public/candidate", "out/candidate", "dist/candidate", "build/candidate", ".next/candidate"]) assert.throws(() => assertCandidateOutput(root, resolve(root, path), resolve(root, "sources/archive")), /ignored work/u);
   await withWorkspace(async ({ directory, archive }) => {
-    const alias = resolve(directory, "source-alias"); await symlink(archive, alias);
+    const alias = resolve(directory, "source-alias"); await symlink(archive, alias, process.platform === "win32" ? "junction" : "dir");
     await assert.rejects(sourceInventory(alias, ["daily"]), /symlink/u);
     await assert.rejects(run(directory, process.execPath, ["scripts/build-candidate.mjs", "--source", alias, "--output", resolve(archive, "candidate")]), /symlink/u);
   });

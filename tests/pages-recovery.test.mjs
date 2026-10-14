@@ -16,8 +16,8 @@ const bash = process.platform === "win32"
       join(process.env.LOCALAPPDATA ?? "", "Programs/Git/bin/bash.exe"),
     ].find((path) => existsSync(path)) ?? "bash"
   : "bash";
-const sync = await readFile(new URL("../.github/workflows/sync-archive.yml", import.meta.url), "utf8");
-const pages = await readFile(new URL("../.github/workflows/pages.yml", import.meta.url), "utf8");
+const sync = (await readFile(new URL("../.github/workflows/sync-archive.yml", import.meta.url), "utf8")).replaceAll("\r\n", "\n");
+const pages = (await readFile(new URL("../.github/workflows/pages.yml", import.meta.url), "utf8")).replaceAll("\r\n", "\n");
 
 test("sync reconciles Pages after both push and no-op, without bypassing validation", () => {
   const step = sync.split("      - name: Deploy updated GitHub Pages\n")[1].split("\n  # A separate job")[0];

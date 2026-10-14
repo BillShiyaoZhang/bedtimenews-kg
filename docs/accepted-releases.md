@@ -224,6 +224,76 @@ Dispatch intent additionally blocks blind redispatch after uncertain results.
 
 ## Rendering is not raw-source replay
 
+### Versioned original news fragments
+
+Accepted candidate v3 keeps the existing six-artifact contract. The compatibility
+writer defaults to v3 when the accepted predecessor is v3; merely installing the
+new code does not claim that old releases contain full text. An explicit
+`contentProtocol: "v4"` enables the first v4 candidate. Once v4 is accepted,
+ordinary continuation and rollback follow v4 automatically; dropping recorded
+content back to v3 is rejected.
+
+V4 adds exactly `news-content.json.gz` to the audit bundle and canonical
+`data/processed/news-content.json` to the accepted Git outputs. The original three
+`REQUIRED_ACCEPTED_PATHS` and immutable origin bindings remain unchanged. The
+candidate manifest and accepted/audit receipt schemas retain their existing field
+shapes; their exact permitted artifact/output inventories are selected by candidate
+version. Audit production plans use schema 1 for seven bundle files including the
+manifest, and schema 2 for the eight-file v4 bundle. Unknown, mixed or incomplete
+inventories fail closed throughout snapshot ZIP extraction, approved-plan checks,
+offline stores, trusted PR-base download and independent replay.
+
+The news-content schema 1 header binds the source commit, canonical KG/news byte
+hashes and effective inventory hash. Its sorted rows contain only the current
+effective news ID, fragment hash and complete original Markdown fragment. The
+builder reads authenticated blobs from the exact recipe commit and uses the same
+hash-checked fragment reader as extraction. It does not archive complete upstream
+files. There is no embedded release/bundle ID or circular self-hash. Audit assets
+and accepted Git output bytes bind the resulting snapshot separately. Existing
+64 MiB per-Git-file, 128 MiB checkpoint and 128 MiB candidate artifact ceilings
+remain in force; content decompression is capped at 64 MiB.
+
+The snapshot update index records added, restored and changed news, added/restored
+projected entities and all known historical IDs. It derives these sets from the
+immediate accepted predecessor, lifecycle states and the reviewed identity
+projection, never from the date a news report describes. Bootstrap records are a
+baseline. Withdrawn sources disappear from current content; their known IDs remain.
+The exact snapshot hash and update index appear in the reviewed candidate diff.
+True no-ops reuse the original accepted snapshot and receipt, including the original
+update index, without creating a release merely because a source commit/time moved.
+
+`readContentSnapshot(root, { receipt, news, kg })` in
+`scripts/lib/news-content.mjs` is the source-free server/build reader. Pass the raw
+accepted KG, before identity projection. It returns `null` for legacy v3 even if a
+local preview file exists. V4 requires receipt-bound canonical JSON and validates
+every body/fragment hash and projection binding. Missing or corrupted v4 content is
+an integrity error, not a fallback to a summary. Explicit local preview tooling may
+call the standalone validator; that preview never upgrades an accepted receipt.
+
+Forward rollback preserves the target's exact KG/news file bytes and every exact
+original Markdown row. It recomputes the update index against the new forward
+lifecycle, retaining identities collected after the target and avoiding a repeat of
+the target's old "newly added" notice. Consequently the full snapshot JSON can have
+new bytes even while every original fragment is unchanged. The new receipt and audit
+bind those bytes. Ordinary rollback still requires a same-epoch target; v3/v4 epoch
+restoration is a separately reviewed operation.
+
+The first production content rollout has two stages because the trusted audit
+downloader executes code from the exact PR base. First accept a coherent reviewed
+compatibility migration using v3 outputs: upgrade strict readers, ZIP/plan tooling
+and the v4-aware validator while leaving the writer on v3. Only after that accepted
+base is deployed, preview and prepare the v4 migration using
+`--content-protocol=v4` on the existing migration preview/preparation CLIs, pinned
+to the accepted source commit. Both CLIs accept `--generated-at=<ISO timestamp>`
+so this source-preserving rollout can retain the accepted recipe's
+timestamp rather than introducing incidental KG/news timestamp changes. The v4 review binds the complete content snapshot
+diff. Each stage requires its own exact predecessor/configuration/runtime/diff
+review, draft readback, isolated checks and ordinary reviewed merge. No script
+patches historical releases, bypasses a stale configuration receipt, grants storage
+approval, accepts main, or publishes a local preview. Future source-free rendering
+does not imply future source-free extraction: initial creation and fresh replay
+still require authenticated upstream Git history.
+
 `npm run kg:release:validate` validates receipt-bound output bytes and the rendered
 semantic projection, exact active configuration and authenticated HEAD source
 gitlink. It explicitly does not claim a fresh raw-source replay.

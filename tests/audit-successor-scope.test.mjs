@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { canonicalJson } from "../scripts/lib/candidate-bundle.mjs";
 import { SUCCESSOR_SCOPE_SHA256, validateSuccessorAuthority, checkSuccessorFrozen, checkSuccessorGitFrozen, isSuccessorApiRequestAllowed } from "../scripts/lib/audit-successor-scope.mjs";
-const scopeBytes=readFileSync("audit-recovery/reference-658/scope.json");
+// The retained fixture is committed with canonical LF bytes; a Windows CRLF
+// checkout must not alter the exact synthetic authority's historical payload.
+const scopeBytes=Buffer.from(readFileSync("audit-recovery/reference-658/scope.json","utf8").replace(/\r\n/gu,"\n"));
 const scope=JSON.parse(scopeBytes), operatorCommit="a".repeat(40);
 const policy=JSON.parse(readFileSync("audit-snapshots/policy.json"));
 const authority={schemaVersion:1,kind:"explicit-same-release-successor-authority",scopeSha256:SUCCESSOR_SCOPE_SHA256,
@@ -61,7 +63,7 @@ test("only exact SHA compare GET bypasses the dot guard; history never gains a m
     assert.equal(isSuccessorApiRequestAllowed("/releases/409240538",method,"converge"),false);
 });
 test("successor isolation never runs proposal code with a write token or exports trusted PR snapshot",()=>{
-  const workflow=readFileSync(".github/workflows/audit-successor.yml","utf8");
+  const workflow=readFileSync(".github/workflows/audit-successor.yml","utf8").replace(/\r\n/gu,"\n");
   assert.match(workflow,/github.ref == 'refs\/heads\/main'/u);
   assert.match(workflow,/github.run_attempt == 1/u);
   const [build,writer]=workflow.split("\n  converge:\n");

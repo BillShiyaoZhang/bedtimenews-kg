@@ -1,412 +1,185 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { formatEventDate, type KnowledgeBase, type Ontology } from "../lib/kg";
+import { createEntitySearchDocument, matchesSearchDocument, parseSearchQuery } from "../lib/search.mjs";
 import {
-  useMemo,
-  useState,
-  useSyncExternalStore,
-  type CSSProperties,
-} from "react";
-import {
-  formatEventDate,
-  type KnowledgeBase,
-  type Ontology,
-} from "../lib/kg";
+  createGraphIndex, readGraphLocation, graphLocationSearch, startExploration,
+  expandEntity, continueBranch, collapseBranch, branchHasMore, fitGraphViewport,
+  readGraphUndo, writeGraphHistory, readGraphTimelinePage, GRAPH_NODE_LIMIT, type Exploration, type Viewport,
+  type TimelinePosition, type GraphUndoSnapshot,
+} from "../lib/graph-exploration.mjs";
 import { KnowledgeGraphCanvas } from "./knowledge-graph-canvas";
-import { ActionAssessmentEvidence } from "./kg-explorer";
-import { ReportDescriptionDetails } from "./report-description-details";
+import { useReader } from "./reader-provider";
 
-const ENTITY_PICKER_LIMIT = 24;
-const NEWS_LIMIT = 80;
-const LOCATION_CHANGE_EVENT = "entity-location-change";
+const LOCATION_CHANGE_EVENT = "kg-location-change";
+const NEWS_PAGE_SIZE = 20;
+type LocationSnapshot = { search: string; saved: Exploration | null; undoCount: number; timeline: TimelinePosition | null };
 
 function subscribeToLocation(callback: () => void) {
   window.addEventListener("popstate", callback);
   window.addEventListener(LOCATION_CHANGE_EVENT, callback);
-  return () => {
-    window.removeEventListener("popstate", callback);
-    window.removeEventListener(LOCATION_CHANGE_EVENT, callback);
-  };
+  return () => { window.removeEventListener("popstate", callback); window.removeEventListener(LOCATION_CHANGE_EVENT, callback); };
 }
 
-function getLocationSearch() {
-  return window.location.search;
+function getLocationSnapshot() {
+  return JSON.stringify({ search: window.location.search, saved: window.history.state?.graphExploration ?? null,
+    undoCount: window.history.state?.graphUndo?.length ?? 0, timeline: window.history.state?.graphTimeline ?? null });
 }
 
-function getServerLocationSearch() {
-  return "";
-}
+function getServerLocationSnapshot() { return ""; }
+function notifyLocation() { window.dispatchEvent(new Event(LOCATION_CHANGE_EVENT)); }
 
-export function EntityGraphExplorer({
-  knowledgeBase,
-  ontology,
-}: {
-  knowledgeBase: KnowledgeBase;
-  ontology: Ontology;
-}) {
-  const entityById = useMemo(
-    () => new Map(knowledgeBase.entities.map((entity) => [entity.id, entity])),
-    [knowledgeBase.entities],
-  );
-  const sourceById = useMemo(
-    () => new Map(knowledgeBase.sources.map((source) => [source.id, source])),
-    [knowledgeBase.sources],
-  );
-  const entityTypeById = useMemo(
-    () => new Map(ontology.entityTypes.map((type) => [type.id, type])),
-    [ontology.entityTypes],
-  );
-  const eventTypeById = useMemo(
-    () => new Map(ontology.eventTypes.map((type) => [type.id, type])),
-    [ontology.eventTypes],
-  );
-  const rankedEntities = useMemo(
-    () =>
-      [...knowledgeBase.entities].sort(
-        (left, right) =>
-          (right.identityResolution?.newsCount ?? right.extraction?.eventCount ?? 0) -
-            (left.identityResolution?.newsCount ?? left.extraction?.eventCount ?? 0) ||
-          left.label.localeCompare(right.label, "zh-CN"),
-      ),
-    [knowledgeBase.entities],
-  );
-  const defaultEntityId = rankedEntities[0]?.id ?? "";
-  const locationSearch = useSyncExternalStore(
-    subscribeToLocation,
-    getLocationSearch,
-    getServerLocationSearch,
-  );
-  const locationParameters = useMemo(
-    () => new URLSearchParams(locationSearch),
-    [locationSearch],
-  );
-  const requestedEntityId = locationParameters.get("entity");
-  const requestedRawIdentity = knowledgeBase.identityNavigation?.find((row) => row.rawEntityId === requestedEntityId);
-  const requestedRegistration = knowledgeBase.identityRegistrations?.find((row) => row.id === requestedEntityId);
-  // A historical or unknown URL must never select an unrelated default entity.
-  const selectedEntityId = requestedEntityId || defaultEntityId;
-  const requestedEntityType = locationParameters.get("type");
-  const initialEntityType =
-    requestedEntityType &&
-    ontology.entityTypes.some((type) => type.id === requestedEntityType)
-      ? requestedEntityType
-      : "";
-  const [selectedEventOverride, setSelectedEventOverride] = useState("");
-  const [entityQuery, setEntityQuery] = useState("");
-  const [entityTypeOverride, setEntityTypeOverride] = useState<string | null>(
-    null,
-  );
-  const entityType = entityTypeOverride ?? initialEntityType;
-
-  const relatedEvents = useMemo(
-    () =>
-      knowledgeBase.events
-        .filter((event) => event.entityIds.includes(selectedEntityId))
-        .sort(
-          (left, right) =>
-            right.date.localeCompare(left.date) ||
-            left.title.localeCompare(right.title, "zh-CN"),
-        ),
-    [knowledgeBase.events, selectedEntityId],
-  );
-
-  const selectedEventId = relatedEvents.some(
-    (event) => event.id === selectedEventOverride,
-  )
-    ? selectedEventOverride
-    : (relatedEvents[0]?.id ?? "");
-
-  const selectedEntity = entityById.get(selectedEntityId);
-  const selectedEvent = knowledgeBase.events.find(
-    (event) => event.id === selectedEventId,
-  );
-  const selectedSource = selectedEvent
-    ? sourceById.get(selectedEvent.sourceIds[0])
-    : undefined;
-  const selectedType = entityTypeById.get(selectedEntity?.type ?? requestedRawIdentity?.type ?? requestedRegistration?.type ?? "");
-
+export function EntityGraphExplorer({ knowledgeBase, ontology }: { knowledgeBase: KnowledgeBase; ontology: Ontology }) {
+  const reader = useReader();
+  const index = useMemo(() => createGraphIndex(knowledgeBase), [knowledgeBase]);
+  const snapshot = useSyncExternalStore(subscribeToLocation, getLocationSnapshot, getServerLocationSnapshot);
+  const location = useMemo<LocationSnapshot>(() => snapshot ? JSON.parse(snapshot) : { search: "", saved: null, undoCount: 0, timeline: null }, [snapshot]);
+  const parameters = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const graph = useMemo(() => readGraphLocation(location.search, index, location.saved), [location, index]);
+  const focusedEntity = index.entities.get(graph.focusId);
+  const rootEntity = index.entities.get(graph.rootId);
+  const requestedIdentityId = graph.focusId || graph.rootId;
+  const requestedRawIdentity = knowledgeBase.identityNavigation?.find((row) => row.rawEntityId === requestedIdentityId);
+  const requestedRegistration = knowledgeBase.identityRegistrations?.find((row) => row.id === requestedIdentityId);
+  const entityTypeById = useMemo(() => new Map(ontology.entityTypes.map((type) => [type.id, type])), [ontology]);
+  const eventTypeById = useMemo(() => new Map(ontology.eventTypes.map((type) => [type.id, type])), [ontology]);
+  const sourceById = useMemo(() => new Map(knowledgeBase.sources.map((source) => [source.id, source])), [knowledgeBase]);
+  const relatedNews = index.byEntity.get(graph.focusId) ?? [];
+  const pageCount = Math.max(1, Math.ceil(relatedNews.length / NEWS_PAGE_SIZE));
+  const page = readGraphTimelinePage(location.search, graph.focusId, pageCount, location.timeline);
+  const [entityQueryOverride, setEntityQuery] = useState<string | null>(null);
+  const entityQuery = entityQueryOverride ?? parameters.get("q") ?? "";
+  const [entityTypeOverride, setEntityTypeOverride] = useState<string | null>(null);
+  const [mobileGraphOpen, setMobileGraphOpen] = useState(false);
+  const requestedType = parameters.get("type") ?? "";
+  const entityType = entityTypeOverride ?? (entityTypeById.has(requestedType) ? requestedType : "");
   const pickerEntities = useMemo(() => {
-    const query = entityQuery.trim().toLocaleLowerCase("zh-CN");
-    const matches = rankedEntities
-      .filter((entity) => !entityType || entity.type === entityType)
-      .filter((entity) => {
-        if (!query) return true;
-        return [entity.label, ...entity.aliases, entity.description]
-          .join(" ")
-          .toLocaleLowerCase("zh-CN")
-          .includes(query);
-      });
-    const visible = matches.slice(0, ENTITY_PICKER_LIMIT);
-    const current = entityById.get(selectedEntityId);
-    if (
-      current &&
-      matches.includes(current) &&
-      !visible.some((entity) => entity.id === current.id)
-    ) {
-      return [current, ...visible.slice(0, ENTITY_PICKER_LIMIT - 1)];
-    }
-    return visible;
-  }, [
-    entityById,
-    entityQuery,
-    entityType,
-    rankedEntities,
-    selectedEntityId,
-  ]);
+    const terms = parseSearchQuery(entityQuery);
+    return knowledgeBase.entities.filter((entity) => !entityType || entity.type === entityType)
+      .filter((entity) => matchesSearchDocument(createEntitySearchDocument(entity, entityTypeById.get(entity.type)), terms))
+      .sort((a, b) => (index.byEntity.get(b.id)?.length ?? 0) - (index.byEntity.get(a.id)?.length ?? 0) || a.label.localeCompare(b.label, "zh-CN"))
+      .slice(0, entityQuery.trim() ? 24 : 12);
+  }, [knowledgeBase.entities, entityType, entityQuery, entityTypeById, index]);
 
-  const selectEntity = (id: string) => {
-    if (!entityById.has(id)) return;
+  const persist = (next: Exploration, options: { replace?: boolean; undo?: GraphUndoSnapshot[]; remember?: boolean; timeline?: TimelinePosition | null } = {}) => {
     const url = new URL(window.location.href);
-    url.searchParams.set("entity", id);
-    window.history.replaceState({}, "", url);
-    window.dispatchEvent(new Event(LOCATION_CHANGE_EVENT));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const current = { ...window.history.state, graphTimeline: { focusId: graph.focusId, page } };
+    // Preserve the graph and its viewport in the entry we are about to leave.
+    if (!options.replace) window.history.replaceState({ ...current, graphExploration: graph }, "", window.location.href);
+    const state = writeGraphHistory(current, graph, next, options);
+    url.search = graphLocationSearch(next, url.search, state.graphTimeline?.page ?? 1);
+    if (options.replace) window.history.replaceState(state, "", url);
+    else window.history.pushState(state, "", url);
+    notifyLocation();
   };
+  const restart = (entityId: string) => {
+    const next = startExploration(index, entityId);
+    persist({ ...next, viewport: fitGraphViewport(next.nodes) }, { timeline: { focusId: entityId, page: 1 } });
+  };
+  const selectEntity = (entityId: string) => {
+    const next = expandEntity(graph, index, entityId);
+    if (next === graph || (next.focusId === graph.focusId && next.nodes.length === graph.nodes.length && !next.notice)) return;
+    persist(next);
+  };
+  const undo = () => {
+    const rows = readGraphUndo(window.history.state ?? {});
+    const previous = rows.at(-1);
+    if (previous) persist(previous.graph, { undo: rows.slice(0, -1), remember: false, timeline: previous.timeline });
+  };
+  const changeViewport = (viewport: Viewport) => persist({ ...graph, viewport }, { replace: true, remember: false });
+  const changePage = (next: number) => {
+    persist(graph, { replace: true, timeline: { focusId: graph.focusId, page: Math.max(1, Math.min(pageCount, next)) } });
+  };
+  const toggleMobileGraph = () => {
+    const next = !mobileGraphOpen;
+    setMobileGraphOpen(next);
+    window.requestAnimationFrame(() => {
+      const heading = document.getElementById(next ? "graph-heading" : "entity-related-news-heading");
+      if (!heading) return;
+      heading.tabIndex = -1;
+      heading.scrollIntoView({ block: "start", behavior: "auto" });
+      heading.focus({ preventScroll: true });
+    });
+  };
+  const focusBranch = graph.branches.find((row) => row.entityId === graph.focusId);
 
   return (
-    <main className="detail-page">
+    <main className="detail-page entity-workbench-page">
       <header className="site-header detail-header">
-        <Link className="brand" href="/" aria-label="返回历史经纬首页">
-          <span className="brand-mark" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span>
-            <strong>历史经纬</strong>
-            <small>Entity Knowledge Graph</small>
-          </span>
-        </Link>
-        <nav aria-label="主要导航">
-          <Link href="/">返回检索</Link>
-          <Link href="/ontology">Ontology</Link>
-        </nav>
+        <Link prefetch={false} className="brand" href="/" aria-label="历史经纬首页"><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span><strong>历史经纬</strong><small>每天读新闻，看清来龙去脉</small></span></Link>
+        <nav aria-label="主要导航"><Link prefetch={false} href="/">新闻检索</Link><Link prefetch={false} href="/graph" aria-current="page">实体探索</Link><Link prefetch={false} href="/ontology">知识分类</Link></nav>
       </header>
 
-      <section className="entity-detail-hero">
-        <div className="entity-identity">
-          <span
-            className="entity-type-badge"
-            style={{ "--entity-color": selectedType?.color } as CSSProperties}
-          >
-            {selectedType?.label ?? selectedEntity?.type ?? "实体"}
-          </span>
-          <h1>{selectedEntity?.label ?? requestedRawIdentity?.label ?? requestedRegistration?.label ?? (requestedEntityId ? "未找到这个实体" : "选择一个实体")}</h1>
-          <p>{selectedEntity?.description}</p>
-          {selectedEntity?.identityResolution && <p>经审查的新闻级身份：{selectedEntity.identityResolution.newsCount} 条新闻、{selectedEntity.identityResolution.rawAssignmentCount} 个原始分配。来源支持分别保留，数量不代表独立证实。</p>}
-          {requestedRegistration && !selectedEntity && <p>{requestedRegistration.state === "tombstoned" ? "该审查身份已停用。" : "该审查身份目前没有有效新闻分配。"}历史身份与证据仍保留在对应版本的审计记录中。</p>}
-          {requestedEntityId && !selectedEntity && !requestedRawIdentity && !requestedRegistration && <p>这个 ID 不在当前版本中；请选择其他实体，不会自动跳转到无关对象。</p>}
-          {requestedRawIdentity && <div className="identity-review-notice"><p>{requestedRawIdentity.state === "cleared" ? "身份审查已恢复原始提取归属。" : requestedRawIdentity.state === "dormant" ? "该历史原始身份的审查分配目前没有有效新闻支持；这不表示对象不存在。" : "这个原始提取名称的部分或全部新闻已有明确的身份归属。"}以下审查记录按新闻分别保留，同名不会自动合并：</p><ul>{requestedRawIdentity.targets.map((target) => <li key={target.id}><Link href={`/graph?entity=${encodeURIComponent(target.id)}`}>{target.label}（{target.newsCount} 条当前新闻）</Link></li>)}</ul></div>}
-          {selectedEntity?.aliases.length ? (
-            <div className="entity-aliases">
-              <span>别名</span>
-              {selectedEntity.aliases.map((alias) => (
-                <i key={alias}>{alias}</i>
-              ))}
-            </div>
-          ) : null}
-        </div>
-        <dl className="entity-detail-stats">
-          <div>
-            <dt>相关新闻</dt>
-            <dd>{relatedEvents.length.toLocaleString("zh-CN")}</dd>
-          </div>
-          <div>
-            <dt>抽取置信度</dt>
-            <dd>
-              {selectedEntity?.extraction
-                ? `${Math.round(selectedEntity.extraction.confidence * 100)}%`
-                : "—"}
-            </dd>
-          </div>
-          <div>
-            <dt>抽取方法</dt>
-            <dd>{selectedEntity?.extraction?.method ?? "—"}</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section className="entity-picker" aria-label="切换实体">
-        <div className="entity-picker-controls">
-          <label>
-            <span>查找其他实体</span>
-            <input
-              value={entityQuery}
-              onChange={(event) => setEntityQuery(event.target.value)}
-              placeholder="输入人物、组织、地点、主题或对象"
-            />
-          </label>
-          <label>
-            <span>实体类型</span>
-            <select
-              value={entityType}
-              onChange={(event) => setEntityTypeOverride(event.target.value)}
-            >
-              <option value="">全部类型</option>
-              {ontology.entityTypes.map((type) => (
-                <option value={type.id} key={type.id}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div className="entity-picker-results">
-          {pickerEntities.map((entity) => (
-            <button
-              type="button"
-              className={entity.id === selectedEntityId ? "active" : ""}
-              onClick={() => selectEntity(entity.id)}
-              key={entity.id}
-            >
-              <span>{entity.label}</span>
-              <small>
-                {entityTypeById.get(entity.type)?.label ?? entity.type} ·{" "}
-                {entity.identityResolution?.newsCount ?? entity.extraction?.eventCount ?? 0} 条
-              </small>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {selectedEntity ? (
-        <section className="graph-news-workbench">
-          <div className="graph-column">
-            <div className="section-title">
-              <div>
-                <span className="eyebrow">Knowledge graph</span>
-                <h2>实体与新闻关系</h2>
-              </div>
-              <p>点击节点可切换实体或查看新闻证据。</p>
-            </div>
-            <KnowledgeGraphCanvas
-              kg={knowledgeBase}
-              ontology={ontology}
-              selectedEntityId={selectedEntity.id}
-              selectedEventId={selectedEventId}
-              onSelectEntity={selectEntity}
-              onSelectEvent={setSelectedEventOverride}
-            />
-            {selectedEvent ? (
-              <article className="selected-event-inspector">
-                {!!selectedEvent.identityAssignments?.length && <p>这条新闻含经审查的身份分配；原始抽取 ID 与来源证据保留在该版本的审计记录中。</p>}
-                <div>
-                  <span
-                    style={
-                      {
-                        "--type-color": eventTypeById.get(selectedEvent.type)
-                          ?.color,
-                      } as CSSProperties
-                    }
-                  >
-                    {eventTypeById.get(selectedEvent.type)?.label ??
-                      selectedEvent.type}
-                  </span>
-                  <time>{formatEventDate(selectedEvent)}</time>
-                </div>
-                <h3>{selectedEvent.title}</h3>
-                <p>{selectedEvent.summary || "原文未提供摘要。"}</p>
-                <ActionAssessmentEvidence ontology={ontology} event={selectedEvent} expanded />
-                <ReportDescriptionDetails ontology={ontology} event={selectedEvent} expanded />
-                <div className="inspector-entities">
-                  {selectedEvent.entityIds.slice(0, 12).map((entityId) => {
-                    const entity = entityById.get(entityId);
-                    return entity ? (
-                      <button
-                        type="button"
-                        onClick={() => selectEntity(entity.id)}
-                        key={entity.id}
-                      >
-                        {entity.label}
-                      </button>
-                    ) : null;
-                  })}
-                </div>
-                {selectedSource ? (
-                  <a
-                    href={selectedSource.archiveUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    阅读原文证据 ↗
-                  </a>
-                ) : null}
-              </article>
-            ) : null}
-          </div>
-
-          <aside className="news-column">
-            <div className="section-title">
-              <div>
-                <span className="eyebrow">Related news</span>
-                <h2>相关新闻时间线</h2>
-              </div>
-              <p>由近到远，点击后在图谱中定位。</p>
-            </div>
-            {relatedEvents.length ? (
-              <div className="entity-news-list">
-                {relatedEvents.slice(0, NEWS_LIMIT).map((event) => {
-                  const eventTypeDefinition = eventTypeById.get(event.type);
-                  const source = sourceById.get(event.sourceIds[0]);
-                  return (
-                    <article
-                      className={
-                        event.id === selectedEventId ? "active" : undefined
-                      }
-                      key={event.id}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setSelectedEventOverride(event.id)}
-                      >
-                        <span>
-                          <time>{formatEventDate(event)}</time>
-                          <i
-                            style={
-                              {
-                                "--type-color": eventTypeDefinition?.color,
-                              } as CSSProperties
-                            }
-                          >
-                            {eventTypeDefinition?.label ?? event.type}
-                          </i>
-                        </span>
-                        <strong>{event.title}</strong>
-                        <small>{event.summary || "查看原文了解详情。"}</small>
-                      </button>
-                      {source ? (
-                        <a
-                          href={source.archiveUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label={`阅读原文：${source.title}`}
-                        >
-                          原文 ↗
-                        </a>
-                      ) : null}
-                    </article>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="empty-result">
-                <strong>暂无关联新闻</strong>
-                <p>这个实体尚未进入任何可发布新闻。</p>
-              </div>
-            )}
-            {relatedEvents.length > NEWS_LIMIT ? (
-              <p className="news-limit-note">
-                当前显示最近 {NEWS_LIMIT} / {relatedEvents.length} 条。
-              </p>
-            ) : null}
-          </aside>
+      {!graph.rootId ? (
+        <section className="graph-entry"><span className="eyebrow">实体探索</span><h1>从一个熟悉的名字开始</h1><p>查找人物、组织、地点或主题，先读相关新闻，再沿着关联继续探索。</p></section>
+      ) : (
+        <section className="entity-profile">
+          {rootEntity && <div className="graph-history"><span>探索起点</span><button type="button" onClick={() => selectEntity(rootEntity.id)}>{rootEntity.label}</button>{focusedEntity && graph.focusId !== graph.rootId && <><span aria-hidden="true">›</span><span>当前查看：{focusedEntity.label}</span></>}</div>}
+          <span className="entity-type-badge" style={{ "--entity-color": entityTypeById.get(focusedEntity?.type ?? requestedRawIdentity?.type ?? requestedRegistration?.type ?? "")?.color } as CSSProperties}>{entityTypeById.get(focusedEntity?.type ?? requestedRawIdentity?.type ?? requestedRegistration?.type ?? "")?.label ?? "实体"}</span>
+          <h1>{focusedEntity?.label ?? requestedRawIdentity?.label ?? requestedRegistration?.label ?? "未找到这个实体"}</h1>
+          {focusedEntity && <><p>{relatedNews.length.toLocaleString("zh-CN")} 条相关新闻{relatedNews[0] ? ` · 最近报道 ${formatEventDate(relatedNews[0])}` : ""}</p><button type="button" onClick={() => reader.openEntity(focusedEntity.id)}>查看实体资料</button></>}
+          {!!focusedEntity?.aliases.length && <p className="entity-aliases">也称：{focusedEntity.aliases.join("、")}</p>}
+          {requestedRegistration && !focusedEntity && <p>{requestedRegistration.state === "tombstoned" ? "该身份已停用。" : "该身份目前没有有效新闻关联。"}历史资料仍保留在对应版本中。</p>}
+          {graph.rootId && !focusedEntity && !requestedRawIdentity && !requestedRegistration && <p>这个实体不在当前版本中。可以在下方查找其他名字。</p>}
+          {requestedRawIdentity && <div className="identity-review-notice"><p>{requestedRawIdentity.state === "cleared" ? "该名称的新闻已恢复原始归属。" : requestedRawIdentity.state === "dormant" ? "这个历史名称目前没有有效新闻支持。" : "这个名称在不同新闻中有不同身份归属。"}请选择下方具体对象；同名不会自动合并。</p><ul>{requestedRawIdentity.targets.map((target) => <li key={target.id}><Link prefetch={false} href={`/graph?entity=${encodeURIComponent(target.id)}`}>{target.label}（{target.newsCount} 条新闻）</Link></li>)}</ul></div>}
+          {focusedEntity && <button className="graph-mobile-toggle" type="button" aria-expanded={mobileGraphOpen} aria-controls="entity-graph-workbench" onClick={toggleMobileGraph}>{mobileGraphOpen ? "收起关系图谱" : "展开关系图谱"}</button>}
         </section>
-      ) : null}
+      )}
 
-      <footer>
-        <span>实体、新闻与关系均来自可追溯的原文片段</span>
-        <Link href="/">回到首页重新检索</Link>
-      </footer>
+      <details className="entity-picker" open={!graph.rootId}>
+        <summary>{graph.rootId ? "添加实体或换个起点" : "选择一个探索起点"}</summary>
+        <div className="entity-picker-controls">
+          <label><span>{graph.rootId ? "查找其他实体" : "查找实体"}</span><input type="search" value={entityQuery} onChange={(event) => setEntityQuery(event.target.value)} placeholder="例如：中国、人工智能、铁路" /></label>
+          <label><span>类型</span><select value={entityType} onChange={(event) => setEntityTypeOverride(event.target.value)}><option value="">全部类型</option>{ontology.entityTypes.map((type) => <option key={type.id} value={type.id}>{type.label}</option>)}</select></label>
+        </div>
+        <div className="graph-entry-grid">
+          {pickerEntities.map((entity) => <div className={`entity-picker-item ${entity.id === graph.focusId ? "active" : ""}`} key={entity.id}>
+            <div><strong>{entity.label}</strong><small>{entityTypeById.get(entity.type)?.label ?? entity.type} · {index.byEntity.get(entity.id)?.length ?? 0} 条新闻</small></div>
+            <div className="graph-branch-actions"><button type="button" onClick={() => graph.rootId && rootEntity ? selectEntity(entity.id) : restart(entity.id)}>{graph.rootId && rootEntity ? graph.branches.some((row) => row.entityId === entity.id) ? "查看" : "加入图谱" : "从这里开始"}</button>{graph.rootId && rootEntity && entity.id !== graph.rootId && <button type="button" onClick={() => restart(entity.id)}>作为新起点</button>}</div>
+          </div>)}
+        </div>
+        {!pickerEntities.length && <p className="empty-result">没有找到这个名字，试试别名或减少一个关键词。</p>}
+      </details>
+
+      {focusedEntity && <section className="graph-workbench">
+        <section className="entity-related-news" aria-labelledby="entity-related-news-heading">
+          <div className="section-title"><div><span className="eyebrow">跟着报道看变化</span><h2 id="entity-related-news-heading">{focusedEntity.label}的相关新闻</h2></div><p>从最近开始 · 共 {relatedNews.length} 条</p></div>
+          {relatedNews.length ? <div className="entity-news-list">
+            {relatedNews.slice((page - 1) * NEWS_PAGE_SIZE, page * NEWS_PAGE_SIZE).map((event) => <article key={event.id} className={`news-list-item ${graph.newsId === event.newsId ? "active" : ""} ${reader.isRead(event.newsId) ? "is-read" : ""}`}>
+              <div className="result-meta"><time>{formatEventDate(event)}</time><span>{eventTypeById.get(event.type)?.label ?? event.type}</span>{reader.isNew(event.newsId) && <span className="news-new-badge">新</span>}{reader.isRead(event.newsId) && <span>已读</span>}</div>
+              <h3><Link prefetch={false} href={`/news/${event.newsId}/`} onClick={(click) => reader.openNews(event.newsId, click)}>{event.title}</Link></h3>
+              <p>{event.summary || "打开新闻查看归档内容。"}</p>
+              {sourceById.get(event.sourceIds[0]) && <small>{sourceById.get(event.sourceIds[0])?.title}</small>}
+              <div className="entity-tags">{event.entityIds.filter((id) => id !== graph.focusId).slice(0, 5).map((id) => {
+                const entity = index.entities.get(id);
+                return entity ? <button type="button" key={id} onClick={() => selectEntity(id)} title={`在现有图谱中展开 ${entity.label}`}>{entity.label}</button> : null;
+              })}</div>
+            </article>)}
+          </div> : <div className="empty-result"><strong>暂无相关新闻</strong><p>当前版本还没有关联到这个实体的新闻。</p></div>}
+          {pageCount > 1 && <nav className="news-pagination" aria-label="相关新闻分页"><button type="button" onClick={() => changePage(page - 1)} disabled={page === 1}>上一页</button><span aria-live="polite">第 {page} / {pageCount} 页</span><button type="button" onClick={() => changePage(page + 1)} disabled={page === pageCount}>下一页</button></nav>}
+        </section>
+
+        <div className="graph-column">
+          <section id="entity-graph-workbench" className={`entity-graph-workbench ${mobileGraphOpen ? "graph-open-on-mobile" : "graph-collapsed-on-mobile"}`} aria-labelledby="graph-heading">
+            <div className="section-title"><div><span className="eyebrow">沿着关联继续看</span><h2 id="graph-heading">关系图谱</h2></div><p>点击实体扩展，保留已有内容</p></div>
+            <div className="graph-toolbar" aria-label="探索操作">
+              <button className="graph-mobile-toggle" type="button" onClick={toggleMobileGraph}>收起图谱并返回新闻</button>
+              <button type="button" onClick={undo} disabled={!location.undoCount}>撤销上一步</button>
+              <button type="button" onClick={() => restart(graph.rootId)}>重置到起点</button>
+              {graph.focusId !== graph.rootId && <button type="button" onClick={() => restart(graph.focusId)}>以当前实体重新开始</button>}
+            </div>
+            <KnowledgeGraphCanvas graph={graph} ontology={ontology} onSelectEntity={selectEntity} onSelectNews={(id) => reader.openNews(id)} onViewportChange={changeViewport} />
+            <div className="graph-branch-actions">
+              <button type="button" onClick={() => persist(continueBranch(graph, index, graph.focusId))} disabled={graph.nodes.length >= GRAPH_NODE_LIMIT || !branchHasMore(graph, index, graph.focusId)}>{focusBranch ? "继续展开当前实体" : "展开当前实体"}</button>
+              <button type="button" onClick={() => persist(collapseBranch(graph, index, graph.focusId))} disabled={!focusBranch}>收起当前分支</button>
+            </div>
+            <p className="graph-exploration-status" role="status">{graph.notice || `已展开 ${graph.branches.length} 个实体，共 ${graph.nodes.length} / ${GRAPH_NODE_LIMIT} 个节点；每次最多增加 10 条新闻和 6 个关联实体。`}</p>
+          </section>
+        </div>
+      </section>}
+      <footer><span>实体关联用于帮助阅读，报道先后不代表因果关系。</span><Link prefetch={false} href="/">返回新闻首页</Link></footer>
     </main>
   );
 }

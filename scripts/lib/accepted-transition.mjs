@@ -18,6 +18,7 @@ export const SEMANTIC_CONFIGURATION_NAMES = Object.freeze(["ontologySource", "on
 export const ACCEPTED_SEMANTIC_GENERATOR_FILES = Object.freeze([
   "app/lib/ontology-hierarchy.mjs", "app/lib/topic-evidence.mjs", "app/lib/identity-projection.mjs", "app/lib/action-assessment.mjs",
   "scripts/lib/accepted-candidate.mjs", "scripts/lib/accepted-release.mjs", "scripts/lib/accepted-reports.mjs", "scripts/lib/accepted-transition.mjs",
+  "scripts/lib/accepted-content-protocol.mjs", "scripts/lib/news-content.mjs",
   "scripts/lib/candidate-bundle.mjs", "scripts/lib/candidate-lifecycle.mjs", "scripts/lib/candidate-provenance.mjs",
   "scripts/lib/candidate-run.mjs", "scripts/lib/candidate-source-review.mjs", "scripts/lib/extraction-rules.mjs",
   "scripts/lib/extraction.mjs", "scripts/lib/git-object-integrity.mjs", "scripts/lib/kg-build.mjs",

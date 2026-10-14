@@ -221,13 +221,26 @@ test("historical Git byte loss at final publication and verification gates fails
   });
 });
 
-test("final lifecycle gates reject manifest and ancestor directory symlink substitution", async () => {
-  for (const kind of ["manifest", "directory"]) await workspace(async ({ directory, archive, build, review }) => {
+for (const kind of ["manifest", "directory"]) test(`final lifecycle gates reject ${kind} symlink substitution`, async (t) => {
+  // Check file-link capability before the expensive lifecycle replay. A missing
+  // Windows privilege skips only the manifest-link case, never the directory gate.
+  if (kind === "manifest" && process.platform === "win32") {
+    const probeRoot = await mkdtemp(resolve(tmpdir(), "lifecycle-symlink-probe-"));
+    try {
+      const target = resolve(probeRoot, "file"); await writeFile(target, "probe");
+      try { await symlink(target, resolve(probeRoot, "link"), "file"); }
+      catch (error) {
+        if (["EPERM", "EACCES"].includes(error.code)) { t.skip("Host does not permit file-symlink creation; ancestor directory substitution remains tested separately"); return; }
+        throw error;
+      }
+    } finally { await rm(probeRoot, { recursive: true, force: true }); }
+  }
+  await workspace(async ({ directory, archive, build, review }) => {
     await build("seed");
     const options = await review("seed", "retract", [{ path: "daily/2026-01-01.md", operation: "retract" }]);
     const originalPath = resolve(directory, "work/lifecycle/seed", ...(kind === "manifest" ? ["manifest.json"] : []));
     const moved = resolve(directory, kind === "manifest" ? "saved-manifest.json" : "saved-bundle");
-    const replace = async () => { await rename(originalPath, moved); await symlink(moved, originalPath); };
+    const replace = async () => { await rename(originalPath, moved); await symlink(moved, originalPath, kind === "directory" ? process.platform === "win32" ? "junction" : "dir" : "file"); };
     const restore = async () => { await rm(originalPath); await rename(moved, originalPath); };
     await assert.rejects(build("unsafe", options, { beforePublish: replace }), /unsafe|Baseline file type|Baseline directory/u);
     await assert.rejects(readFile(resolve(directory, "work/lifecycle/unsafe/manifest.json")), /ENOENT/u);

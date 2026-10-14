@@ -2,6 +2,8 @@ import { gzipSync } from "node:zlib";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { isSourceReviewTimestamp, validateCandidateSourceInventory, planCandidateSourceReview } from "./candidate-source-review.mjs";
 import { validateMigrationTransition, validateMigrationReview, validateRollbackReview } from "./accepted-transition.mjs";
+import { acceptedArtifactNames, NEWS_CONTENT_PATH, NEWS_CONTENT_ARTIFACT } from "./accepted-content-protocol.mjs";
+import { validateNewsContentSnapshot } from "./news-content.mjs";
 
 // This module is deliberately pure. Hash consistency is NOT proof of acceptance.
 // Only a caller that read the exact accepted Git commit may supply a verified
@@ -13,9 +15,9 @@ const CONFIG_NAMES = [...Object.keys(CONFIG_PATHS), "generator"];
 const OPTIONAL_CONFIG_PATHS = { identityRegistry: "data/entity-identities.json" };
 const SOURCE_REPLAY_NOTICE = "Restoring accepted outputs does not guarantee raw upstream re-extraction; upstream Git history must be available separately.";
 const ORIGIN_NAMES = ["acceptedState", "acceptedKG", "acceptedNews"];
-const ARTIFACTS = ["diff.json", "kg.json", "lifecycle.json.gz", "news.json", "provenance.json.gz", "source-review.json"];
 export const REQUIRED_ACCEPTED_PATHS = Object.freeze(["data/generated/kg.json", "data/processed/news.json", "data/archive-state.json"]);
 export const ALLOWED_ACCEPTED_PATHS = Object.freeze([...REQUIRED_ACCEPTED_PATHS,
+  NEWS_CONTENT_PATH,
   "data/review/upstream-changes.json", "data/review/news-segmentation.json", "data/review/ontology-candidates.json"]);
 const ORIGIN_PATHS = { acceptedState: REQUIRED_ACCEPTED_PATHS[2], acceptedKG: REQUIRED_ACCEPTED_PATHS[0], acceptedNews: REQUIRED_ACCEPTED_PATHS[1] };
 const must = (value, message) => { if (!value) throw new Error(`Accepted release: ${message}`); };
@@ -85,7 +87,7 @@ function runtime(value, versionLabels) {
 function candidate(value) {
   must(exact(value, ["schemaVersion", "kind", "bundleId", "artifacts", "inputs", "versions"]) && value.schemaVersion === 1 && value.kind === "offline-candidate", "invalid candidate manifest");
   must(HASH.test(value.bundleId ?? "") && hash(without(value, ["bundleId"])) === value.bundleId, "candidate bundle identity mismatch");
-  must(exact(value.artifacts, ARTIFACTS) && Object.values(value.artifacts).every(binding), "candidate must bind the complete reviewed lifecycle bundle");
+  must(exact(value.artifacts, acceptedArtifactNames(value.versions?.candidate)) && Object.values(value.artifacts).every(binding), "candidate must bind the complete reviewed lifecycle/content bundle");
   const labels = versions(value.versions);
   configuration(value.inputs); runtime(value.inputs.runtime, labels);
   const recipe = value.inputs.recipe;
@@ -127,6 +129,11 @@ function assertMaterialization(parsed, manifest, lifecycle, sourceCommit) {
   const kg = parsed[kgPath]; const news = parsed[newsPath]; const state = parsed[statePath];
   must(object(kg) && object(news) && object(state), "accepted datasets must be JSON objects");
   for (const [name, value] of [["kg.json", kg], ["news.json", news]]) must(equal(fileBinding(jsonBytes(value)), manifest.artifacts[name]), `${name} differs from the candidate materialization`);
+  if (manifest.versions.candidate === "4.0.0") {
+    const content = parsed[NEWS_CONTENT_PATH];
+    validateNewsContentSnapshot(content, { news, kg, sourceCommit, effectiveInventory: lifecycle.effectiveInventory });
+    must(equal(fileBinding(gzipSync(jsonBytes(content), { level: 6 })), manifest.artifacts[NEWS_CONTENT_ARTIFACT]), "news content differs from candidate materialization");
+  } else must(!Object.hasOwn(parsed, NEWS_CONTENT_PATH), "legacy accepted output cannot claim recorded content");
   const v = manifest.versions;
   must(kg.schemaVersion === v.ontology && news.schemaVersion === v.news && news.segmentation?.version === v.segmentation && news.segmentation?.overrideVersion === v.overrides, "KG/news version mismatch");
   for (const [field, name] of Object.entries({ ontologyVersion: "ontology", extractionVersion: "extraction", segmentationVersion: "segmentation", newsOverrideVersion: "overrides", newsDatasetSchemaVersion: "news" })) {
@@ -160,14 +167,14 @@ export function createAcceptedArchiveState({ previousState, candidateManifest, l
   return state;
 }
 
-function auditStructure(receipt, { bundleId, codeCommit, expectedRepository } = {}) {
+function auditStructure(receipt, { bundleId, codeCommit, expectedRepository, candidateVersion } = {}) {
   must(exact(receipt, ["schemaVersion", "kind", "repository", "bundleId", "manifestSha256", "targetCommit", "tag", "releaseId", "releaseUrl", "githubImmutableAtReadback", "visibilityAtReadback", "readbackVerified", "assets", "rawSourceArchiveIncluded", "sourceReplay"]) && receipt.schemaVersion === 2 && receipt.kind === "github-audit-readback" && receipt.readbackVerified === true, "verified audit read-back receipt required");
   must(typeof receipt.repository === "string" && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(receipt.repository) && (!expectedRepository || receipt.repository === expectedRepository), "audit repository mismatch");
   must(HASH.test(receipt.bundleId ?? "") && HASH.test(receipt.manifestSha256 ?? "") && receipt.bundleId === bundleId, "audit candidate mismatch");
   must(receipt.targetCommit === codeCommit && receipt.tag === `kg-audit-${bundleId}`, "audit tag/code target mismatch");
   must(Number.isSafeInteger(receipt.releaseId) && receipt.releaseId > 0 && receipt.releaseUrl === `https://github.com/${receipt.repository}/releases/tag/${receipt.tag}`, "invalid audit release reference");
   must(typeof receipt.githubImmutableAtReadback === "boolean" && ["draft", "published"].includes(receipt.visibilityAtReadback) && receipt.rawSourceArchiveIncluded === false && receipt.sourceReplay === SOURCE_REPLAY_NOTICE, "audit must state the raw-source replay limitation");
-  must(exact(receipt.assets, [...ARTIFACTS, "manifest.json"]), "audit receipt has missing or unreviewed assets");
+  must(exact(receipt.assets, [...acceptedArtifactNames(candidateVersion), "manifest.json"]), "audit receipt has missing or unreviewed assets");
   const ids = new Set();
   for (const [name, asset] of Object.entries(receipt.assets)) {
     must(exact(asset, ["id", "name", "bytes", "sha256", "url"]) && Number.isSafeInteger(asset.id) && asset.id > 0 && !ids.has(asset.id) && binding({ sha256: asset.sha256, bytes: asset.bytes }), `invalid audit asset: ${name}`);
@@ -177,7 +184,7 @@ function auditStructure(receipt, { bundleId, codeCommit, expectedRepository } = 
   must(receipt.assets["manifest.json"].sha256 === receipt.manifestSha256, "audit manifest asset mismatch");
 }
 function audit(receipt, manifest, codeCommit, expectedRepository) {
-  auditStructure(receipt, { bundleId: manifest.bundleId, codeCommit, expectedRepository });
+  auditStructure(receipt, { bundleId: manifest.bundleId, codeCommit, expectedRepository, candidateVersion: manifest.versions.candidate });
   must(receipt.manifestSha256 === sha256(jsonBytes(manifest)), "audit manifest hash mismatch");
   const expected = { ...manifest.artifacts, "manifest.json": fileBinding(jsonBytes(manifest)) };
   for (const [name, expectedBinding] of Object.entries(expected)) {
@@ -209,6 +216,8 @@ export function validateAcceptedReleaseStructure(manifest) {
   for (const name of ["observed", "effective"]) must(exact(manifest.inventories[name], ["sha256", "fileCount"]) && HASH.test(manifest.inventories[name].sha256 ?? "") && Number.isSafeInteger(manifest.inventories[name].fileCount) && manifest.inventories[name].fileCount >= 0, `invalid ${name} inventory binding`);
   must(HASH.test(manifest.inventories.sourceStatesHash ?? ""), "invalid source states binding");
   must(object(manifest.acceptedFiles) && REQUIRED_ACCEPTED_PATHS.every((path) => Object.hasOwn(manifest.acceptedFiles, path)) && Object.entries(manifest.acceptedFiles).every(([path, value]) => ALLOWED_ACCEPTED_PATHS.includes(path) && binding(value)), "invalid accepted output bindings");
+  acceptedArtifactNames(manifest.versions.candidate);
+  must(Object.hasOwn(manifest.acceptedFiles, NEWS_CONTENT_PATH) === (manifest.versions.candidate === "4.0.0"), "accepted content path differs from candidate protocol");
   if (manifest.mode === "bootstrap") must(manifest.predecessor === null && manifest.rollbackTarget === null, "bootstrap cannot have predecessor/rollback target");
   else reference(manifest.predecessor, "predecessor");
   if (manifest.mode === "rollback") reference(manifest.rollbackTarget, "rollback target");
@@ -227,7 +236,7 @@ export function validateAcceptedReleaseStructure(manifest) {
   } else must(manifest.transition === null, "only migration/rollback may bind a transition review");
   must(manifest.epochId === epoch(manifest), "semantic epoch mismatch");
   must(HASH.test(manifest.releaseId ?? "") && manifest.releaseId === acceptedReleaseIdentity(manifest), "accepted release identity mismatch");
-  auditStructure(manifest.auditReceipt, { bundleId: manifest.candidateBundleId, codeCommit: manifest.codeCommit });
+  auditStructure(manifest.auditReceipt, { bundleId: manifest.candidateBundleId, codeCommit: manifest.codeCommit, candidateVersion: manifest.versions.candidate });
   return manifest;
 }
 /**
@@ -239,6 +248,12 @@ export function validateAcceptedReleaseFiles(manifest, acceptedFiles) {
   validateAcceptedReleaseStructure(manifest);
   const { parsed, bindings } = outputs(acceptedFiles);
   must(equal(bindings, manifest.acceptedFiles), "accepted output bytes differ from the checkpoint");
+  if (manifest.versions.candidate === "4.0.0") {
+    const content = parsed[NEWS_CONTENT_PATH];
+    must(equal(fileBinding(jsonBytes(content)), manifest.acceptedFiles[NEWS_CONTENT_PATH]), "accepted content must use canonical JSON bytes");
+    validateNewsContentSnapshot(content, { kg: parsed[REQUIRED_ACCEPTED_PATHS[0]], news: parsed[REQUIRED_ACCEPTED_PATHS[1]], sourceCommit: manifest.source.commit });
+    must(content.effectiveInventorySha256 === manifest.inventories.effective.sha256, "content effective inventory differs from receipt");
+  }
   return parsed;
 }
 
@@ -264,6 +279,7 @@ export function createAcceptedRelease({ candidateManifest, lifecycle, acceptedFi
   for (const name of ORIGIN_NAMES) must(equal(candidateManifest.inputs[name], initial.bindings[name]), `candidate immutable origin mismatch: ${name}`);
   const { parsed, bindings } = outputs(acceptedFiles);
   assertMaterialization(parsed, candidateManifest, lifecycle, sourceCommit);
+  if (candidateManifest.versions.candidate === "4.0.0") must(equal(bindings[NEWS_CONTENT_PATH], fileBinding(jsonBytes(parsed[NEWS_CONTENT_PATH]))), "accepted content must use canonical JSON bytes");
   const state = parsed[REQUIRED_ACCEPTED_PATHS[2]];
   const manifest = { schemaVersion: 1, kind: "accepted-release", mode, transition: clone(transition), origin: initial,
     predecessor: predecessor === null ? null : reference(predecessor, "predecessor"),
@@ -314,6 +330,7 @@ function semanticSnapshot(value) {
   must(object(runtimeBinding) && HASH.test(runtimeBinding.sha256 ?? ""), "no-op classification requires runtime bindings");
   return {
     kg: without(value.kg, ["generatedAt"]), news: without(value.news, ["generatedAt"]),
+    newsContent: value.content ? { schemaVersion: value.content.schemaVersion, rows: value.content.rows } : null,
     observedInventory: value.lifecycle.observedInventory, effectiveInventory: value.lifecycle.effectiveInventory, sourceStates: value.lifecycle.sourceStates,
     configuration: config, runtime: runtimeBinding, includedRoots: roots(inputs.recipe.includedRoots),
   };

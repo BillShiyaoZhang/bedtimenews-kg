@@ -12,6 +12,8 @@ import { loadAcceptedGitCheckpoint, readVerifiedAcceptedCheckpoint } from "../sc
 import { prepareAcceptedCommit, promoteAcceptedCommit, reconcileAcceptedCommit, recoverPreparedAcceptedCommit, inspectReviewedMigrationProposal, prepareReviewedMigrationCommit } from "../scripts/lib/release-promotion.mjs";
 import { candidateVerificationBinding, candidateProposalBinding } from "../scripts/lib/accepted-candidate.mjs";
 import { rollbackReviewBinding, validateRollbackReview, migrationReviewBinding, validateMigrationReview } from "../scripts/lib/accepted-transition.mjs";
+import { buildNewsContentSnapshot, NEWS_CONTENT_PATH } from "../scripts/lib/news-content.mjs";
+import { NEWS_CONTENT_ARTIFACT } from "../scripts/lib/accepted-content-protocol.mjs";
 
 const execFile = promisify(execFileCallback);
 const repository = "fixture/accepted";
@@ -41,8 +43,9 @@ function receiptFor(manifest, codeCommit) {
     assets: Object.fromEntries(Object.entries(files).map(([name, value], index) => [name, { ...value, id: index + 10, name: `${value.sha256}-${name}`, url: `https://github.com/${repository}/releases/download/${tag}/${value.sha256}-${name}` }])),
     rawSourceArchiveIncluded: false, sourceReplay: "Restoring accepted outputs does not guarantee raw upstream re-extraction; upstream Git history must be available separately." };
 }
-async function proposal(root, capability, sourceCommit, change = "new", migrationCodeCommit = null) {
+async function proposal(root, capability, sourceCommit, change = "new", migrationCodeCommit = null, contentVersion = null) {
   const checkpoint = await readVerifiedAcceptedCheckpoint(capability);
+  const candidateVersions = { ...versions, candidate: contentVersion ?? checkpoint.manifest?.versions.candidate ?? versions.candidate };
   const configs = {};
   for (const [name, path] of Object.entries(configPaths)) configs[name] = { path, sha256: sha256(await readFile(resolve(root, path))) };
   const generatorFiles = { "scripts/lib/kg-build.mjs": sha256(await readFile(resolve(root, "scripts/lib/kg-build.mjs"))) };
@@ -60,10 +63,11 @@ async function proposal(root, capability, sourceCommit, change = "new", migratio
     sourceInventory: { sha256: hash(inventory), fileCount: 1 }, effectiveInventory: { sha256: hash(inventory), fileCount: 1 }, sourceReview: { sha256: sha256("null\n") } };
   if (checkpoint.manifest) inputs.baselineCandidate = { bundleId: checkpoint.manifest.candidateBundleId, sha256: checkpoint.manifest.candidateManifestHash };
   const artifacts = { "kg.json": kg, "news.json": news, "lifecycle.json.gz": lifecycle, "provenance.json.gz": {}, "source-review.json": null, "diff.json": {} };
-  const candidateManifest = { schemaVersion: 1, kind: "offline-candidate", versions, inputs, artifacts: Object.fromEntries(Object.entries(artifacts).map(([name, value]) => [name, binding(name.endsWith(".gz") ? gzipSync(jsonBytes(value), { level: 6 }) : jsonBytes(value))])) };
+  if (candidateVersions.candidate === "4.0.0") artifacts[NEWS_CONTENT_ARTIFACT] = buildNewsContentSnapshot({ news, kg, lifecycle, sourceCommit, rawSources: new Map() });
+  const candidateManifest = { schemaVersion: 1, kind: "offline-candidate", versions: candidateVersions, inputs, artifacts: Object.fromEntries(Object.entries(artifacts).map(([name, value]) => [name, binding(name.endsWith(".gz") ? gzipSync(jsonBytes(value), { level: 6 }) : jsonBytes(value))])) };
   let transition = null;
   if (migrationCodeCommit) {
-    const expected = migrationReviewBinding({ checkpoint, previous: { manifest: { inputs: { ...checkpoint.manifest.configuration, runtime: checkpoint.manifest.runtime }, versions: checkpoint.manifest.versions } }, inputs, versions, diff: artifacts["diff.json"] });
+    const expected = migrationReviewBinding({ checkpoint, previous: { manifest: { inputs: { ...checkpoint.manifest.configuration, runtime: checkpoint.manifest.runtime }, versions: checkpoint.manifest.versions } }, inputs, versions: candidateVersions, diff: artifacts["diff.json"] });
     transition = validateMigrationReview({ ...expected, reviewedAt: generatedAt, reason: "Reviewed fixture generator migration" }, expected);
     candidateManifest.inputs.transition = transition;
     candidateManifest.inputs.reviewProposal = candidateProposalBinding(migrationCodeCommit);
@@ -71,18 +75,24 @@ async function proposal(root, capability, sourceCommit, change = "new", migratio
   candidateManifest.bundleId = hash(candidateManifest);
   const state = createAcceptedArchiveState({ previousState: JSON.parse(checkpoint.files.get(REQUIRED_ACCEPTED_PATHS[2])), candidateManifest, lifecycle, sourceCommit });
   const acceptedFiles = new Map([[REQUIRED_ACCEPTED_PATHS[0], jsonBytes(kg)], [REQUIRED_ACCEPTED_PATHS[1], jsonBytes(news)], [REQUIRED_ACCEPTED_PATHS[2], jsonBytes(state)]]);
+  if (artifacts[NEWS_CONTENT_ARTIFACT]) acceptedFiles.set(NEWS_CONTENT_PATH, jsonBytes(artifacts[NEWS_CONTENT_ARTIFACT]));
   const releaseOptions = { candidateManifest, lifecycle, acceptedFiles, origin: { commit: checkpoint.origin.commit, bindings: checkpoint.origin.bindings },
     predecessor: checkpoint.manifest ? { commit: checkpoint.commit, releaseId: checkpoint.manifest.releaseId, bundleId: checkpoint.manifest.candidateBundleId } : null,
     codeCommit: migrationCodeCommit ?? checkpoint.commit, sourceCommit, auditReceipt: receiptFor(candidateManifest, migrationCodeCommit ?? checkpoint.commit), mode: migrationCodeCommit ? "migration" : checkpoint.manifest ? "continuation" : "bootstrap", transition,
     verifiedPredecessor: checkpoint.manifest ? { commit: checkpoint.commit, manifest: checkpoint.manifest } : null, auditRepository: repository };
   return { root, checkpoint: capability, candidateManifest, lifecycle, acceptedFiles, manifest: createAcceptedRelease(releaseOptions) };
 }
-async function fixture(callback) {
+async function fixture(callback, contentVersion = "3.0.0") {
   const directory = await mkdtemp(resolve(tmpdir(), "release-promotion-")); const root = resolve(directory, "repo"); const archive = resolve(directory, "archive");
   try {
-    await mkdir(root); await mkdir(archive); await git(archive, ["init", "-q"]); await put(archive, "a.md", "old source"); const oldSource = await commit(archive);
+    await mkdir(root); await mkdir(archive); await git(archive, ["init", "-q"]);
+    await git(archive, ["config", "core.autocrlf", "false"]); await git(archive, ["config", "core.eol", "lf"]);
+    await put(archive, "a.md", "old source"); const oldSource = await commit(archive);
     await put(archive, "a.md", "new source"); const sourceCommit = await commit(archive);
     await git(root, ["init", "-q", "-b", "main"]); await git(root, ["remote", "add", "origin", `https://github.com/${repository}.git`]);
+    // Fixture bytes must remain LF after reset/checkout on Windows too; the
+    // publisher's strict worktree byte verification stays unchanged.
+    await git(root, ["config", "core.autocrlf", "false"]); await git(root, ["config", "core.eol", "lf"]);
     for (const path of Object.values(configPaths)) await put(root, path, `${path}\n`);
     await put(root, "scripts/lib/kg-build.mjs", "export const generator = 1;\n");
     await put(root, "README.md", "preserve this exact existing file\n"); await put(root, "keep.txt", "base bytes\n");
@@ -92,7 +102,7 @@ async function fixture(callback) {
     await git(root, ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "base"]);
     const head = await git(root, ["rev-parse", "HEAD"]); await git(root, ["update-ref", "refs/remotes/origin/main", head]);
     const load = (commit = head) => loadAcceptedGitCheckpoint({ root, repository, commit });
-    const capability = await load(); const options = await proposal(root, capability, sourceCommit);
+    const capability = await load(); const options = await proposal(root, capability, sourceCommit, "new", null, contentVersion);
     await callback({ root, archive, head, sourceCommit, oldSource, options, load });
   } finally { await rm(directory, { recursive: true, force: true }); }
 }
@@ -282,7 +292,7 @@ test("hostile Git environment variables cannot redirect isolated preparation", a
   });
 });
 
-test("candidate verification must bind the trusted checkpoint even when all public hashes are recomputed", async () => {
+for (const contentVersion of ["3.0.0", "4.0.0"]) test(`${contentVersion} candidate verification must bind the trusted checkpoint even when all public hashes are recomputed`, async () => {
   await fixture(async ({ options }) => {
     const candidateManifest = clone(options.candidateManifest);
     candidateManifest.inputs.verification.originCommit = "f".repeat(40);
@@ -293,7 +303,7 @@ test("candidate verification must bind the trusted checkpoint even when all publ
     const manifest = clone(options.manifest); manifest.candidateBundleId = candidateManifest.bundleId; manifest.candidateManifestHash = hash(candidateManifest);
     manifest.auditReceipt = receiptFor(candidateManifest, manifest.codeCommit); manifest.releaseId = acceptedReleaseIdentity(manifest);
     await assert.rejects(prepareAcceptedCommit({ ...options, candidateManifest, manifest }), /verification differs from trusted checkpoint/u);
-  });
+  }, contentVersion);
 });
 
 test("checkpoint races during staging or before return cannot advance an accepted ref", async () => {
@@ -309,7 +319,7 @@ test("checkpoint races during staging or before return cannot advance an accepte
   });
 });
 
-test("rollback is a new single-parent acceptance restoring trusted target bytes and source pointer", async () => {
+for (const contentVersion of ["3.0.0", "4.0.0"]) test(`${contentVersion} rollback is a new single-parent acceptance restoring trusted target bytes and source pointer`, async () => {
   await fixture(async ({ root, sourceCommit, options, load }) => {
     const first = await prepareAcceptedCommit(options); await install(root, first);
     const secondOptions = await proposal(root, await load(first.commit), sourceCommit, "second");
@@ -334,24 +344,25 @@ test("rollback is a new single-parent acceptance restoring trusted target bytes 
     assert.equal(rollback.expectedBase, second.commit); assert.notEqual(rollback.commit, first.commit);
     assert.equal(rollback.sourceCommit, first.sourceCommit);
     for (const path of REQUIRED_ACCEPTED_PATHS.slice(0, 2)) assert.equal(await git(root, ["rev-parse", `${rollback.commit}:${path}`]), await git(root, ["rev-parse", `${first.commit}:${path}`]));
+    if (contentVersion === "4.0.0") assert.equal(await git(root, ["rev-parse", `${rollback.commit}:${NEWS_CONTENT_PATH}`]), await git(root, ["rev-parse", `${first.commit}:${NEWS_CONTENT_PATH}`]));
     await assert.rejects(prepareAcceptedCommit(updated), /rollback target|verification differs/u);
     await assert.rejects(prepareAcceptedCommit({ ...updated, rollbackCheckpoint: { ...rollbackCheckpoint } }), /not a capability/u);
-  });
+  }, contentVersion);
 });
 
-async function migrationFixture(callback) {
+async function migrationFixture(callback, contentVersion = "3.0.0") {
   await fixture(async (f) => {
     const first = await prepareAcceptedCommit(f.options); await install(f.root, first);
     await git(f.root, ["switch", "-c", "feat/reviewed-migration"]);
     await put(f.root, "scripts/lib/kg-build.mjs", "export const generator = 2;\n");
     const proposalCommit = await commit(f.root), checkpoint = await f.load(first.commit);
-    const value = await proposal(f.root, checkpoint, f.sourceCommit, "migrated", proposalCommit);
+    const value = await proposal(f.root, checkpoint, f.sourceCommit, "migrated", proposalCommit, contentVersion);
     const options = { ...value, proposalCommit, proposalRef: "refs/heads/feat/reviewed-migration" };
     await callback({ ...f, first, options });
   });
 }
 
-test("reviewed migration prepares coherent code/data on the proposal branch and never authorizes main CAS", async () => {
+for (const contentVersion of ["3.0.0", "4.0.0"]) test(`reviewed ${contentVersion} migration prepares coherent code/data on the proposal branch and never authorizes main CAS`, async () => {
   await migrationFixture(async ({ root, first, options, load }) => {
     const before = await snapshot(root);
     const prepared = await prepareReviewedMigrationCommit(options);
@@ -367,7 +378,36 @@ test("reviewed migration prepares coherent code/data on the proposal branch and 
     const accepted = await readVerifiedAcceptedCheckpoint(await load(merged));
     assert.equal(accepted.manifest.codeCommit, options.proposalCommit); assert.equal(accepted.manifest.predecessor.commit, first.commit);
     assert.equal(accepted.manifest.releaseId, prepared.releaseId);
+    assert.equal(accepted.manifest.versions.candidate, contentVersion);
     for (const [path, content] of options.acceptedFiles) assert.deepEqual(accepted.files.get(path), content);
+  }, contentVersion);
+});
+
+test("v4 continuation prepares and reloads the exact recorded-content output", async () => {
+  await fixture(async ({ root, options, sourceCommit, load }) => {
+    const first = await prepareAcceptedCommit(options); await install(root, first);
+    const next = await proposal(root, await load(first.commit), sourceCommit, "continued");
+    const missing = new Map(next.acceptedFiles); missing.delete(NEWS_CONTENT_PATH);
+    await assert.rejects(prepareAcceptedCommit({ ...next, acceptedFiles: missing }), /accepted output bytes differ/u);
+    const prepared = await prepareAcceptedCommit(next); await install(root, prepared);
+    const accepted = await readVerifiedAcceptedCheckpoint(await load(prepared.commit));
+    assert.equal(accepted.manifest.versions.candidate, "4.0.0");
+    assert.deepEqual(accepted.files.get(NEWS_CONTENT_PATH), next.acceptedFiles.get(NEWS_CONTENT_PATH));
+  }, "4.0.0");
+});
+
+test("ordinary and reviewed migration preparation reject every unsupported content protocol", async () => {
+  await fixture(async ({ options }) => {
+    for (const candidate of ["2.0.0", "5.0.0", undefined]) {
+      const candidateManifest = clone(options.candidateManifest); candidateManifest.versions.candidate = candidate;
+      await assert.rejects(prepareAcceptedCommit({ ...options, candidateManifest }), /verification differs from trusted checkpoint/u);
+    }
+  });
+  await migrationFixture(async ({ options }) => {
+    for (const candidate of ["2.0.0", "5.0.0", undefined]) {
+      const candidateManifest = clone(options.candidateManifest); candidateManifest.versions.candidate = candidate;
+      await assert.rejects(prepareReviewedMigrationCommit({ ...options, candidateManifest }), /migration verification differs/u);
+    }
   });
 });
 

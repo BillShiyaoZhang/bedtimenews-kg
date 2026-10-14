@@ -9,7 +9,7 @@ import { createReleaseGitTransport } from "./lib/release-runtime.mjs";
 import { RELEASE_NODE_VERSION } from "./lib/release-sync.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const args = process.argv.slice(2); const prefixes = ["--source=", "--source-review=", "--output="];
+const args = process.argv.slice(2); const prefixes = ["--source=", "--source-review=", "--output=", "--content-protocol=", "--generated-at="];
 if (args.some((arg) => !prefixes.some((prefix) => arg.startsWith(prefix)))) throw new Error("Usage: kg:release:migration:preview [--source=path] [--source-review=path] [--output=work/file.json]");
 const option = (name) => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const runtime = new Intl.DateTimeFormat().resolvedOptions();
@@ -25,7 +25,7 @@ const store = createGitHubReleaseStore({ owner, repo, token: process.env.GH_TOKE
 const commit = await createReleaseGitTransport(root, { repository }).fetchMain();
 const checkpoint = await loadAcceptedGitCheckpoint({ root, repository, commit });
 const { previewAcceptedMigration } = await import("./lib/accepted-candidate.mjs");
-const preview = await previewAcceptedMigration(root, { checkpoint, store, ...(option("source") ? { source: option("source") } : {}), ...(option("source-review") ? { sourceReview: option("source-review") } : {}) });
+const preview = await previewAcceptedMigration(root, { checkpoint, store, ...(option("source") ? { source: option("source") } : {}), ...(option("source-review") ? { sourceReview: option("source-review") } : {}), ...(option("content-protocol") ? { contentProtocol: option("content-protocol") } : {}), ...(option("generated-at") ? { generatedAt: option("generated-at") } : {}) });
 const output = resolve(root, option("output") ?? "work/migration-preview.json");
 if (!output.startsWith(`${resolve(root, "work")}${sep}`) || !output.endsWith(".json")) throw new Error("Preview output must be a JSON file inside ignored work/");
 await mkdir(dirname(output), { recursive: true }); await writeFile(output, `${canonicalJson(preview)}\n`);
