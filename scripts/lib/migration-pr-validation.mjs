@@ -12,12 +12,12 @@ import { candidateRuntimeBinding } from "./candidate-run.mjs";
 import { compileOntologyFiles } from "./ontology-compiler.mjs";
 import { validate } from "./validate.mjs";
 import { validateNewsDataset, validateKnowledgeBaseNewsProjection } from "./news.mjs";
+import { acceptedBundleNames, contentVersionFromFiles } from "./accepted-content-protocol.mjs";
 
 const execFile = promisify(execFileCallback);
 const COMMIT = /^[a-f0-9]{40}$/u;
 const RECEIPT = "data/accepted-release.json";
 const SOURCE = "sources/bedtimenews-archive-contents";
-const ARTIFACTS = ["diff.json", "kg.json", "lifecycle.json.gz", "manifest.json", "news.json", "provenance.json.gz", "source-review.json"];
 const MAX_FILE = 128 * 1024 * 1024;
 const MAX_BUNDLE = 129 * 1024 * 1024;
 const equal = (a, b) => canonicalJson(a) === canonicalJson(b);
@@ -86,6 +86,7 @@ export async function validateMigrationRendering(root, receipt) {
 async function materializeAudit(directory, receipt, store) {
   must(store && typeof store.readBundle === "function", "read-only audit access is required; a receipt is not acceptance authority");
   const downloaded = await store.readBundle({ receipt: structuredClone(receipt) });
+  const ARTIFACTS = acceptedBundleNames(contentVersionFromFiles(Object.keys(receipt.assets)));
   must(downloaded?.files instanceof Map && equal([...downloaded.files.keys()].sort(), ARTIFACTS), "audit read-back has missing or unexpected artifact filenames");
   await mkdir(directory); let total = 0;
   for (const name of ARTIFACTS) {

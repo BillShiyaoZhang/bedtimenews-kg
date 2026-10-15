@@ -10,7 +10,9 @@ import { createSnapshotSplitStore, discoverSnapshotArtifacts, SNAPSHOT_FILES, sn
 import { downloadAuditSnapshot } from "../scripts/lib/download-audit-snapshot.mjs";
 import { createHash } from "node:crypto";
 import { createSnapshotReadClient } from "../scripts/lib/audit-snapshot-http.mjs";
-const execFile = promisify(callback);
+import { acceptedBundleNames } from "../scripts/lib/accepted-content-protocol.mjs";
+const nativeExecFile = promisify(callback);
+const execFile = (command, args, options) => nativeExecFile(command === "python3" && process.platform === "win32" ? "python" : command, args, options);
 const encode = (value) => Buffer.from(`${canonicalJson(value)}\n`);
 const baseCommit = "a".repeat(40), proposalCommit = "b".repeat(40);
 const policy = { repository: "fixture/repo", actor: { id: 1, login: "maintainer" }, workflowPath: ".github/workflows/audit-snapshot.yml", maximumPages: 2, maximumArchiveBytes: 135266304 };
@@ -38,16 +40,16 @@ test("split store recognizes only exact candidate and predecessor, without fallb
   assert.equal(published, 0);
   assert.equal(await store.readBundle({ receipt: predecessorReceipt }), "history");
 });
-async function fixture(callback) {
+async function fixture(callback, contentVersion = "3.0.0") {
   const directory = await mkdtemp(resolve(tmpdir(), "snapshot-test-"));
   try {
     const migrationReview = { kind: "semantic-migration", reason: "Reviewed fixture" };
-    const files = Object.fromEntries(SNAPSHOT_FILES.filter((n) => n !== "manifest.json").map((n) => [n, Buffer.from("null\n")]));
+    const files = Object.fromEntries(acceptedBundleNames(contentVersion).filter((n) => n !== "manifest.json").map((n) => [n, Buffer.from("null\n")]));
     const binding = (b) => ({ bytes: b.length, sha256: sha256(b) });
-    const payload = { schemaVersion: 1, kind: "offline-candidate", artifacts: Object.fromEntries(Object.entries(files).map(([n,b]) => [n,binding(b)])), inputs: { reviewProposal: { commit: proposalCommit }, recipe: { archiveCommit: "e".repeat(40), generatedAt: "2026-01-01T00:00:00Z" }, transition: { review: migrationReview } } };
+    const payload = { schemaVersion: 1, kind: "offline-candidate", versions: { candidate: contentVersion }, artifacts: Object.fromEntries(Object.entries(files).map(([n,b]) => [n,binding(b)])), inputs: { reviewProposal: { commit: proposalCommit }, recipe: { archiveCommit: "e".repeat(40), generatedAt: "2026-01-01T00:00:00Z" }, transition: { review: migrationReview } } };
     const bundleId = sha256(canonicalJson(payload)); files["manifest.json"] = encode({ ...payload, bundleId });
     const bindings = Object.fromEntries(Object.entries(files).map(([n,b]) => [n,binding(b)]));
-    const plan = { schemaVersion: 1, kind: "reviewed-audit-production-plan", repository: policy.repository, expectedMain: baseCommit, proposalCommit, proposalRef: "refs/heads/review/fixture", sourceCommit: "e".repeat(40), bundleId, storageApproved: true, actor: policy.actor, reason: "Reviewed fixture", reviewedAt: "2026-01-01T00:00:00.000Z", generatedAt: "2026-01-01T00:00:00Z", runtime: { node: "22.23.2", npm: "10.9.9", locale: "en-US", timeZone: "UTC" }, migrationReview, migrationReviewSha256: sha256(encode(migrationReview)), files: bindings };
+    const plan = { schemaVersion: contentVersion === "4.0.0" ? 2 : 1, kind: "reviewed-audit-production-plan", repository: policy.repository, expectedMain: baseCommit, proposalCommit, proposalRef: "refs/heads/review/fixture", sourceCommit: "e".repeat(40), bundleId, storageApproved: true, actor: policy.actor, reason: "Reviewed fixture", reviewedAt: "2026-01-01T00:00:00.000Z", generatedAt: "2026-01-01T00:00:00Z", runtime: { node: "22.23.2", npm: "10.9.9", locale: "en-US", timeZone: "UTC" }, migrationReview, migrationReviewSha256: sha256(encode(migrationReview)), files: bindings };
     const receipt = { repository: policy.repository, bundleId, targetCommit: proposalCommit, readbackVerified: true, visibilityAtReadback: "draft", assets: bindings, manifestSha256: bindings["manifest.json"].sha256 };
     const snapshot = { schemaVersion: 1, kind: "verified-audit-snapshot", operation: "produce", verification: null, plan, planCommit: "f".repeat(40), planSha256: sha256(encode(plan)), receipt, producer: snapshotProducer(run) };
     for (const [n,b] of Object.entries(files)) await writeFile(resolve(directory,n),b);
@@ -64,10 +66,32 @@ test("snapshot binds approved Git plan bytes and exact producer", async () => {
     await assert.rejects(validateSnapshotDirectory(options), /unsafe|differs/u);
   });
 });
-for (const type of ["symlink","hardlink"]) test(`snapshot rejects ${type} before reading`, async () => {
+test("v4 snapshots require the new exact content inventory and approved plan protocol", async () => {
+  await fixture(async (options) => {
+    const accepted = await validateSnapshotDirectory(options);
+    assert.equal(accepted.plan.schemaVersion, 2);
+    assert.ok(accepted.receipt.assets["news-content.json.gz"]);
+    const wrong = structuredClone(accepted); wrong.plan.schemaVersion = 1;
+    await writeFile(resolve(options.directory, "snapshot.json"), encode(wrong));
+    await assert.rejects(validateSnapshotDirectory({ ...options, approvedPlanBytes: encode(wrong.plan) }), /exact versioned|protocol/u);
+  }, "4.0.0");
+});
+for (const type of ["symlink","hardlink"]) test(`snapshot rejects ${type} before reading`, async (t) => {
   await fixture(async (options) => {
     const path = resolve(options.directory,"news.json"); await rm(path);
-    await (type === "symlink" ? symlink : link)(resolve(options.directory,"kg.json"),path);
+    if (type === "symlink") {
+      try {
+        await symlink(resolve(options.directory,"kg.json"),path,"file");
+      } catch (error) {
+        if (process.platform === "win32" && ["EPERM","EACCES"].includes(error.code)) {
+          t.skip("Host does not permit file-symlink creation; hard-link and symbolic ZIP rejection remain enabled");
+          return;
+        }
+        throw error;
+      }
+    } else {
+      await link(resolve(options.directory,"kg.json"),path);
+    }
     await assert.rejects(validateSnapshotDirectory(options), /unsafe/u);
   });
 });
@@ -85,11 +109,11 @@ test("archive GET strips credentials on redirect and checks digest", async () =>
 test("safe extraction rejects traversal, duplicate and symbolic ZIP entries", async () => {
   const directory = await mkdtemp(resolve(tmpdir(),"zip-snapshot-test-"));
   try {
-    for (const variant of ["valid","traversal","duplicate","symlink"]) {
+    for (const variant of ["valid","valid-v4","traversal","duplicate","symlink"]) {
       const archive = resolve(directory,`${variant}.zip`), destination = resolve(directory,variant);
-      await execFile("python3",["-c",`import zipfile,sys\nnames=${JSON.stringify([...SNAPSHOT_FILES,"snapshot.json"])}\nwith zipfile.ZipFile(sys.argv[1],"w") as z:\n for name in names:\n  info=zipfile.ZipInfo("../news.json" if sys.argv[2]=="traversal" and name=="news.json" else name)\n  if sys.argv[2]=="symlink" and name=="news.json": info.external_attr=0o120777<<16\n  z.writestr(info,b"null\\n")\n if sys.argv[2]=="duplicate": z.writestr("news.json",b"null\\n")`,archive,variant]);
+      await execFile("python3",["-c",`import zipfile,sys\nnames=${JSON.stringify([...(variant === "valid-v4" ? acceptedBundleNames("4.0.0") : SNAPSHOT_FILES),"snapshot.json"])}\nwith zipfile.ZipFile(sys.argv[1],"w") as z:\n for name in names:\n  info=zipfile.ZipInfo("../news.json" if sys.argv[2]=="traversal" and name=="news.json" else name)\n  if sys.argv[2]=="symlink" and name=="news.json": info.external_attr=0o120777<<16\n  z.writestr(info,b"null\\n")\n if sys.argv[2]=="duplicate": z.writestr("news.json",b"null\\n")`,archive,variant]);
       const extraction = execFile("python3",["-I",resolve("scripts/extract-audit-snapshot.py"),archive,destination]);
-      if (variant === "valid") await extraction; else await assert.rejects(extraction);
+      if (variant.startsWith("valid")) await extraction; else await assert.rejects(extraction);
     }
   } finally { await rm(directory,{recursive:true,force:true}); }
 });
@@ -124,7 +148,7 @@ test("approved producer artifact downloads through plan Git binding into a stric
 test("infrastructure bootstrap skips only when exact receipt bytes are unchanged",async()=>{
   const root=await mkdtemp(resolve(tmpdir(),"audit-bootstrap-"));
   try {
-    const workflow=await readFile(resolve(".github/workflows/validate.yml"),"utf8");
+    const workflow=(await readFile(resolve(".github/workflows/validate.yml"),"utf8")).replaceAll("\r\n", "\n");
     const code=workflow.split("node --input-type=module <<'NODE'\n")[1].split("          NODE")[0].split("\n").map((line)=>line.slice(10)).join("\n");
     const git=async(...args)=>(await execFile("git",args,{cwd:root})).stdout.trim();
     await git("init","-q");await mkdir(resolve(root,"data"));await writeFile(resolve(root,"data/accepted-release.json"),"{}\n");

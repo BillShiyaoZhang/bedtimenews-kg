@@ -619,7 +619,7 @@ export function validateKnowledgeBase(
   return issues;
 }
 
-export function formatEventDate(event: Event) {
+export function formatEventDate(event: Pick<Event, "date" | "datePrecision">) {
   if (event.datePrecision === "year") return event.date.slice(0, 4);
   if (event.datePrecision === "month") {
     const [year, month] = event.date.split("-");

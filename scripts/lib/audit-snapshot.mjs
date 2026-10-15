@@ -2,8 +2,15 @@ import { lstat, open, readdir, realpath } from "node:fs/promises";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { constants } from "node:fs";
 import { resolve } from "node:path";
+import { acceptedBundleNames, contentVersionFromFiles } from "./accepted-content-protocol.mjs";
 
-export const SNAPSHOT_FILES = Object.freeze(["diff.json", "kg.json", "lifecycle.json.gz", "manifest.json", "news.json", "provenance.json.gz", "source-review.json"]);
+export const SNAPSHOT_FILES = Object.freeze(acceptedBundleNames("3.0.0"));
+export const snapshotFilesForReceipt = (receipt) => acceptedBundleNames(contentVersionFromFiles(Object.keys(receipt.assets ?? {})));
+export const snapshotFilesForPlan = (plan) => {
+  if (plan.schemaVersion === 1) return acceptedBundleNames("3.0.0");
+  if (plan.schemaVersion === 2) return acceptedBundleNames("4.0.0");
+  throw new Error("Audit snapshot: unsupported production plan");
+};
 const SHA = /^[a-f0-9]{40}$/u, HASH = /^[a-f0-9]{64}$/u;
 const same = (a, b) => canonicalJson(a) === canonicalJson(b);
 const must = (value, message) => { if (!value) throw new Error(`Audit snapshot: ${message}`); };
@@ -38,7 +45,7 @@ export const snapshotName = (bundleId) => { must(HASH.test(bundleId), "invalid b
 
 export function validateProductionPlan(plan, { policy, baseCommit }) {
   must(plan && same(Object.keys(plan).sort(), ["actor", "bundleId", "expectedMain", "files", "generatedAt", "kind", "migrationReview", "migrationReviewSha256", "proposalCommit", "proposalRef", "reason", "repository", "reviewedAt", "runtime", "schemaVersion", "sourceCommit", "storageApproved"]), "unexpected production plan fields");
-  must(plan?.schemaVersion === 1 && plan.kind === "reviewed-audit-production-plan", "unsupported production plan");
+  must([1, 2].includes(plan?.schemaVersion) && plan.kind === "reviewed-audit-production-plan", "unsupported production plan");
   must(plan.repository === policy.repository && plan.expectedMain === baseCommit && SHA.test(baseCommit)
     && SHA.test(plan.proposalCommit) && SHA.test(plan.sourceCommit) && HASH.test(plan.bundleId)
     && /^refs\/heads\/[A-Za-z0-9_/-]+$/u.test(plan.proposalRef) && plan.proposalRef !== "refs/heads/main", "plan identities differ");
@@ -49,7 +56,7 @@ export function validateProductionPlan(plan, { policy, baseCommit }) {
   must(typeof plan.generatedAt === "string" && Number.isFinite(Date.parse(plan.generatedAt)), "invalid recipe time");
   must(plan.migrationReview?.kind === "semantic-migration" && HASH.test(plan.migrationReviewSha256)
     && sha256(`${canonicalJson(plan.migrationReview)}\n`) === plan.migrationReviewSha256, "review bytes differ");
-  must(same(Object.keys(plan.files ?? {}).sort(), SNAPSHOT_FILES), "plan must bind all seven files");
+  must(same(Object.keys(plan.files ?? {}).sort(), snapshotFilesForPlan(plan)), "plan must bind the exact versioned bundle files");
   let total = 0;
   for (const [name, binding] of Object.entries(plan.files)) {
     must(same(Object.keys(binding).sort(), ["bytes", "sha256"]) && HASH.test(binding.sha256)
@@ -98,19 +105,21 @@ export async function discoverSnapshotArtifacts({ api, policy, baseCommit, recei
 
 export async function validateSnapshotDirectory({ directory, policy, baseCommit, receipt, producer, approvedPlanBytes }) {
   directory = resolve(directory);
+  const filesForReceipt = snapshotFilesForReceipt(receipt);
   must(await realpath(directory) === directory, "snapshot directory is redirected");
-  for (const name of [...SNAPSHOT_FILES, "snapshot.json"]) {
+  for (const name of [...filesForReceipt, "snapshot.json"]) {
     const stat = await lstat(`${directory}/${name}`);
     must(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1
       && stat.size <= (name === "snapshot.json" ? 128 * 1024 : receipt.assets[name]?.bytes), "unsafe snapshot file");
   }
-  must(same((await readdir(directory)).sort(), [...SNAPSHOT_FILES, "snapshot.json"].sort()), "unexpected snapshot file");
+  must(same((await readdir(directory)).sort(), [...filesForReceipt, "snapshot.json"].sort()), "unexpected snapshot file");
   const bytes = await boundedFile(`${directory}/snapshot.json`, 128 * 1024);
   must(bytes.length <= 128 * 1024, "snapshot metadata exceeds bound");
   const snapshot = JSON.parse(bytes);
   must(bytes.equals(Buffer.from(`${canonicalJson(snapshot)}\n`)) && snapshot.schemaVersion === 1 && snapshot.kind === "verified-audit-snapshot", "noncanonical snapshot");
   must(same(Object.keys(snapshot).sort(), ["kind", "operation", "plan", "planCommit", "planSha256", "producer", "receipt", "schemaVersion", "verification"]), "unexpected snapshot fields");
   validateProductionPlan(snapshot.plan, { policy, baseCommit });
+  must(same(filesForReceipt, snapshotFilesForPlan(snapshot.plan)), "receipt protocol differs from approved plan");
   must(Buffer.isBuffer(approvedPlanBytes) && approvedPlanBytes.equals(Buffer.from(`${canonicalJson(snapshot.plan)}\n`)), "snapshot plan differs from approved Git bytes");
   must(SHA.test(snapshot.planCommit) && HASH.test(snapshot.planSha256)
     && sha256(`${canonicalJson(snapshot.plan)}\n`) === snapshot.planSha256, "plan hash differs");
@@ -125,12 +134,12 @@ export async function validateSnapshotDirectory({ directory, policy, baseCommit,
       && verification.baseCommit === baseCommit && verification.liveReceiptVerified === true && verification.semanticReplayVerified === false
       && verification.receiptSha256 === sha256(canonicalJson(receipt)), "final live verification evidence differs");
   }
-  for (const name of SNAPSHOT_FILES) must(receipt.assets[name]?.bytes === snapshot.plan.files[name].bytes
+  for (const name of filesForReceipt) must(receipt.assets[name]?.bytes === snapshot.plan.files[name].bytes
     && receipt.assets[name]?.sha256 === snapshot.plan.files[name].sha256, "receipt/plan bytes differ");
-  // Seven data files are exposed through a separate view by the caller; read
+  // Exact versioned data files are exposed through a separate view; read
   // them here without admitting snapshot.json as part of the audit manifest.
   const files = new Map();
-  for (const name of SNAPSHOT_FILES) {
+  for (const name of filesForReceipt) {
     const content = await boundedFile(`${directory}/${name}`, receipt.assets[name].bytes);
     must(content.length === receipt.assets[name].bytes && sha256(content) === receipt.assets[name].sha256, "snapshot payload differs");
     files.set(name, content);
@@ -138,9 +147,10 @@ export async function validateSnapshotDirectory({ directory, policy, baseCommit,
   const manifest = JSON.parse(files.get("manifest.json")); const { bundleId, ...payload } = manifest;
   must(files.get("manifest.json").equals(Buffer.from(`${canonicalJson(manifest)}\n`)) && bundleId === receipt.bundleId
     && manifest.schemaVersion === 1 && manifest.kind === "offline-candidate"
-    && same(Object.keys(manifest.artifacts).sort(), SNAPSHOT_FILES.filter((name) => name !== "manifest.json"))
+    && same(acceptedBundleNames(manifest.versions.candidate), filesForReceipt)
+    && same(Object.keys(manifest.artifacts).sort(), filesForReceipt.filter((name) => name !== "manifest.json"))
     && sha256(canonicalJson(payload)) === bundleId && sha256(files.get("manifest.json")) === receipt.manifestSha256, "manifest identity differs");
-  for (const name of SNAPSHOT_FILES.filter((name) => name !== "manifest.json")) must(same(manifest.artifacts[name], snapshot.plan.files[name]), "manifest file binding differs");
+  for (const name of filesForReceipt.filter((name) => name !== "manifest.json")) must(same(manifest.artifacts[name], snapshot.plan.files[name]), "manifest file binding differs");
   must(manifest.inputs.reviewProposal.commit === snapshot.plan.proposalCommit && manifest.inputs.recipe.archiveCommit === snapshot.plan.sourceCommit
     && manifest.inputs.recipe.generatedAt === snapshot.plan.generatedAt
     && same(manifest.inputs.transition.review, snapshot.plan.migrationReview), "manifest proposal/recipe differs");

@@ -1,6 +1,6 @@
 import { execFile as execFileCallback } from "node:child_process";
 import { lstat, realpath } from "node:fs/promises";
-import { resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import { promisify } from "node:util";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { createAuthenticatedGitReader } from "./git-object-integrity.mjs";
@@ -35,7 +35,8 @@ const gitText = async (root, args) => decode((await git(root, args)).bytes).trim
 async function assertRoot(root, repository) {
   must(typeof repository === "string" && REPOSITORY.test(repository), "explicit owner/repo is required");
   must(await realpath(root) === root && (await lstat(root)).isDirectory(), "repository root or ancestor is unsafe");
-  must(await gitText(root, ["rev-parse", "--show-toplevel"]) === root, "root must be the exact Git worktree root");
+  const top = await gitText(root, ["rev-parse", "--show-toplevel"]);
+  must(isAbsolute(top) && resolve(top) === root, "root must be the exact Git worktree root");
   const remote = await gitText(root, ["config", "--get", "remote.origin.url"]);
   must([`https://github.com/${repository}`, `https://github.com/${repository}.git`, `git@github.com:${repository}.git`].includes(remote), "origin does not identify the explicit GitHub repository");
 }

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { canonicalJson } from "./candidate-bundle.mjs";
-import { discoverSnapshotArtifacts, readSnapshotMetadata, SNAPSHOT_FILES, snapshotProducer, validateSnapshotDirectory } from "./audit-snapshot.mjs";
+import { discoverSnapshotArtifacts, readSnapshotMetadata, snapshotFilesForReceipt, snapshotProducer, validateSnapshotDirectory } from "./audit-snapshot.mjs";
 import { createOfflineCheckpointStore } from "./offline-checkpoint-store.mjs";
 
 const execFile = promisify(callback);
@@ -37,7 +37,7 @@ export async function downloadAuditSnapshot({ client, policy, baseCommit, receip
     for (const { artifact, run } of candidates) {
       const archive = resolve(temporary, `${artifact.id}.zip`), directory = resolve(temporary, `${artifact.id}`);
       await writeFile(archive, await client.download(artifact, policy.maximumArchiveBytes), { flag: "wx", mode: 0o600 });
-      await execFile("python3", ["-I", resolve(import.meta.dirname, "../extract-audit-snapshot.py"), archive, directory], { maxBuffer: 1024 });
+      await execFile(process.platform === "win32" ? "python" : "python3", ["-I", resolve(import.meta.dirname, "../extract-audit-snapshot.py"), archive, directory], { maxBuffer: 1024 });
       const metadata = await readSnapshotMetadata(directory);
       const snapshot = await validateSnapshotDirectory({ directory, policy, baseCommit, receipt, producer: snapshotProducer(run),
         approvedPlanBytes: await readApprovedProductionPlan(client.api, metadata.planCommit) });
@@ -47,7 +47,7 @@ export async function downloadAuditSnapshot({ client, policy, baseCommit, receip
     }
     must(selected);
     await mkdir(outputDirectory); // Refuse reuse after partial/uncertain work.
-    for (const name of SNAPSHOT_FILES) await writeFile(resolve(outputDirectory, name), await readFile(resolve(selected.directory, name)), { flag: "wx", mode: 0o600 });
+    for (const name of snapshotFilesForReceipt(receipt)) await writeFile(resolve(outputDirectory, name), await readFile(resolve(selected.directory, name)), { flag: "wx", mode: 0o600 });
     await createOfflineCheckpointStore({ directory: outputDirectory, receipt }).readBundle({ receipt });
     return { artifactId: selected.artifactId, runId: selected.runId, planCommit: selected.snapshot.planCommit, snapshotVerified: true, liveReleaseVerified: false };
   } finally { await rm(temporary, { recursive: true, force: true }); }

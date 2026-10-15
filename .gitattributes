@@ -1,0 +1,6 @@
+# Accepted artifact and generator bindings hash exact bytes. Keep the same
+# canonical LF bytes in Windows checkouts and committed Git objects.
+data/**/*.json text eol=lf
+scripts/**/*.mjs text eol=lf
+scripts/**/*.sh text eol=lf
+app/lib/**/*.mjs text eol=lf

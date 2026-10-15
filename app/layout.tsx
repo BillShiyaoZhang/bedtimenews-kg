@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./reading.css";
+import { ReaderProvider } from "./components/reader-provider";
+import manifest from "./lib/reading-manifest.generated.json";
 
 const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
@@ -43,7 +46,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "light",
-  themeColor: "#f3efe5",
+  themeColor: "#f6f8fb",
 };
 
 export default function RootLayout({
@@ -53,7 +56,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body><ReaderProvider catalogUrl={manifest.catalogUrl}>{children}</ReaderProvider></body>
     </html>
   );
 }

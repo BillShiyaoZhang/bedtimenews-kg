@@ -1,12 +1,13 @@
 import { execFile as execFileCallback } from "node:child_process";
 import { lstat, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import { promisify } from "node:util";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { createAuthenticatedGitReader } from "./git-object-integrity.mjs";
 import { readVerifiedAcceptedCheckpoint } from "./accepted-git.mjs";
-import { ACCEPTED_CANDIDATE_VERSION, candidateVerificationBinding, candidateProposalBinding } from "./accepted-candidate.mjs";
+import { candidateVerificationBinding, candidateProposalBinding } from "./accepted-candidate.mjs";
+import { ACCEPTED_CONTENT_VERSIONS } from "./accepted-content-protocol.mjs";
 import { ALLOWED_ACCEPTED_PATHS, createAcceptedRelease, validateAcceptedReleaseFiles, validateAcceptedReleaseStructure } from "./accepted-release.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -37,7 +38,8 @@ async function git(root, args, extra = {}) {
 const gitText = async (root, args, extra) => decode(await git(root, args, extra)).trim();
 async function assertRoot(root, repository) {
   must(typeof root === "string" && await realpath(root) === root && (await lstat(root)).isDirectory(), "unsafe repository root");
-  must(await gitText(root, ["rev-parse", "--show-toplevel"]) === root, "root must be the exact Git worktree root");
+  const top = await gitText(root, ["rev-parse", "--show-toplevel"]);
+  must(isAbsolute(top) && resolve(top) === root, "root must be the exact Git worktree root");
   must(typeof repository === "string" && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repository), "explicit repository is required");
   const remote = await gitText(root, ["config", "--get", "remote.origin.url"]);
   must([`https://github.com/${repository}`, `https://github.com/${repository}.git`, `git@github.com:${repository}.git`].includes(remote), "origin differs from checkpoint repository");
@@ -155,7 +157,7 @@ export async function prepareAcceptedCommit({ root, checkpoint: capability, mani
   const rollback = rollbackCheckpoint ? await readVerifiedAcceptedCheckpoint(rollbackCheckpoint) : null;
   if (rollback) must(rollback.repository === checkpoint.repository && rollback.manifest && rollback.allowAncestor === true && rollback.mainCommit === checkpoint.commit, "rollback target must be an accepted ancestor checkpoint pinned to this exact main");
   const verification = candidateVerificationBinding(checkpoint, { rollbackTarget: rollback });
-  must(candidateManifest?.versions?.candidate === ACCEPTED_CANDIDATE_VERSION && equal(candidateManifest.inputs?.verification, verification), "candidate verification differs from trusted checkpoint");
+  must(ACCEPTED_CONTENT_VERSIONS.includes(candidateManifest?.versions?.candidate) && equal(candidateManifest.inputs?.verification, verification), "candidate verification differs from trusted checkpoint");
   const reconstructed = createAcceptedRelease({ candidateManifest, lifecycle, acceptedFiles: files,
     origin: { commit: checkpoint.origin.commit, bindings: checkpoint.origin.bindings }, predecessor: reference(checkpoint),
     codeCommit: checkpoint.commit, sourceCommit: manifest.source.commit, auditReceipt: manifest.auditReceipt,
@@ -236,7 +238,7 @@ export async function prepareReviewedMigrationCommit({ root, checkpoint: capabil
   const manifest = clone(suppliedManifest), files = copyFiles(acceptedFiles);
   must(manifest.mode === "migration" && manifest.codeCommit === proposalCommit, "PR preparation requires an exact reviewed migration and proposed code ancestor");
   must(equal(candidateManifest.inputs?.reviewProposal, candidateProposalBinding(proposalCommit)), "candidate must bind the exact proposal code commit into its bundle identity");
-  must(candidateManifest?.versions?.candidate === ACCEPTED_CANDIDATE_VERSION && equal(candidateManifest.inputs?.verification, candidateVerificationBinding(checkpoint)), "migration verification differs from accepted main checkpoint");
+  must(ACCEPTED_CONTENT_VERSIONS.includes(candidateManifest?.versions?.candidate) && equal(candidateManifest.inputs?.verification, candidateVerificationBinding(checkpoint)), "migration verification differs from accepted main checkpoint");
   validateAcceptedReleaseFiles(manifest, files);
   const reconstructed = createAcceptedRelease({ candidateManifest, lifecycle, acceptedFiles: files,
     origin: { commit: checkpoint.origin.commit, bindings: checkpoint.origin.bindings }, predecessor: reference(checkpoint),

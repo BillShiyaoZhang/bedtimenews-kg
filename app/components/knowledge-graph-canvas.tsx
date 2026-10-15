@@ -1,358 +1,224 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { Event, KnowledgeBase, Ontology } from "../lib/kg";
-
-type GraphNode = {
-  id: string;
-  label: string;
-  kind: "entity" | "event";
-  type: string;
-  x: number;
-  y: number;
-  radius: number;
-};
-
-type GraphEdge = {
-  from: string;
-  to: string;
-  kind: "mention" | "relation";
-};
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import type { Ontology } from "../lib/kg";
+import { fitGraphViewport, zoomGraphViewport, type Exploration, type Viewport } from "../lib/graph-exploration.mjs";
 
 type KnowledgeGraphCanvasProps = {
-  kg: KnowledgeBase;
+  graph: Exploration;
   ontology: Ontology;
-  selectedEntityId: string;
-  selectedEventId: string;
   onSelectEntity: (id: string) => void;
-  onSelectEvent: (id: string) => void;
+  onSelectNews: (id: string) => void;
+  onViewportChange: (viewport: Viewport) => void;
 };
+const NODE_TARGET_PX = 48;
 
-const MAX_GRAPH_EVENTS = 18;
-const MAX_SUPPORTING_ENTITIES = 8;
-
-function sampleEvents(events: Event[], selectedEventId: string) {
-  if (events.length <= MAX_GRAPH_EVENTS) return events;
-  const sampled = Array.from({ length: MAX_GRAPH_EVENTS }, (_, index) => {
-    const position = Math.round(
-      (index * (events.length - 1)) / (MAX_GRAPH_EVENTS - 1),
-    );
-    return events[position];
-  });
-  const selected = events.find((event) => event.id === selectedEventId);
-  if (selected && !sampled.some((event) => event.id === selected.id)) {
-    sampled[MAX_GRAPH_EVENTS - 2] = selected;
-  }
-  return Array.from(new Map(sampled.map((event) => [event.id, event])).values())
-    .sort((left, right) => left.date.localeCompare(right.date));
-}
-
-export function KnowledgeGraphCanvas({
-  kg,
-  ontology,
-  selectedEntityId,
-  selectedEventId,
-  onSelectEntity,
-  onSelectEvent,
-}: KnowledgeGraphCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const nodesRef = useRef<GraphNode[]>([]);
-  const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
-
-  const graph = useMemo(() => {
-    const allEvents = kg.events
-      .filter((event) => event.entityIds.includes(selectedEntityId))
-      .sort((left, right) => left.date.localeCompare(right.date));
-    const events = sampleEvents(allEvents, selectedEventId);
-    const eventIds = new Set(events.map((event) => event.id));
-    const supportingCounts = new Map<string, number>();
-
-    for (const event of events) {
-      for (const entityId of event.entityIds) {
-        if (entityId !== selectedEntityId) {
-          supportingCounts.set(
-            entityId,
-            (supportingCounts.get(entityId) ?? 0) + 1,
-          );
-        }
-      }
+export function KnowledgeGraphCanvas({ graph, ontology, onSelectEntity, onSelectNews, onViewportChange }: KnowledgeGraphCanvasProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const drag = useRef<{ pointerId: number; x: number; y: number; clientX: number; clientY: number; moved: boolean; viewport: Viewport } | null>(null);
+  const suppressClick = useRef(false);
+  const [screenScale, setScreenScale] = useState({ x: 1, y: 1 });
+  const [hovered, setHovered] = useState("");
+  const byId = useMemo(() => new Map(graph.nodes.map((node) => [node.id, node])), [graph.nodes]);
+  const typeColors = useMemo(() => new Map([...ontology.entityTypes, ...ontology.eventTypes].map((type) => [type.id, type.color])), [ontology]);
+  const point = (event: { clientX: number; clientY: number }) => {
+    const svg = svgRef.current;
+    const matrix = svg?.getScreenCTM();
+    if (svg && matrix) {
+      const coordinate = svg.createSVGPoint();
+      coordinate.x = event.clientX;
+      coordinate.y = event.clientY;
+      return coordinate.matrixTransform(matrix.inverse());
     }
-
-    const supportingEntityIds = Array.from(supportingCounts)
-      .sort(
-        ([leftId, leftCount], [rightId, rightCount]) =>
-          rightCount - leftCount ||
-          (kg.entities.find((entity) => entity.id === leftId)?.label ?? "")
-            .localeCompare(
-              kg.entities.find((entity) => entity.id === rightId)?.label ?? "",
-              "zh-CN",
-            ),
-      )
-      .slice(0, MAX_SUPPORTING_ENTITIES)
-      .map(([id]) => id);
-
-    return {
-      allEventCount: allEvents.length,
-      events,
-      entities: kg.entities.filter(
-        (entity) =>
-          entity.id === selectedEntityId ||
-          supportingEntityIds.includes(entity.id),
-      ),
-      relations: kg.eventRelations.filter(
-        (relation) =>
-          eventIds.has(relation.from) && eventIds.has(relation.to),
-      ),
+    return { x: event.clientX, y: event.clientY };
+  };
+  useLayoutEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const measure = () => {
+      const matrix = svg.getScreenCTM();
+      if (!matrix || !svg.getBoundingClientRect().width) return;
+      const x = Math.hypot(matrix.a, matrix.b);
+      const y = Math.hypot(matrix.c, matrix.d);
+      if (x && y) setScreenScale((previous) => Math.abs(previous.x - x) < 1e-6 && Math.abs(previous.y - y) < 1e-6 ? previous : { x, y });
     };
-  }, [kg, selectedEntityId, selectedEventId]);
-
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(svg);
+    window.addEventListener("resize", measure);
+    return () => { observer.disconnect(); window.removeEventListener("resize", measure); };
+  }, []);
+  const hitWidth = NODE_TARGET_PX / (screenScale.x * graph.viewport.scale);
+  const hitHeight = NODE_TARGET_PX / (screenScale.y * graph.viewport.scale);
+  const selectNode = (node: Exploration["nodes"][number]) => {
+    if (node.kind === "entity") onSelectEntity(node.id);
+    else if (node.newsId) onSelectNews(node.newsId);
+  };
+  const nearestNode = (event: { clientX: number; clientY: number }) => {
+    const svg = svgRef.current;
+    const matrix = svg?.getScreenCTM();
+    if (!svg || !matrix) return undefined;
+    const rectangle = svg.getBoundingClientRect();
+    const bounds = { left: Math.max(0, rectangle.left), top: Math.max(0, rectangle.top), right: Math.min(window.innerWidth, rectangle.right), bottom: Math.min(window.innerHeight, rectangle.bottom) };
+    const coordinate = point(event);
+    const scale = graph.viewport.scale;
+    const x = (coordinate.x - graph.viewport.x) / scale;
+    const y = (coordinate.y - graph.viewport.y) / scale;
+    const halfWidth = NODE_TARGET_PX / (2 * Math.hypot(matrix.a, matrix.b) * scale);
+    const halfHeight = NODE_TARGET_PX / (2 * Math.hypot(matrix.c, matrix.d) * scale);
+    let nearest: Exploration["nodes"][number] | undefined;
+    let distance = Infinity;
+    for (const node of graph.nodes) {
+      const radius = node.id === graph.rootId ? 29 : 23;
+      const symbolX = node.kind === "entity" ? radius : 17;
+      const symbolY = node.kind === "entity" ? radius : 15;
+      const canvasX = graph.viewport.x + node.x * scale;
+      const canvasY = graph.viewport.y + node.y * scale;
+      const centerX = matrix.a * canvasX + matrix.c * canvasY + matrix.e;
+      const centerY = matrix.b * canvasX + matrix.d * canvasY + matrix.f;
+      const visibleX = scale * (Math.abs(matrix.a) * symbolX + Math.abs(matrix.c) * symbolY);
+      const visibleY = scale * (Math.abs(matrix.b) * symbolX + Math.abs(matrix.d) * symbolY);
+      if (centerX + visibleX < bounds.left || centerX - visibleX > bounds.right || centerY + visibleY < bounds.top || centerY - visibleY > bounds.bottom) continue;
+      const dx = x - node.x;
+      const dy = y - node.y;
+      const inTarget = Math.abs(dx) <= halfWidth && Math.abs(dy) <= halfHeight;
+      const inSymbol = node.kind === "entity" ? dx * dx + dy * dy <= radius * radius : Math.abs(dx) <= 17 && Math.abs(dy) <= 15;
+      if (!inTarget && !inSymbol) continue;
+      const nextDistance = (event.clientX - centerX) ** 2 + (event.clientY - centerY) ** 2;
+      if (nextDistance < distance || (nextDistance === distance && nearest && node.id < nearest.id)) { nearest = node; distance = nextDistance; }
+    }
+    return nearest;
+  };
+  const startDrag = (event: PointerEvent<SVGSVGElement>) => {
+    suppressClick.current = false;
+    if (event.button !== 0 || nearestNode(event)) return;
+    const coordinate = point(event);
+    drag.current = { pointerId: event.pointerId, x: coordinate.x, y: coordinate.y, clientX: event.clientX, clientY: event.clientY, moved: false, viewport: graph.viewport };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const stopDrag = (event: PointerEvent<SVGSVGElement>) => {
+    if (drag.current?.pointerId !== event.pointerId) return;
+    suppressClick.current = drag.current.moved;
+    drag.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const wrapper = wrapperRef.current;
-    if (!canvas || !wrapper) return;
-
-    const draw = () => {
-      const rect = wrapper.getBoundingClientRect();
-      const width = Math.max(320, rect.width);
-      const height = Math.max(480, rect.height);
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = width * ratio;
-      canvas.height = height * ratio;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-
-      const context = canvas.getContext("2d");
-      if (!context) return;
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      context.clearRect(0, 0, width, height);
-
-      const centerX = width / 2;
-      const centerY = height / 2;
-      const eventOrbitX = Math.min(width * 0.29, 240);
-      const eventOrbitY = Math.min(height * 0.29, 180);
-      const entityOrbitX = Math.min(width * 0.44, 355);
-      const entityOrbitY = Math.min(height * 0.41, 245);
-      const nodes: GraphNode[] = [];
-
-      const mainEntity = graph.entities.find(
-        (entity) => entity.id === selectedEntityId,
-      );
-      if (mainEntity) {
-        nodes.push({
-          id: mainEntity.id,
-          label: mainEntity.label,
-          kind: "entity",
-          type: mainEntity.type,
-          x: centerX,
-          y: centerY,
-          radius: 34,
-        });
-      }
-
-      graph.events.forEach((event, index) => {
-        const angle =
-          -Math.PI / 2 +
-          (Math.PI * 2 * index) / Math.max(graph.events.length, 1);
-        nodes.push({
-          id: event.id,
-          label: event.title,
-          kind: "event",
-          type: event.type,
-          x: centerX + Math.cos(angle) * eventOrbitX,
-          y: centerY + Math.sin(angle) * eventOrbitY,
-          radius: event.id === selectedEventId ? 25 : 19,
-        });
-      });
-
-      graph.entities
-        .filter((entity) => entity.id !== selectedEntityId)
-        .forEach((entity, index, entities) => {
-          const angle =
-            Math.PI / 8 +
-            (Math.PI * 2 * index) / Math.max(entities.length, 1);
-          nodes.push({
-            id: entity.id,
-            label: entity.label,
-            kind: "entity",
-            type: entity.type,
-            x: centerX + Math.cos(angle) * entityOrbitX,
-            y: centerY + Math.sin(angle) * entityOrbitY,
-            radius: 15,
-          });
-        });
-
-      const visibleNodeIds = new Set(nodes.map((node) => node.id));
-      const edges: GraphEdge[] = [];
-      graph.events.forEach((event) => {
-        edges.push({
-          from: selectedEntityId,
-          to: event.id,
-          kind: "mention",
-        });
-        event.entityIds
-          .filter(
-            (entityId) =>
-              entityId !== selectedEntityId &&
-              visibleNodeIds.has(entityId),
-          )
-          .forEach((entityId) => {
-            edges.push({ from: entityId, to: event.id, kind: "mention" });
-          });
-      });
-      graph.relations.forEach((relation) => {
-        edges.push({
-          from: relation.from,
-          to: relation.to,
-          kind: "relation",
-        });
-      });
-
-      context.lineCap = "round";
-      edges.forEach((edge) => {
-        const from = nodes.find((node) => node.id === edge.from);
-        const to = nodes.find((node) => node.id === edge.to);
-        if (!from || !to) return;
-        context.beginPath();
-        context.moveTo(from.x, from.y);
-        context.lineTo(to.x, to.y);
-        context.strokeStyle =
-          edge.kind === "relation"
-            ? "rgba(200, 115, 55, .72)"
-            : "rgba(36, 77, 60, .20)";
-        context.lineWidth = edge.kind === "relation" ? 2 : 1;
-        context.setLineDash(edge.kind === "relation" ? [] : [3, 5]);
-        context.stroke();
-      });
-      context.setLineDash([]);
-
-      nodes.forEach((node) => {
-        const typeColor =
-          node.kind === "event"
-            ? ontology.eventTypes.find((type) => type.id === node.type)?.color
-            : ontology.entityTypes.find((type) => type.id === node.type)?.color;
-        const color = typeColor ?? "#6a645b";
-        const selected =
-          node.id === selectedEntityId || node.id === selectedEventId;
-        const hovered = hoveredNode?.id === node.id;
-
-        context.beginPath();
-        context.arc(
-          node.x,
-          node.y,
-          node.radius + (hovered ? 3 : 0),
-          0,
-          Math.PI * 2,
-        );
-        context.fillStyle = selected ? color : `${color}e6`;
-        context.fill();
-        context.strokeStyle = selected ? "#fffdf8" : "rgba(255,255,255,.74)";
-        context.lineWidth = selected ? 4 : 2;
-        context.stroke();
-
-        context.fillStyle = "#17211d";
-        context.textAlign = "center";
-        context.textBaseline = "top";
-        context.font =
-          node.id === selectedEntityId
-            ? "700 13px system-ui, sans-serif"
-            : "600 10px system-ui, sans-serif";
-        const maxLength = node.kind === "event" ? 11 : 8;
-        const label =
-          node.label.length > maxLength
-            ? `${node.label.slice(0, maxLength)}…`
-            : node.label;
-        context.fillText(label, node.x, node.y + node.radius + 7);
-      });
-
-      nodesRef.current = nodes;
+    const svg = svgRef.current;
+    if (!svg) return;
+    const wheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      const coordinate = svg.createSVGPoint();
+      coordinate.x = event.clientX;
+      coordinate.y = event.clientY;
+      const matrix = svg.getScreenCTM();
+      const center = matrix ? coordinate.matrixTransform(matrix.inverse()) : { x: 450, y: 280 };
+      onViewportChange(zoomGraphViewport(graph.viewport, event.deltaY < 0 ? 1.1 : 1 / 1.1, center));
     };
-
-    draw();
-    window.addEventListener("resize", draw);
-    return () => window.removeEventListener("resize", draw);
-  }, [
-    graph,
-    hoveredNode?.id,
-    ontology,
-    selectedEntityId,
-    selectedEventId,
-  ]);
-
-  const nodeAtPoint = (event: {
-    currentTarget: HTMLCanvasElement;
-    clientX: number;
-    clientY: number;
-  }): GraphNode | null => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    return (
-      nodesRef.current.find(
-        (node) => Math.hypot(node.x - x, node.y - y) <= node.radius + 7,
-      ) ?? null
-    );
-  };
-
-  const selectNode = (node: GraphNode | null) => {
-    if (!node) return;
-    if (node.kind === "event") onSelectEvent(node.id);
-    else onSelectEntity(node.id);
-  };
+    // React's wheel listener is passive; this scoped listener also prevents
+    // the browser from zooming the whole page while the graph is manipulated.
+    svg.addEventListener("wheel", wheel, { passive: false });
+    return () => svg.removeEventListener("wheel", wheel);
+  }, [graph.viewport, onViewportChange]);
 
   return (
-    <div className="graph-canvas-wrap" ref={wrapperRef}>
-      <canvas
-        ref={canvasRef}
-        role="img"
-        aria-label={`以 ${
-          kg.entities.find((entity) => entity.id === selectedEntityId)?.label
-        } 为中心的知识图谱。共关联 ${graph.allEventCount} 条新闻，当前抽样展示 ${
-          graph.events.length
-        } 个新闻节点和 ${graph.entities.length} 个实体节点。`}
-        data-testid="knowledge-graph-canvas"
-        onPointerMove={(event) => {
-          const node = nodeAtPoint(event);
-          setHoveredNode((current) =>
-            current?.id === node?.id ? current : node,
-          );
-          event.currentTarget.style.cursor = node ? "pointer" : "default";
-        }}
-        onPointerLeave={() => setHoveredNode(null)}
-        onClick={(event) => selectNode(nodeAtPoint(event))}
-      />
-      <div className="graph-legend" aria-hidden="true">
-        <span>
-          <i className="legend-dot entity-dot" />
-          实体
-        </span>
-        <span>
-          <i className="legend-dot event-dot" />
-          新闻
-        </span>
-        <span>
-          <i className="legend-line relation-line" />
-          时序关系
-        </span>
+    <div className="graph-viewport">
+      <div className="graph-toolbar" aria-label="图谱视图操作">
+        <button type="button" onClick={() => onViewportChange(zoomGraphViewport(graph.viewport, 1.25))} aria-label="放大图谱">＋</button>
+        <button type="button" onClick={() => onViewportChange(zoomGraphViewport(graph.viewport, .8))} aria-label="缩小图谱">−</button>
+        <button type="button" onClick={() => onViewportChange(fitGraphViewport(graph.nodes))}>适应视图</button>
+        <span>{Math.round(graph.viewport.scale * 100)}%</span>
       </div>
-      {graph.allEventCount > graph.events.length ? (
-        <p className="graph-sample-note">
-          为保持可读性，按时间均匀抽样展示 {graph.events.length} /{" "}
-          {graph.allEventCount} 条关联新闻。
-        </p>
-      ) : null}
-      {hoveredNode ? (
-        <div className="graph-tooltip" aria-live="polite">
-          <span>{hoveredNode.kind === "event" ? "新闻" : "实体"}</span>
-          <strong>{hoveredNode.label}</strong>
-        </div>
-      ) : null}
-      <div className="sr-only">
-        {graph.events.map((event) => (
-          <button key={event.id} onClick={() => onSelectEvent(event.id)}>
-            查看新闻：{event.title}
-          </button>
-        ))}
+      <svg
+        ref={svgRef}
+        viewBox="0 0 900 560"
+        className="graph-svg"
+        role="group"
+        tabIndex={0}
+        aria-label={`探索图谱，共 ${graph.nodes.length} 个节点。Tab 选择节点，Enter 展开实体或阅读新闻；方向键移动视图，加减键缩放，Home 适应视图。`}
+        data-testid="knowledge-graph-canvas"
+        onPointerDown={startDrag}
+        onPointerMove={(event) => {
+          const current = drag.current;
+          if (!current || current.pointerId !== event.pointerId) { setHovered(nearestNode(event)?.label ?? ""); return; }
+          if (Math.hypot(event.clientX - current.clientX, event.clientY - current.clientY) > 4) current.moved = true;
+          const coordinate = point(event);
+          onViewportChange({ ...current.viewport, x: current.viewport.x + coordinate.x - current.x, y: current.viewport.y + coordinate.y - current.y });
+        }}
+        onPointerUp={stopDrag}
+        onPointerCancel={stopDrag}
+        onPointerLeave={() => setHovered("")}
+        onClickCapture={(event) => {
+          event.stopPropagation();
+          if (suppressClick.current) { suppressClick.current = false; return; }
+          // Pointer selection uses screen distance, not SVG painting order when
+          // the fixed touch targets overlap. AT clicks keep their named target.
+          const targetId = (event.target as Element).closest("[data-node]")?.getAttribute("data-node");
+          const node = event.detail === 0 ? targetId && byId.get(targetId) : nearestNode(event);
+          if (!node) return;
+          svgRef.current?.querySelector<SVGGElement>(`[data-node="${CSS.escape(node.id)}"]`)?.focus({ preventScroll: true });
+          selectNode(node);
+        }}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          const moves: Record<string, [number, number]> = { ArrowLeft: [60, 0], ArrowRight: [-60, 0], ArrowUp: [0, 60], ArrowDown: [0, -60] };
+          const move = moves[event.key];
+          if (move) onViewportChange({ ...graph.viewport, x: graph.viewport.x + move[0], y: graph.viewport.y + move[1] });
+          else if (event.key === "+" || event.key === "=") onViewportChange(zoomGraphViewport(graph.viewport, 1.25));
+          else if (event.key === "-") onViewportChange(zoomGraphViewport(graph.viewport, .8));
+          else if (event.key === "Home") onViewportChange(fitGraphViewport(graph.nodes));
+          else return;
+          event.preventDefault();
+        }}
+      >
+        <g transform={`translate(${graph.viewport.x} ${graph.viewport.y}) scale(${graph.viewport.scale})`}>
+          {graph.edges.map((edge) => {
+            const from = byId.get(edge.from);
+            const to = byId.get(edge.to);
+            return from && to ? <line className={`graph-edge graph-edge-${edge.kind}`} key={`${edge.kind}:${edge.from}:${edge.to}`} x1={from.x} y1={from.y} x2={to.x} y2={to.y}><title>{edge.label}</title></line> : null;
+          })}
+          {graph.nodes.map((node) => {
+            const isRoot = node.id === graph.rootId;
+            const selected = node.id === graph.focusId || node.newsId === graph.newsId;
+            const expanded = graph.branches.some((branch) => branch.entityId === node.id);
+            return (
+              <g
+                key={node.id}
+                data-node={node.id}
+                data-kind={node.kind}
+                data-news-id={node.newsId || undefined}
+                role="button"
+                tabIndex={0}
+                className={`graph-node ${node.kind} ${isRoot ? "graph-node-root" : ""} ${selected ? "graph-node-focus" : ""}`}
+                aria-label={node.kind === "entity" ? `${node.label}，${expanded ? "查看当前实体" : "展开相关新闻"}${isRoot ? "，探索起点" : ""}` : `阅读新闻：${node.label}`}
+                aria-pressed={selected}
+                transform={`translate(${node.x} ${node.y})`}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectNode(node); }
+                  else if (event.key === "Escape") { event.preventDefault(); svgRef.current?.focus(); }
+                }}
+                onFocus={() => setHovered(node.label)}
+                onBlur={() => setHovered("")}
+              >
+                <title>{node.label}</title>
+                <rect data-hit-target aria-hidden="true" x={-hitWidth / 2} y={-hitHeight / 2} width={hitWidth} height={hitHeight} style={{ fill: "transparent", stroke: "none", pointerEvents: "all", transition: "none" }} />
+                {node.kind === "entity" ? <circle data-node-symbol r={isRoot ? 29 : 23} fill={typeColors.get(node.type) ?? "#64748b"} /> : <rect data-node-symbol x={-17} y={-15} width={34} height={30} rx={8} fill={typeColors.get(node.type) ?? "#64748b"} />}
+                {isRoot && <text y={4} textAnchor="middle" className="graph-node-symbol" fill="white">起</text>}
+                {!isRoot && node.kind === "entity" && <text y={4} textAnchor="middle" className="graph-node-symbol" fill="white">{expanded ? "✓" : "+"}</text>}
+                {node.kind === "event" && <text y={4} textAnchor="middle" className="graph-node-symbol" fill="white">闻</text>}
+                <text y={node.kind === "entity" ? 43 : 33} textAnchor="middle" className="graph-node-label">{node.label.length > 13 ? `${node.label.slice(0, 13)}…` : node.label}</text>
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+      <div className="graph-legend">
+        <span>● 实体：点击展开</span><span>▣ 新闻：点击阅读</span><span>虚线为报道提及，实线为报道时序</span>
+      </div>
+      <div className="graph-exploration-status">
+        {/* Node blur must not shift the branch buttons between pointerdown and click. */}
+        <div aria-live="polite" title={hovered || undefined} style={{ minHeight: "1.7em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{hovered || "Tab 选择节点，Enter 展开或阅读。"}</div>
+        <div>拖动空白处移动视图；按住 Ctrl / ⌘ 并滚动缩放。</div>
       </div>
     </div>
   );

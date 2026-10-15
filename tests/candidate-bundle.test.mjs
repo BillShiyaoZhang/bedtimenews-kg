@@ -316,23 +316,35 @@ test("verification rejects malformed, incomplete, tampered, noncanonical manifes
   await assert.rejects(verifyCandidateBundle(output, { validate: () => false }), /validation failed/u);
 });
 
-test("symlinked and hardlinked artifacts and symlinked destination ancestors are rejected", async (t) => {
+test("hardlinked artifacts and symlinked destination ancestors are rejected", async (t) => {
   const root = await sandbox(t);
   const source = join(root, "source.json");
   const result = await publishCandidateBundle(join(root, "candidate"), bundle());
   const target = join(result.outputDir, "kg.json");
   await writeFile(source, await readFile(target));
   await rm(target);
-  await symlink(source, target);
-  await assert.rejects(verifyCandidateBundle(result.outputDir), /regular, unlinked/u);
-  await rm(target);
   await link(source, target);
   await assert.rejects(verifyCandidateBundle(result.outputDir), /regular, unlinked/u);
   const linked = join(root, "linked");
-  await symlink(result.outputDir, linked);
+  await symlink(result.outputDir, linked, process.platform === "win32" ? "junction" : "dir");
   await assert.rejects(verifyCandidateBundle(linked), /real directory/u);
   await assert.rejects(publishCandidateBundle(join(linked, "nested"), bundle()), /real directory/u);
   await absent(join(result.outputDir, "nested"));
+});
+
+test("file-symlink artifacts are rejected when the host permits creating them", async (t) => {
+  const root = await sandbox(t);
+  const source = join(root, "source.json");
+  const result = await publishCandidateBundle(join(root, "candidate"), bundle());
+  const target = join(result.outputDir, "kg.json");
+  await writeFile(source, await readFile(target));
+  await rm(target);
+  try { await symlink(source, target, "file"); }
+  catch (error) {
+    if (process.platform === "win32" && ["EPERM", "EACCES"].includes(error.code)) { t.skip("Host does not permit file-symlink creation; hard-link and directory-link rejection tests remain enabled"); return; }
+    throw error;
+  }
+  await assert.rejects(verifyCandidateBundle(result.outputDir), /regular, unlinked/u);
 });
 
 

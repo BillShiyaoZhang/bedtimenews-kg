@@ -21,7 +21,7 @@ const { buildAcceptedCandidate, verifyAcceptedCandidate } = await load("accepted
 const checkpoint = await loadAcceptedGitCheckpoint({root,repository:plan.repository,commit:plan.expectedMain});
 const verified = await readVerifiedAcceptedCheckpoint(checkpoint);
 const store = createOfflineCheckpointStore({directory:"/approved/checkpoint",receipt:verified.manifest.auditReceipt});
-const options = {checkpoint,store,generatedAt:plan.generatedAt,source:`${root}/sources/bedtimenews-archive-contents`,migrationReview:"/approved/migration-review.json",proposalCommit:plan.proposalCommit};
+const options = {checkpoint,store,generatedAt:plan.generatedAt,source:`${root}/sources/bedtimenews-archive-contents`,migrationReview:"/approved/migration-review.json",proposalCommit:plan.proposalCommit,contentProtocol:plan.schemaVersion === 2 ? "v4" : "v3"};
 const candidate = await buildAcceptedCandidate(root,options);
 must(candidate.manifest.bundleId === plan.bundleId);
 await verifyAcceptedCandidate(root,candidate.output,options);
@@ -32,4 +32,4 @@ for (const [name,binding] of Object.entries(plan.files)) {
   must(bytes.length === binding.bytes && createHash("sha256").update(bytes).digest("hex") === binding.sha256);
   await copyFile(`${candidate.output}/${name}`,`/build/bundle/${name}`);
 }
-console.log("Seven approved data files independently reconstructed without credentials");
+console.log("Exact versioned approved data files independently reconstructed without credentials");

@@ -58,7 +58,7 @@ test("checkout rejects proposal source URL substitution and symlink destination"
   const altered=(args)=>args.includes("--get")&&args.at(-1).endsWith(".url")?"https://example.invalid/untrusted.git":f.run(args);
   await assert.rejects(checkoutAuditSource({...f,run:altered,env:{}}),/binding rejected/u);
   assert.equal(f.calls.some((args)=>args[0]==="clone"),false);
-  await symlink(tmpdir(),resolve(f.root,"sources"));
+  await symlink(tmpdir(),resolve(f.root,"sources"),process.platform==="win32"?"junction":"dir");
   await assert.rejects(checkoutAuditSource({...f,env:{}}),/binding rejected/u);
 });
 async function liveFixture() {
@@ -112,7 +112,7 @@ test("live verifier also accepts an already correct source gitlink without broad
   await assert.rejects(verifyLiveCombinedHead(f),/binding rejected/u);
 });
 test("trusted workflow checks out fixed source before running any proposal npm code",async()=>{
-  const workflow=await readFile(new URL("../.github/workflows/audit-snapshot.yml",import.meta.url),"utf8");
+  const workflow=(await readFile(new URL("../.github/workflows/audit-snapshot.yml",import.meta.url),"utf8")).replaceAll("\r\n","\n");
   assert.ok(workflow.indexOf("node /operator/scripts/lib/audit-source-checkout.mjs /build/proposal") < workflow.indexOf("npm ci"));
   assert.doesNotMatch(workflow,/submodule update/u);
   assert.doesNotMatch(workflow,/-e (?:GH_TOKEN|GITHUB_TOKEN|ACTIONS_RUNTIME_TOKEN)/u);

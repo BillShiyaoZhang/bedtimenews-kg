@@ -41,3 +41,7 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+/public/reading/
+/app/lib/reading-manifest.generated.json
+/test-results/
+/playwright-report/

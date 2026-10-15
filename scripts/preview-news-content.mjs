@@ -1,0 +1,13 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { readVerifiedGitSources } from "./lib/source-snapshot.mjs";
+import { buildNewsContentSnapshot } from "./lib/news-content.mjs";
+import { canonicalJson } from "./lib/candidate-bundle.mjs";
+const root = process.cwd();
+const load = async (path) => JSON.parse(await readFile(resolve(root, path), "utf8"));
+const [receipt, news, kg, state] = await Promise.all([load("data/accepted-release.json"), load("data/processed/news.json"), load("data/generated/kg.json"), load("data/archive-state.json")]);
+const lifecycle = { effectiveInventory: state.acceptedFiles, states: { news: news.news.map((row) => ({ id: row.id })), entities: kg.entities.map((row) => ({ id: row.id })) }, transitions: { news: [] } };
+const rawSources = await readVerifiedGitSources({ sourceRoot: resolve(root, receipt.source.repository.submodulePath), commit: receipt.source.commit, inventory: state.acceptedFiles });
+const snapshot = buildNewsContentSnapshot({ news, kg, lifecycle, sourceCommit: receipt.source.commit, rawSources });
+const output = resolve("work/ux-review/news-content.json"); await mkdir(resolve("work/ux-review"), { recursive: true }); await writeFile(output, `${canonicalJson(snapshot)}\n`);
+console.log(`Verified local content preview: ${snapshot.rows.length} news fragments at ${output}; accepted receipt unchanged.`);

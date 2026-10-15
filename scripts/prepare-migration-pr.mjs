@@ -12,7 +12,7 @@ assertReleaseApproval(approval, repository);
 if (process.env.GITHUB_ACTIONS === "true") throw new Error("Migration PR preparation is a local operator command; PR Actions never receive release-write credentials");
 const runtime = new Intl.DateTimeFormat().resolvedOptions();
 if (process.versions.node !== RELEASE_NODE_VERSION || runtime.timeZone !== "UTC" || runtime.locale !== "en-US") throw new Error(`Migration PR preparation requires Node ${RELEASE_NODE_VERSION}, en-US locale and UTC`);
-const args = process.argv.slice(2); const prefixes = ["--proposal=", "--proposal-ref=", "--migration-review=", "--source=", "--source-review="];
+const args = process.argv.slice(2); const prefixes = ["--proposal=", "--proposal-ref=", "--migration-review=", "--source=", "--source-review=", "--content-protocol=", "--generated-at="];
 if (args.some((arg) => !prefixes.some((prefix) => arg.startsWith(prefix))) || new Set(args.map((arg) => arg.split("=", 1)[0])).size !== args.length) throw new Error("Use explicit --proposal=SHA --proposal-ref=refs/heads/branch --migration-review=path; optional --source=path and --source-review=path");
 const option = (name) => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 if (!/^[a-f0-9]{40}$/u.test(option("proposal") ?? "") || !option("proposal-ref")?.startsWith("refs/heads/") || !option("migration-review")) throw new Error("Exact proposal SHA, explicit non-main proposal ref and reviewed migration file are required");
@@ -22,6 +22,7 @@ const store = createGitHubReleaseStore({ owner, repo, token: process.env.GH_TOKE
 const result = await prepareMigrationPullRequest({ root, repository, approval, journal, store, transport: createReleaseGitTransport(root, { repository }),
   proposalCommit: option("proposal"), proposalRef: option("proposal-ref"), migrationReview: option("migration-review"),
   ...(option("source") ? { source: resolve(root, option("source")) } : {}), sourceReview: option("source-review"),
+  candidateOptions: { ...(option("content-protocol") ? { contentProtocol: option("content-protocol") } : {}), ...(option("generated-at") ? { generatedAt: option("generated-at") } : {}) },
   validatePrepared: (options) => validatePreparedRelease(root, options, { onProgress: console.log }), onProgress: console.log });
 console.log(JSON.stringify(result));
 console.log("Prepared a local code+data commit only. No main or proposal branch was moved, push/PR was created, public audit was published, or Pages run was dispatched. Ordinary reviewed PR merge remains required.");

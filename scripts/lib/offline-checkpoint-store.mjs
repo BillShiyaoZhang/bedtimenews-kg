@@ -2,16 +2,16 @@ import { lstat, readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { canonicalJson } from "./candidate-bundle.mjs";
+import { acceptedBundleNames, contentVersionFromFiles } from "./accepted-content-protocol.mjs";
 
 const must = (value) => { if (!value) throw new Error("Offline checkpoint binding rejected"); };
-const names = ["diff.json", "kg.json", "lifecycle.json.gz", "manifest.json", "news.json", "provenance.json.gz", "source-review.json"];
 
 // The receipt comes from the opaque authenticated Git checkpoint, never from
 // the downloaded directory. Every call rechecks all bytes; no network fallback.
 export function createOfflineCheckpointStore({ directory, receipt }) {
   const expected = canonicalJson(receipt);
   const bindings = JSON.parse(expected).assets;
-  must(canonicalJson(Object.keys(bindings).sort()) === canonicalJson(names));
+  const names = acceptedBundleNames(contentVersionFromFiles(Object.keys(bindings)));
   const root = resolve(directory);
   return Object.freeze({ async readBundle({ receipt: requested }) {
     must(canonicalJson(requested) === expected);
@@ -32,6 +32,7 @@ export function createOfflineCheckpointStore({ directory, receipt }) {
       && bundleId === requested.bundleId
       && createHash("sha256").update(canonicalJson(payload)).digest("hex") === bundleId
       && bindings["manifest.json"].sha256 === requested.manifestSha256
+      && canonicalJson(acceptedBundleNames(manifest.versions.candidate)) === canonicalJson(names)
       && canonicalJson(Object.keys(manifest.artifacts).sort()) === canonicalJson(names.filter((name) => name !== "manifest.json")));
     for (const [name, binding] of Object.entries(manifest.artifacts)) {
       must(binding.bytes === bindings[name].bytes && binding.sha256 === bindings[name].sha256);

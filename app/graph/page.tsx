@@ -1,9 +1,9 @@
-import { applyIdentityResolution } from "../lib/identity-projection.mjs";
+import { createExplorerPresentation } from "../lib/explorer-presentation.mjs";
 import type { Metadata } from "next";
-import { EntityGraphExplorer } from "../components/entity-graph-explorer";
+import { GraphPresentation } from "../components/explorer-presentation";
 import knowledgeBaseData from "../../data/generated/kg.json";
 import ontologyData from "../../data/ontology.json";
-import type { KnowledgeBase, Ontology } from "../lib/kg";
+import type { Ontology } from "../lib/kg";
 
 export const metadata: Metadata = {
   title: "实体知识图谱｜历史经纬",
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 export default function GraphPage() {
   return (
-    <EntityGraphExplorer
-      knowledgeBase={applyIdentityResolution(knowledgeBaseData) as unknown as KnowledgeBase}
+    <GraphPresentation
+      presentation={createExplorerPresentation(knowledgeBaseData, "graph")}
       ontology={ontologyData as unknown as Ontology}
     />
   );

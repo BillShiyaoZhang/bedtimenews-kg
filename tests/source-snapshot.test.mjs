@@ -22,6 +22,8 @@ async function withArchive(run) {
     await mkdir(resolve(root, "daily"));
     await writeFile(resolve(root, path), original);
     await git(root, ["init", "-q"]);
+    await git(root, ["config", "core.autocrlf", "false"]);
+    await git(root, ["config", "core.eol", "lf"]);
     await run({ sourceRoot: root, commit: await commit(root), path, expectedHash: sha256(original), inventory: { [path]: sha256(original) }, includedRoots: ["daily"] });
   } finally { await rm(root, { recursive: true, force: true }); }
 }
@@ -80,19 +82,35 @@ test("historical source reader rejects traversal, ambiguous paths, missing blobs
   });
 });
 
-test("Git and worktree symlinks fail closed while executable regular blobs are supported", async () => {
+test("Git symlink entries fail closed while executable regular blobs are supported", async () => {
   await withArchive(async (input) => {
     await chmod(resolve(input.sourceRoot, path), 0o755);
+    // Windows chmod does not change Git's executable bit; exercise mode 100755
+    // explicitly, with the same committed blob as the portable reader input.
+    await git(input.sourceRoot, ["update-index", "--chmod=+x", path]);
     const executable = await commit(input.sourceRoot, "executable source");
     assert.deepEqual(await readVerifiedGitSource({ ...input, commit: executable }), original);
     assert.deepEqual(await assertGitSourceInventory({ ...input, commit: executable }), input.inventory);
-    await symlink("a.md", resolve(input.sourceRoot, "daily/link.md"));
-    await assert.rejects(assertGitSourceInventory({ ...input, commit: executable }), /symlink/u);
-    const linked = await commit(input.sourceRoot, "symlink source");
+    await writeFile(resolve(input.sourceRoot, "daily/link.md"), "a.md");
+    const blob = (await git(input.sourceRoot, ["hash-object", "-w", "daily/link.md"])).stdout.trim();
+    await git(input.sourceRoot, ["update-index", "--add", "--cacheinfo", "120000", blob, "daily/link.md"]);
+    await git(input.sourceRoot, ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "symlink Git source"]);
+    const linked = (await git(input.sourceRoot, ["rev-parse", "HEAD"])).stdout.trim();
     await assert.rejects(readVerifiedGitSource({ ...input, commit: linked, path: "daily/link.md", expectedHash: sha256("a.md") }), /regular Git blob/u);
     await assert.rejects(assertGitSourceInventory({ ...input, commit: linked }), /symlink/u);
-    await symlink(input.sourceRoot, resolve(input.sourceRoot, "alias"));
+    await symlink(input.sourceRoot, resolve(input.sourceRoot, "alias"), process.platform === "win32" ? "junction" : "dir");
     await assert.rejects(readVerifiedGitSource({ ...input, sourceRoot: resolve(input.sourceRoot, "alias") }), /symlink/u);
+  });
+});
+
+test("physical worktree file symlinks fail closed when the host permits creating them", async (t) => {
+  await withArchive(async (input) => {
+    try { await symlink("a.md", resolve(input.sourceRoot, "daily/link.md"), "file"); }
+    catch (error) {
+      if (process.platform === "win32" && ["EPERM", "EACCES"].includes(error.code)) { t.skip("Windows account does not have file-symlink privilege; Git mode 120000 remains tested separately"); return; }
+      throw error;
+    }
+    await assert.rejects(assertGitSourceInventory(input), /symlink/u);
   });
 });
 
@@ -123,13 +141,32 @@ test("byte batching handles empty files, binary bytes, Unicode and literal metac
     const inventory = { ...input.inventory };
     const files = new Map([
       ["daily/空白.md", Buffer.alloc(0)],
-      ["daily/[literal]*.md", Buffer.from([0, 255, 10, 13, 128])],
+      ["daily/[literal].md", Buffer.from([0, 255, 10, 13, 128])],
       ["daily/large.md", Buffer.alloc(512 * 1024 + 13, 97)],
     ]);
     for (const [name, bytes] of files) { await writeFile(resolve(input.sourceRoot, name), bytes); inventory[name] = sha256(bytes); }
     const next = await commit(input.sourceRoot, "batch edge cases");
     assert.deepEqual(await assertGitSourceInventory({ ...input, commit: next, inventory }), Object.fromEntries(Object.entries(inventory).sort()));
-    for (const [name, bytes] of files) assert.deepEqual(await readVerifiedGitSource({ ...input, commit: next, path: name, expectedHash: sha256(bytes) }), bytes);
+    // Windows cannot create '*' filenames. Build the historical entry in Git's
+    // index so every platform still verifies literal metacharacter lookup.
+    const literalPath = "daily/[literal]*.md";
+    const binary = files.get("daily/[literal].md");
+    const blob = (await git(input.sourceRoot, ["rev-parse", `${next}:daily/[literal].md`])).stdout.trim();
+    // Allow this deliberately non-Windows filename only while writing the
+    // fixture index/commit; it is never checked out into the filesystem.
+    await git(input.sourceRoot, ["-c", "core.protectNTFS=false", "update-index", "--add", "--cacheinfo", "100644", blob, literalPath]);
+    await git(input.sourceRoot, ["-c", "core.protectNTFS=false", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "literal metacharacter source"]);
+    const historical = (await git(input.sourceRoot, ["rev-parse", "HEAD"])).stdout.trim();
+    files.set(literalPath, binary);
+    inventory[literalPath] = sha256(binary);
+    assert.deepEqual(await assertGitSourceInventory({ ...input, commit: historical, inventory, verifyWorkingTree: false }), Object.fromEntries(Object.entries(inventory).sort()));
+    const batched = await readVerifiedGitSources({ ...input, commit: historical, inventory });
+    assert.deepEqual(batched.get(path), original);
+    for (const [name, bytes] of files) {
+      assert.deepEqual(batched.get(name), bytes);
+      assert.deepEqual(await readVerifiedGitSource({ ...input, commit: historical, path: name, expectedHash: sha256(bytes) }), bytes);
+    }
+    await assert.rejects(readVerifiedGitSources({ ...input, commit: historical, inventory: { "daily/*.md": sha256(binary) } }), /missing exact/u);
   });
 });
 
@@ -189,7 +226,7 @@ test("source HEAD selection binds the requested root and exact committer timesta
     const expected = (await git(input.sourceRoot, ["show", "-s", "--format=%cI", input.commit])).stdout.trim();
     assert.deepEqual(await readGitSourceHead(input), { commit: input.commit, committedAt: expected });
     await assert.rejects(readGitSourceHead({ sourceRoot: resolve(input.sourceRoot, "daily") }), /exact Git worktree root/u);
-    await symlink(input.sourceRoot, resolve(input.sourceRoot, "alias"));
+    await symlink(input.sourceRoot, resolve(input.sourceRoot, "alias"), process.platform === "win32" ? "junction" : "dir");
     await assert.rejects(readGitSourceHead({ sourceRoot: resolve(input.sourceRoot, "alias") }), /symlink/u);
   });
 });

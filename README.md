@@ -1,18 +1,25 @@
 # 历史经纬 · Bedtime News Knowledge Atlas
 
-一个面向 [`bedtimenews-archive-contents`](https://github.com/bedtimenews/bedtimenews-archive-contents) 的静态新闻 ontology 与知识图谱。原仓库的一个 Markdown 页面可以包含多条互不相关的新闻；本项目先把页面拆成独立新闻数据集，再以每条新闻为单位生成 KG。首页提供两种入口：
+一个面向 [`bedtimenews-archive-contents`](https://github.com/bedtimenews/bedtimenews-archive-contents) 的新闻阅读、检索与知识探索界面。原仓库的一个 Markdown 页面可以包含多条互不相关的新闻；本项目先把页面拆成独立新闻数据集，再以每条新闻为单位生成 KG。
 
-- 关键词搜索：同时检索事件标题、摘要、事件类型、实体名称与别名、来源元数据；统一处理中英文大小写、全半角、标点、行政区简称和经审查的缩写/同义词，并检索每条新闻片段实际命中的主题触发词；
-- 按条件检索：组合事件类型、主体、地点、主题、命名对象和时间范围。
+- 首页默认展示最新新闻；「近 7 天」「近 30 天」「新实体」「议题标签」帮助选择阅读入口。近期范围按北京时间当前日计算，不把新收录的历史报道当成今天的新闻。没有版本新增实体或更新信息缺失时，提供近 30 天有报道关联的实体与议题，并明确标为「近期有新报道」。
+- 搜索同时匹配多个关键词，也可叠加人物、地点、议题、领域与年份；高级描述筛选默认折叠。新闻每页 20 条，支持最新或相关度排序，检索条件保存在 URL 中。
+- 点击新闻标题或摘要，在当前界面阅读；独立的 `/news/{newsId}/` 地址支持分享和新标签页。来源与证据放在正文之后，返回时保留检索与探索位置。
+- 点击实体查看资料与相关新闻；在「探索关系」中继续展开节点，保留原有内容，可撤销、收起分支或明确选择新起点。手机优先显示新闻，图谱按需展开。
 
-首页命中的实体会进入独立详情页，联合展示相关新闻时间线、可交互知识图谱和原文证据。Ontology 浏览页展示 facet、实体/事件/关系类型、实例数量和实时覆盖率。
+已读记录仅保存在当前浏览器；首次访问从最新新闻开始，回访提示按上次访问后出现的 ID 计算。「知识分类」页保留本体层级、类型、关系约束和覆盖率。设计与验收记录见 [每日阅读体验](docs/daily-reading-ux.md)。
+
+截至本轮本地交付，正式接受版本仍为 candidate v3。站内完整正文已在独立、验签的本地预览中实现；正式 v3 页面会明确提示「此接受版本尚未收录正文」，并保留摘要与原始档案链接。此次界面交付不表示已经发布 v4。正式正文上线需要[两阶段接受迁移](docs/accepted-releases.md)。
 
 ## 数据结构
 
-项目维护两个可发布数据产物：
+项目维护两个基础可发布数据产物；candidate v4 额外接受完整正文快照：
 
 - `data/processed/news.json`：新闻级数据集，保存稳定新闻 ID、短摘要、原页面、精确行列范围、片段哈希和拆分方法；
 - `data/generated/kg.json`：以 processed news 为输入的语义 KG。每个 `events[]` 记录通过 `newsId` 一对一投影一条独立新闻。
+- `data/processed/news-content.json`：仅 v4 接受版本包含，保存验签的完整原文新闻片段及生命周期派生的新增、恢复和历史 ID 索引。canonical JSON 由接受 receipt 绑定，同一内容以 `news-content.json.gz` 保存在该版本的审计包中。
+
+已接受 v4 站点仅凭上述 tracked JSON 和接受清单即可生成阅读资源，在上游源码不可用时重建正文页面；首次生成和新来源提取仍需验证固定的上游 Git 对象。v3 正式构建明确显示正文未收录；v4 缺少或篡改正文会拒绝构建。本轮真实语料验证、容量和两阶段迁移的具体绑定见 [正文迁移评审](docs/news-content-migration-review.md)。
 
 全量生成分五步：
 
@@ -37,19 +44,51 @@
 
 ## 快速开始
 
-需要 Node.js 22 或更高版本。
+使用 Node.js 22.23.2，与本仓库接受配方的运行时一致。
 
 ```bash
 git submodule update --init --recursive
-npm install
+npm ci
 npm run dev
 ```
 
-完整验证：
+打开终端显示的本地地址。`predev` 会自动构建按需读取的新闻与实体 JSON 资源；首页只加载检索和摘要所需的展示数据。默认使用正式接受数据，不会因为本地存在一个正文文件而自动启用预览。
+
+如需查看已经独立验签的本地正文预览，在 PowerShell 中显式设置预览文件，再启动服务：
+
+```powershell
+$env:KG_CONTENT_PREVIEW_PATH = (Resolve-Path 'work/ux-review/news-content.json').Path
+npm run dev
+```
+
+该文件是本地审查产物，不包含在仓库的正式接受清单中；没有此文件时使用上面的默认启动方式。读取器会验证新闻、KG、源提交与有效清单绑定，并在正文上显示预览提示。关闭预览时移除 `KG_CONTENT_PREVIEW_PATH` 后重新启动。Actions 拒绝发布预览输入。
+
+构建后在本机运行生产产物：
+
+```bash
+npm run build
+npm start
+```
+
+如果产物包含 `dist/server/wrangler.json`，`npm start` 使用 Wrangler `--local` 运行 Cloudflare Worker 及其静态资源绑定，默认地址为 `http://127.0.0.1:3000`。端口可通过 `PORT`、`-p` 或 `--port` 设置；主机可通过 `-H` 或 `--hostname` 设置，例如 `npm start -- --port 3001 --hostname 127.0.0.1`。Node 产物继续使用 `vinext start`。静态 Pages 使用 `npm run build:pages` 生成 `out/`，在静态服务中按构建时的 `PAGES_BASE_PATH` 访问。
+
+Windows 的 Pages 构建默认使用 Next.js 官方生产 Webpack 模式，避免已实测的 Turbopack/PostCSS 子进程通信超时；Linux 发布构建保持框架默认模式。可通过 `npm run build:pages -- --turbopack` 显式选择 Turbopack，或传入 `--webpack` 固定 Webpack。
+
+常规完整验证和两套生产构建：
 
 ```bash
 npm test
 ```
+
+界面定向测试和浏览器验收：
+
+```bash
+node --test tests/explorer-state.test.mjs tests/explorer-presentation.test.mjs tests/report-description-ui.test.mjs tests/reading-memory.test.mjs
+npx playwright install chromium
+npm run test:browser
+```
+
+浏览器测试默认连接已启动的 `http://127.0.0.1:3000`；可用 `PLAYWRIGHT_BASE_URL` 指定测试服务，`PLAYWRIGHT_BASE_PATH` 指定子路径。生产验收使用构建后的服务，截图保存在 `outputs/ux-review/`。静态 Pages 构建通过 `PAGES_BASE_PATH` 或 Actions 的仓库名设置子路径，新闻链接和阅读资源必须在该子路径下可访问。本轮静态验收地址为 `http://127.0.0.1:3100/bedtimenews-kg/`。受审查迁移中的代码与接受配置不一致时，应使用隔离候选验证流程，不修改接受清单来让检查通过。
 
 ## 当前维护模式
 
@@ -161,7 +200,8 @@ ChatGPT/Codex App，且每日执行时电脑需开机、App 需保持运行。
 
 ```text
 app/                         站点路由与界面
-app/page.tsx                 关键词与条件检索首页
+app/page.tsx                 最新新闻、关键词与组合筛选首页
+app/news/[newsId]/page.tsx   可分享的独立新闻阅读页
 app/graph/page.tsx           实体相关新闻与 KG 可视化
 app/ontology/page.tsx        Ontology 类型、约束与覆盖率
 data/ontology-source.json    唯一语义定义、层级与稳定 ID 映射
@@ -170,6 +210,7 @@ data/ontology.json           编译后的本体与层级索引（勿手改）
 data/extraction-rules.json   编译后的运行时抽取规则（勿手改）
 data/news-overrides.json     经审查的页面拆分修正
 data/processed/news.json     页面拆分后的独立新闻数据集
+data/processed/news-content.json  v4 接受版本的完整正文与更新索引
 data/generated/kg.json       独立新闻的语义 KG 投影
 data/archive-state.json      已接受上游文件的哈希基线
 data/source-revisions.json   已审查且不改变既有新闻的精确文件版本转换
@@ -186,7 +227,7 @@ tests/                       数据、抽取、增量保护契约
 
 - 自动关系只表达可验证时序，不推断因果；
 - 低置信命名模式必须跨事件复现后才进入主体或设施 facet；
-- 全文保留在上游仓库，本项目只保存短摘要、出处、精确片段位置与哈希；
+- 当前接受 v3 保存短摘要、出处、精确片段位置与哈希；本地正文预览只读取验签后的完整新闻片段。正式 v4 接受后才由版本绑定的片段快照提供正文，不归档完整上游文件；
 - 一条 KG 事件投影必须精确对应一条 processed news；跨来源的同一事实应在未来建立事实簇，而不是把多页直接拼成一条新闻；
 - 必填覆盖与可选 facet 分开报告：每条新闻必须有实体、具体事件类型、来源与检索入口；主体、地点、主题和命名对象只统计出现率，不为追求数字强造实体。
 - 站点只通过 GitHub Pages 发布；本项目不使用 OpenAI Sites 部署。

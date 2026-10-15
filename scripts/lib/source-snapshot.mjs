@@ -2,7 +2,7 @@ import { execFile as execFileCallback, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { constants } from "node:fs";
 import { lstat, open, readdir, realpath } from "node:fs/promises";
-import { resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import { promisify } from "node:util";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { createAuthenticatedGitReader } from "./git-object-integrity.mjs";
@@ -34,7 +34,7 @@ async function worktreeRoot(sourceRoot) {
   const root = resolve(sourceRoot);
   ensure(await realpath(root) === root && (await lstat(root)).isDirectory(), "source root or ancestor is a symlink or not a directory");
   const top = text(await git(root, ["rev-parse", "--show-toplevel"])).trim();
-  ensure(top === root, "sourceRoot must be the exact Git worktree root");
+  ensure(isAbsolute(top) && resolve(top) === root, "sourceRoot must be the exact Git worktree root");
   return root;
 }
 

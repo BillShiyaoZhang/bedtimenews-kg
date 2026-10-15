@@ -4,6 +4,8 @@ import { gzipSync } from "node:zlib";
 import { canonicalJson, sha256 } from "../scripts/lib/candidate-bundle.mjs";
 import { ALLOWED_ACCEPTED_PATHS, REQUIRED_ACCEPTED_PATHS, acceptedReleaseIdentity, classifyAcceptedRelease, createAcceptedArchiveState, createAcceptedRelease, validateAcceptedRelease, validateAcceptedReleaseFiles, validateAcceptedReleaseStructure } from "../scripts/lib/accepted-release.mjs";
 import { validateRollbackReview } from "../scripts/lib/accepted-transition.mjs";
+import { NEWS_CONTENT_PATH, NEWS_CONTENT_ARTIFACT } from "../scripts/lib/accepted-content-protocol.mjs";
+import { buildNewsContentSnapshot } from "../scripts/lib/news-content.mjs";
 
 const hash = (value) => sha256(canonicalJson(value));
 const bytes = (value) => Buffer.from(`${canonicalJson(value)}\n`);
@@ -105,8 +107,9 @@ test("release identity is independent of remote asset and release IDs", () => {
 
 test("three required paths and reviewed reports are the only permitted byte targets", () => {
   const f = fixture();
-  for (const path of ALLOWED_ACCEPTED_PATHS.slice(3)) f.options.acceptedFiles[path] = pretty({ report: path });
+  for (const path of ALLOWED_ACCEPTED_PATHS.slice(3).filter((path) => path !== NEWS_CONTENT_PATH)) f.options.acceptedFiles[path] = pretty({ report: path });
   assert.equal(Object.keys(createAcceptedRelease(f.options).acceptedFiles).length, 6);
+  assert.throws(() => createAcceptedRelease({ ...f.options, acceptedFiles: { ...f.options.acceptedFiles, [NEWS_CONTENT_PATH]: "{}" } }), /legacy accepted output/u);
   for (const path of ["data/accepted-release.json", "data/raw/source.md", "../.github/workflows/x.yml", "/tmp/credentials.json", "data/generated/../kg.json", "DATA/generated/kg.json"]) {
     assert.throws(() => createAcceptedRelease({ ...f.options, acceptedFiles: { ...f.options.acceptedFiles, [path]: "{}" } }), /unreviewed accepted output path/u);
   }
@@ -115,6 +118,23 @@ test("three required paths and reviewed reports are the only permitted byte targ
     assert.throws(() => createAcceptedRelease({ ...f.options, acceptedFiles: files }), /required accepted outputs/u);
   }
   assert.throws(() => createAcceptedRelease({ ...f.options, acceptedFiles: { ...f.options.acceptedFiles, [REQUIRED_ACCEPTED_PATHS[0]]: Buffer.from([0xff]) } }), /invalid JSON/u);
+});
+
+test("v4 acceptance binds canonical content bytes without adding a frozen origin path", () => {
+  const f = fixture();
+  f.options.candidateManifest.versions = { ...versionLabels, candidate: "4.0.0" };
+  const snapshot = buildNewsContentSnapshot({ news: f.news, kg: f.kg, lifecycle: f.lifecycle, sourceCommit, rawSources: new Map() });
+  f.options.candidateManifest.artifacts[NEWS_CONTENT_ARTIFACT] = binding(gzipSync(bytes(snapshot), { level: 6 }));
+  f.options.acceptedFiles[NEWS_CONTENT_PATH] = bytes(snapshot); f.refresh();
+  const release = createAcceptedRelease(f.options);
+  assert.deepEqual(release.origin, origin);
+  assert.equal(REQUIRED_ACCEPTED_PATHS.length, 3);
+  assert.deepEqual(validateAcceptedReleaseFiles(release, f.options.acceptedFiles)[NEWS_CONTENT_PATH], snapshot);
+  const missing = { ...f.options.acceptedFiles }; delete missing[NEWS_CONTENT_PATH];
+  assert.throws(() => createAcceptedRelease({ ...f.options, acceptedFiles: missing }), /News content/u);
+  assert.throws(() => createAcceptedRelease({ ...f.options, acceptedFiles: { ...f.options.acceptedFiles, [NEWS_CONTENT_PATH]: pretty(snapshot) } }), /canonical JSON bytes/u);
+  const corrupt = structuredClone(snapshot); corrupt.kgSha256 = "f".repeat(64);
+  assert.throws(() => createAcceptedRelease({ ...f.options, acceptedFiles: { ...f.options.acceptedFiles, [NEWS_CONTENT_PATH]: bytes(corrupt) } }), /KG projection hash differs/u);
 });
 
 test("mixed candidate, exact output bytes, source commit, origin, config and runtime bindings fail closed", () => {
