@@ -1,6 +1,6 @@
 # 新闻正文快照迁移评审
 
-本记录对应 2026-10-14 的本地实现和真实语料验证。正文已完成验签、生命周期重放和容量测量；当前正式接受清单仍为 candidate v3。人类已明确授权后续发布，真实仓库 activation/storage 开关与合并 gates 已核实；两阶段的实际接受、审计资产读回和发布结果仍须按执行证据登记。本文的本地预览与 QA 不代替正式接受，也不生成审批记录。
+本记录对应 2026-10-14 的本地实现和真实语料验证。正文已完成验签、生命周期重放和容量测量；该次验收使用 candidate v3 正式接受基线。人类已明确授权后续发布，真实仓库 activation/storage 开关与合并 gates 已核实；两阶段的实际接受、审计资产读回和发布结果仍须按执行证据登记。本文的本地预览与 QA 不代替正式接受，也不生成审批记录。
 
 ## 已验证的接受基线
 
@@ -94,7 +94,7 @@ v4 站点读取接受 receipt 绑定的 tracked JSON，无需上游源码或运�
 
 后续发布已获人类明确授权。真实 GitHub 仓库 activation/storage 开关、管理员 push 权限、普通 merge 支持与 main 的合并 gates 已核实；该核实不记录或输出凭据值。Linux 发布 operator 的 clean `npm ci` 已完成，最终提案在 UI、依赖锁与 QA 冻结后重新绑定。
 
-正式操作仍需推送精确 proposal、草稿存储及读回，验证一致的代码和数据提交，再经过普通评审合并接受并保留 ancestry；第一阶段实际接受后重新生成第二阶段完整绑定。任何 receipt、接受 checkpoint 或授权开关均不能伪造。当前正式 v3 接受状态与本地 verified preview 保持区分，真正发布结果以执行证据登记。操作契约见 [接受发布指南](accepted-releases.md)。
+正式操作仍需推送精确 proposal、草稿存储及读回，验证一致的代码和数据提交，再经过普通评审合并接受并保留 ancestry；第一阶段实际接受后重新生成第二阶段完整绑定。任何 receipt、接受 checkpoint 或授权开关均不能伪造。本记录的 v3 接受基线与本地 verified preview 保持区分；当前正式接受状态以 `data/accepted-release.json` 和独立发布执行证据为准。操作契约见 [接受发布指南](accepted-releases.md)。
 
 ignored 本地证据位于 `work/ux-review/`：
 
