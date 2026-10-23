@@ -83,6 +83,31 @@ test("event classification uses reviewed universal categories", () => {
   );
 });
 
+// Reference 662, description sentence 2, source 24b1f0bc1b3a5500c2bc8c79a3317ac05bde595a.
+// Classify the reported financial subject, without verifying the overdue-payment claim.
+test("reported debt repayment pressure has an exact financial classification witness", () => {
+  const title = "昆明轨交集团的票据又逾期了，短期偿债压力大";
+  const decision = extractor.classifyEventDecision(title);
+  assert.equal(decision.type, "economy_business");
+  assert.equal(decision.selectedInput, "primary");
+  assert.equal(decision.steps[0].stage, "weighted_keywords");
+  assert.deepEqual(decision.steps[0].evidence.map((item) => item.text), ["偿债压力"]);
+  const witness = decision.steps[0].evidence[0];
+  assert.equal(title.slice(witness.start, witness.end), "偿债压力");
+  assert.equal(extractor.classifyEvent("短期偿债压力大"), "economy_business");
+  assert.equal(extractor.classifyEvent("相关情况有了变化", "短期偿债压力大"), "economy_business");
+});
+
+test("debt pressure cue does not generalize to issuer, overdue items or ordinary pressure", () => {
+  for (const title of [
+    "昆明轨交集团", "昆明轨交集团的票据又逾期了", "借阅逾期了",
+    "短期压力大", "偿债安排有变化", "轨交集团承受客流压力",
+  ]) {
+    assert.equal(extractor.classifyEvent(title), "other", title);
+  }
+  assert.equal(extractor.classifyEvent("昆明轨交集团的铁路正式开工建设"), "infrastructure_transport");
+});
+
 test("reviewed vocabulary gives long-tail news a semantic entity", () => {
   for (const title of [
     "巴菲特再卖比亚迪并继续减持",
