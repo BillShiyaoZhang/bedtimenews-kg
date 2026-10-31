@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "baselineBundleId": "d4b1475180b67d8249f22edfd42121f73617fc9b4673af9b4c02ccd6c773501e",
+  "baselineInventoryHash": "40a990591d791132a033116ce389a62c1f4458093e80ed59944b59692e2b538a",
+  "currentInventoryHash": "98e054a901beedd14d8f8dae11187248ba30df3b396c98174afe73e93da75212",
+  "reviewedAt": "2026-10-31T12:51:06Z",
+  "reason": "Review upstream 43320d5fd857bb712f4c60f9ad731df0e096d0ca → 61b851a5d4e3eb1777f4c56eeaace834ec3bf03d for sync run 41201075309. Both navigation pages parse to null; full corpus segmentation equals accepted 9694 news and 2086 pages exactly. No news boundary, identity, date or source-fragment changes.",
+  "decisions": [
+    {
+      "path": "main/1001-1100.md",
+      "operation": "revise",
+      "fromHash": "8025764a4573f20abc19a173b52292eb01d7526eccc5e10af7259f4a3100b783",
+      "toHash": "faf66f06e2078189c75fb2527e4dcd57bad2af05c56dbe82bc9496aa506f3233",
+      "reason": "Navigation-only maintenance date and warning addition; old and new bytes both parse to null. The warning is upstream metadata, not an extracted claim or retraction. No existing news changes."
+    }
+  ]
+}
