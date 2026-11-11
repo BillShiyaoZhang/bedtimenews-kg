@@ -172,11 +172,25 @@ Do not mark an ambiguous absence resolved. Enter only those exact reviewed
 bounded resolution in its Actions step metadata so scheduled runs can verify it.
 Missing/deleted history cannot be waived by an unknown run ID.
 
-This conservative restart fence assumes Actions run/attempt history is retained.
-API errors, a missing current run, unresolved requested IDs and search limits fail
-closed. A previously unreferenced failed run that was externally deleted cannot
-be discovered from an otherwise clean listing. Deleting history is never a valid
-way to resolve an uncertain write; investigate the original operation instead.
+The restart fence checks history completeness from the verified first accepted
+release run `36788236991` (workflow `318788192`, run number `271`). It reads all
+branches of that workflow, requires every run number through the current run,
+and verifies every prior attempt has exactly one release job and materialization
+step. An explicitly completed skipped job/step is non-mutating; a missing job or
+step is not proof of non-execution. Prior queued steps remain blocked. Failed
+records before the anchor are still inspected and are not automatically resolved.
+
+GitHub documents `GITHUB_RUN_NUMBER` as incrementing for each new run of a
+particular workflow and not changing on rerun:
+https://docs.github.com/en/actions/reference/workflows-and-actions/variables
+The fixed workflow identity, anchor identity and contiguous sequence make a
+missing run observable without creating an additional storage service. API
+errors, deleted/expired anchors, gaps, workflow replacement, missing attempts,
+ambiguous step metadata and search limits all fail closed. Retention therefore
+may require a separately verified history checkpoint migration; there is no
+automatic reset or skip. Explicit `resolved_attempts` cannot waive missing history.
+This is a completeness fence, not a replacement for inspecting uncertain writes.
+Deleting history is never a valid resolution.
 
 The fixed-origin API client retries transient GET/HEAD failures at most four
 times total, with 250 ms, 1 s and 2 s delays. Timeouts, interrupted response reads,
@@ -404,3 +418,20 @@ an explicit policy and authorization, never a hidden expiry assumption.
   records. Local rollback tests are not evidence of a production rollback
 - Storage and activation gates remain mandatory. Existing repository approval
   does not imply permission to expand the payload, change access or delete assets
+
+## Candidate v5 self-contained audit encoding
+
+Candidate v5 preserves the v4 artifact inventory and original news-content contract.
+Only `provenance.json.gz` and `lifecycle.json.gz` use a versioned, self-contained
+JSON-string dictionary envelope inside gzip. Every original canonical JSON byte
+is reconstructed and checked against its bound byte length and SHA-256 before
+semantic validation. Evidence, record order and historical records are not removed.
+No ancestor asset or external dictionary is required to decode a v5 artifact.
+
+The first v4-to-v5 transition requires an explicit reviewed migration. Existing
+v3/v4 gzip bytes remain unchanged; subsequent v5 candidates retain v5. Older
+readers reject the unsupported candidate version instead of treating the envelope
+as a ledger. Decoder size/depth/token limits and the existing 64 MiB per-ledger,
+128 MiB total candidate limits remain enforced. The original news-content gzip
+encoding is unchanged. Full candidate replay and exact final-commit tests are
+still mandatory; a smaller baseline benchmark is not proof of candidate budget.

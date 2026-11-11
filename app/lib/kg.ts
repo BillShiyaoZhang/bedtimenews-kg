@@ -173,7 +173,7 @@ export type Event = {
   newsId: string;
   title: string;
   date: string;
-  datePrecision: "day" | "month" | "year";
+  datePrecision: "day" | "month" | "year" | "unknown";
   type: string;
   summary: string;
   entityIds: string[];
@@ -620,6 +620,7 @@ export function validateKnowledgeBase(
 }
 
 export function formatEventDate(event: Pick<Event, "date" | "datePrecision">) {
+  if (event.date === "1900-01-01" || event.datePrecision === "unknown") return "日期未知";
   if (event.datePrecision === "year") return event.date.slice(0, 4);
   if (event.datePrecision === "month") {
     const [year, month] = event.date.split("-");

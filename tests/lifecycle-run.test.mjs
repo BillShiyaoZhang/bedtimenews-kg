@@ -153,19 +153,19 @@ test("reviewed withdrawal fully recomputes the 91-to-90 place cap and middle chr
   });
 });
 
-test("removing an episode date anchor revises untouched news dates with corpus-bound provenance", async () => {
+test("removing an episode date anchor does not invent publication dates for untouched news", async () => {
   await workspace(async ({ archive, build, bundle, review }) => {
     await build("seed"); const seed = await bundle("seed");
     const old = seed.artifacts["news.json"].news.find((row) => row.title.includes("二"));
-    assert.ok(old); assert.equal(old.date, "2019-07-15");
+    assert.ok(old); assert.equal(old.date, "1900-01-01");
     const path = "daily/episode-three.md"; await rm(resolve(archive, path)); await commit(archive);
     await build("withdrawn", await review("seed", "date-review", [{ path, operation: "delete" }]));
     const next = await bundle("withdrawn"); const changed = next.artifacts["news.json"].news.find((row) => row.id === old.id);
-    assert.notEqual(changed.date, old.date);
+    assert.equal(changed.date, old.date);
     const oldPage = seed.artifacts["news.json"].pages.find((row) => row.id === old.pageId);
     const newPage = next.artifacts["news.json"].pages.find((row) => row.id === old.pageId);
     assert.equal(oldPage.contentHash, newPage.contentHash);
-    assert.ok(next.artifacts["provenance.json.gz"].dateDerivations.some((row) => row.kind === "corpus_reconciled_publication_date" && row.corpusInventoryHash));
+    assert.ok(next.artifacts["provenance.json.gz"].dateDerivations.some((row) => row.kind === "unknown" && row.corpusInventoryHash));
   }, async (archive) => {
     await rm(resolve(archive, "daily"), { recursive: true }); await mkdir(resolve(archive, "daily"));
     for (const [name, number, label, preamble] of [["one", 1, "一", "睡前消息：19/7/12"], ["two", 2, "二", ""], ["three", 3, "三", "睡前消息：19/7/18"]]) {

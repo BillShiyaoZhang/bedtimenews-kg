@@ -252,7 +252,9 @@ export async function reconcileReleasePages({ github, core, repo, journal, commi
  * authorizes read-only reconciliation only. An operator may name exact reviewed
  * run:attempt pairs in a manual dispatch after resolving their uncertain writes.
  * This is intentionally conservative, including failures before any write. */
-export async function createActionsReleaseMutationGuard({ repository, request, runId, runAttempt, resolvedAttempts = "" }) {
+export const ACTIONS_RELEASE_HISTORY_ANCHOR = Object.freeze({ runId: 36788236991, runNumber: 271, workflowId: 318788192 });
+
+export async function createActionsReleaseMutationGuard({ repository, request, runId, runAttempt, resolvedAttempts = "", historyAnchor = ACTIONS_RELEASE_HISTORY_ANCHOR }) {
   let phase = "identity", context = {};
   const check = (value, reason) => { if (!value) throw new ActionsHistoryError(phase, context, { kind: "invalid-history", reason }); };
   const readHistory = async (path, nextPhase, nextContext) => {
@@ -268,23 +270,44 @@ export async function createActionsReleaseMutationGuard({ repository, request, r
   const base = `/repos/${repository}`;
   const runs = [];
   for (let page = 1; page <= 10; page++) {
-    const result = await readHistory(`${base}/actions/workflows/sync-archive.yml/runs?branch=main&per_page=100&page=${page}`, "runs", { page });
+    const result = await readHistory(`${base}/actions/workflows/sync-archive.yml/runs?per_page=100&page=${page}`, "runs", { page });
     check(Array.isArray(result?.workflow_runs), "Actions history is unavailable");
     runs.push(...result.workflow_runs);
     if (result.workflow_runs.length < 100) break;
     check(page < 10, "Actions history reached the search limit; cannot prove restart safety");
   }
   check(runs.some((run) => run.id === Number(runId)), "current Actions run is missing from history");
+  // Run numbers increment for every new run of this workflow, not reruns.
+  // Read ALL branches: filtering would create gaps and branch dispatches also
+  // check out main. A gap/reset/expired anchor is uncertainty, never permission.
+  const currentRun = runs.find((run) => run.id === Number(runId));
+  check(Number.isSafeInteger(currentRun.run_number) && currentRun.run_number >= historyAnchor.runNumber
+    && currentRun.workflow_id === historyAnchor.workflowId && currentRun.run_attempt === Number(runAttempt), "current workflow identity or attempt is inconsistent");
+  const numbered = new Map(); const runIds = new Set();
+  for (const run of runs) {
+    check(Number.isSafeInteger(run.id) && Number.isSafeInteger(run.run_number) && run.run_number > 0
+      && Number.isSafeInteger(run.run_attempt) && run.run_attempt > 0 && run.workflow_id === historyAnchor.workflowId, "invalid workflow run identity");
+    check(!numbered.has(run.run_number) && !runIds.has(run.id), "duplicate workflow run identity");
+    runIds.add(run.id);
+    numbered.set(run.run_number, run);
+  }
+  check(numbered.get(historyAnchor.runNumber)?.id === historyAnchor.runId, "release history anchor is missing or changed");
+  check(currentRun.run_number - historyAnchor.runNumber < runs.length, "release workflow run history is incomplete");
+  for (let number = historyAnchor.runNumber; number <= currentRun.run_number; number++) {
+    check(numbered.has(number), "release workflow run history is incomplete");
+  }
   const blocked = new Set(); const observed = new Set(); const previouslyReviewed = new Set();
-  for (const run of runs.filter((item) => Number.isSafeInteger(item.id) && item.id <= Number(runId))) {
+  for (const run of runs.filter((item) => item.run_number <= currentRun.run_number)) {
+    const releaseJobs = [];
     for (let page = 1; page <= 100; page++) {
       const result = await readHistory(`${base}/actions/runs/${run.id}/jobs?filter=all&per_page=100&page=${page}`, "jobs", { runId: run.id, page });
       check(Array.isArray(result?.jobs), "Actions attempt history is unavailable");
       for (const job of result.jobs.filter((item) => item.name === "release-sync")) {
+        releaseJobs.push(job);
         check(Number.isSafeInteger(job.run_attempt) && job.run_attempt > 0, "Actions attempt identity is unavailable");
         if (run.id === Number(runId) && job.run_attempt >= Number(runAttempt)) continue;
         const step = job.steps?.find((item) => item.name === "Fully materialize, validate, accept and recover publication");
-        if (!step || step.conclusion === "skipped" || step.status === "queued") continue;
+        if (!step || (step.conclusion === "skipped" && step.status === "completed")) continue;
         const key = `${run.id}:${job.run_attempt}`; observed.add(key);
         if (step.conclusion !== "success" && !resolved.has(key)) blocked.add(key);
         if (step.conclusion === "success" && run.event === "workflow_dispatch") {
@@ -298,6 +321,23 @@ export async function createActionsReleaseMutationGuard({ repository, request, r
       }
       if (result.jobs.length < 100) break;
       check(page < 100, "Actions attempt history exceeds safety limit");
+    }
+    if (run.run_number >= historyAnchor.runNumber) {
+      phase = "attempts"; context = { runId: run.id };
+      const last = run.id === Number(runId) ? Number(runAttempt) - 1 : run.run_attempt;
+      check(last <= releaseJobs.length, "release attempt job is missing or duplicated");
+      for (let attempt = 1; attempt <= last; attempt++) {
+        const jobs = releaseJobs.filter((job) => job.run_attempt === attempt);
+        check(jobs.length === 1, "release attempt job is missing or duplicated");
+        const [job] = jobs;
+        // An explicitly skipped whole job cannot have executed a mutation.
+        // Missing steps in any other job are not evidence of non-execution.
+        if (job.status === "completed" && job.conclusion === "skipped") continue;
+        const steps = job.steps?.filter((step) => step.name === "Fully materialize, validate, accept and recover publication");
+        check(steps?.length === 1, "release attempt step is missing or duplicated");
+        check(!["success", "skipped"].includes(steps[0].conclusion) || steps[0].status === "completed", "release attempt step completion is inconsistent");
+      }
+      check(releaseJobs.every((job) => job.run_attempt <= run.run_attempt), "release job attempt exceeds workflow attempt");
     }
   }
   phase = "resolution"; context = {};

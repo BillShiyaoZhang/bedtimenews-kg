@@ -1,3 +1,5 @@
+import { hasKnownPublicationDate } from "./publication-date.mjs";
+
 const SYNONYM_GROUPS = [
   ["ai", "人工智能", "机器智能"],
   ["大模型", "大型语言模型", "llm"],
@@ -82,7 +84,7 @@ export function createEventSearchDocument({
         ...entityTypes.flatMap((type) => [type.label, type.description]),
       ].join(" "),
     ),
-    date: normalizeSearchText(event.date),
+    date: hasKnownPublicationDate(event) ? normalizeSearchText(event.date) : "",
   };
   return {
     event,

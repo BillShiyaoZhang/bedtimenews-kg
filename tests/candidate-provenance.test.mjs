@@ -165,22 +165,19 @@ test("candidate chronology recomputes middle insertions and place mention-cap bo
 });
 
 
-test("undated pages retain explicit fragment-date fallback rather than false publication provenance", () => {
+test("undated pages do not turn fragment event dates into publication chronology", () => {
   const raw = "---\ntitle: 美国消息\npublished: true\n---\n\n2026年1月1日，美国介绍有关情况。\n";
   const parsed = parseSourcePage("daily/undated.md", raw);
   assert.equal(parsed.page.publishedAt, "1900-01-01");
-  assert.equal(parsed.news[0].date, "2026-01-01");
+  assert.equal(parsed.news[0].date, "1900-01-01");
   const dataset = { ...template, generatedAt: "2026-01-01T00:00:00Z", pages: [parsed.page], news: parsed.news };
   const rawPages = new Map([[parsed.page.id, raw]]);
   const build = buildKnowledgeGraph({ dataset, rawPages, ontology, rules, generatedAt: dataset.generatedAt, collectTrace: true });
   const value = { ...build, dataset, rawPages, ontology, rules, sourceInventory: { "daily/undated.md": hash(raw) }, bindings };
   const provenance = buildCandidateProvenance(value);
   const date = provenance.dateDerivations[0];
-  assert.equal(date.kind, "fragment_explicit_date");
-  assert.equal(date.newsRevisionId, provenance.newsRevisions[0].id);
-  const evidence = provenance.evidence.find((row) => row.id === date.evidenceId);
-  assert.equal(evidence.text, "2026年1月1日");
-  assert.equal(provenance.inputs.find((row) => row.id === evidence.inputId).origin, "verified_fragment");
-  assert.match(provenance.chronologySemantics, /fragment_fallback_not_actual_occurrence/u);
+  assert.equal(date.kind, "unknown");
+  assert.equal(date.datePrecision, "unknown");
+  assert.equal(value.kg.eventRelations.length, 0);
   assert.deepEqual(validateCandidateProvenance(provenance, value), []);
 });
