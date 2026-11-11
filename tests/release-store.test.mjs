@@ -96,18 +96,18 @@ test("legacy v1 offline and v2 lifecycle audit bundles retain their exact artifa
   }
 });
 
-test("v4 audit storage stages and reads the exact content artifact without source archives", async (t) => {
-  const artifacts = Object.fromEntries(acceptedArtifactNames("4.0.0").map((name) => [name, name === "source-review.json" ? null : { fixture: name }]));
-  const f = await fixture(t, artifacts, { candidate: "4.0.0" });
+for (const candidate of ["4.0.0", "5.0.0"]) test(`${candidate} audit storage stages and reads the exact transport bytes without source archives`, async (t) => {
+  const artifacts = Object.fromEntries(acceptedArtifactNames(candidate).map((name) => [name, name === "source-review.json" ? null : { fixture: name }]));
+  const f = await fixture(t, artifacts, { candidate });
   const gh = fakeGitHub();
   const receipt = await gh.store().stageBundle(optionsFor(f));
   assert.equal(Object.keys(receipt.assets).length, 8);
   assert.ok(receipt.assets[NEWS_CONTENT_ARTIFACT]);
   assert.equal(receipt.rawSourceArchiveIncluded, false);
   const recovered = await gh.store().readBundle({ receipt });
-  assert.deepEqual(recovered.files.get(NEWS_CONTENT_ARTIFACT), await readFile(join(f.dir, NEWS_CONTENT_ARTIFACT)));
+  for (const [name, bytes] of recovered.files) assert.deepEqual(bytes, await readFile(join(f.dir, name)));
   const missing = { ...artifacts }; delete missing[NEWS_CONTENT_ARTIFACT];
-  const incomplete = await fixture(t, missing, { candidate: "4.0.0" });
+  const incomplete = await fixture(t, missing, { candidate });
   await assert.rejects(prepareAuditBundle(incomplete.dir), /artifact inventory differs/u);
   const unversioned = await fixture(t, artifacts);
   await assert.rejects(prepareAuditBundle(unversioned.dir), /versioned accepted candidate/u);

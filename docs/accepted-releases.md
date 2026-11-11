@@ -422,6 +422,10 @@ an explicit policy and authorization, never a hidden expiry assumption.
 ## Candidate v5 self-contained audit encoding
 
 Candidate v5 preserves the v4 artifact inventory and original news-content contract.
+The audit transport named `kg.json` is gzip level 6 in v5, selected explicitly by
+`manifest.versions.candidate`; the filename alone does not identify its encoding.
+The tracked `data/generated/kg.json` remains canonical plain JSON. `news.json`,
+`diff.json` and their bindings remain plain JSON; v3/v4 wire bytes are unchanged.
 Only `provenance.json.gz` and `lifecycle.json.gz` use a versioned, self-contained
 JSON-string dictionary envelope inside gzip. Every original canonical JSON byte
 is reconstructed and checked against its bound byte length and SHA-256 before

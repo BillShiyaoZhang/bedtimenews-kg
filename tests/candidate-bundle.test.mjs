@@ -364,3 +364,20 @@ test("gzip JSON audit artifacts are deterministic, validated and corruptions fai
   await writeFile(join(root, "first/provenance.json.gz"), Buffer.from("corrupt"));
   await assert.rejects(verifyCandidateBundle(join(root, "first")), /hash\/size mismatch/u);
 });
+
+test("v5 KG compressed wire is explicitly versioned while news/diff remain plain", async (t) => {
+  const root = await sandbox(t), kg = graph(), news = { news: [] }, diff = { changed: [] };
+  const plain = (value) => Buffer.from(`${canonicalJson(value)}\n`);
+  const artifacts = { "kg.json": kg, "news.json": news, "diff.json": diff };
+  const published = await publishCandidateBundle(join(root, "v5"), bundle({ versions: { candidate: "5.0.0" }, artifacts }));
+  const wire = gzipSync(plain(kg), { level: 6 });
+  assert.deepEqual(await readFile(join(published.outputDir, "kg.json")), wire);
+  assert.deepEqual(await readFile(join(published.outputDir, "news.json")), plain(news));
+  assert.deepEqual(await readFile(join(published.outputDir, "diff.json")), plain(diff));
+  assert.equal(published.manifest.artifacts["diff.json"].sha256, sha256(plain(diff)));
+  assert.deepEqual((await verifyCandidateBundle(published.outputDir)).artifacts, artifacts);
+  const supplied = await publishCandidateBundle(join(root, "supplied"), bundle({ versions: { candidate: "5.0.0" }, artifacts: { "kg.json": wire } }));
+  assert.deepEqual(supplied.artifacts["kg.json"], kg);
+  await assert.rejects(publishCandidateBundle(join(root, "v5-plain"), bundle({ versions: { candidate: "5.0.0" }, artifacts: { "kg.json": plain(kg) } })), /Invalid JSON/u);
+  for (const candidate of ["3.0.0", "4.0.0"]) await assert.rejects(publishCandidateBundle(join(root, candidate), bundle({ versions: { candidate }, artifacts: { "kg.json": wire } })), /Invalid JSON/u);
+});

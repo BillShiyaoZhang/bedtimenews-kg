@@ -1,3 +1,4 @@
+import { encodeAuditArtifact } from "./audit-artifact.mjs";
 import { summarizeReportDescriptions } from "./report-description-reporting.mjs";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { buildSegmentationReport } from "./news.mjs";
@@ -17,7 +18,7 @@ export function buildAcceptedReports({ candidateManifest, artifacts, previousKG 
   const recipe = candidateManifest.inputs.recipe;
   must(kg.schemaVersion === ontology.version, "candidate ontology mismatch");
   for (const [name, value] of [["kg.json", kg], ["news.json", news], ["diff.json", diff]]) {
-    const content = bytes(value), binding = candidateManifest.artifacts?.[name];
+    const content = encodeAuditArtifact(bytes(value), name, candidateManifest.versions?.candidate), binding = candidateManifest.artifacts?.[name];
     must(binding?.bytes === content.length && binding.sha256 === sha256(content), `candidate artifact mismatch: ${name}`);
   }
   const previousIds = new Set((previousKG?.events ?? []).map((event) => event.id));

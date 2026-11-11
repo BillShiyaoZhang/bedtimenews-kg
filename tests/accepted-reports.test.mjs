@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { gzipSync } from "node:zlib";
 import { canonicalJson, sha256 } from "../scripts/lib/candidate-bundle.mjs";
 import { ACCEPTED_REPORT_PATHS, buildAcceptedReports } from "../scripts/lib/accepted-reports.mjs";
 
@@ -44,4 +45,18 @@ test("accepted reports are deterministic and reject stale candidate inputs", () 
   }
   const bad = fixture(); bad.ontology.version = "other";
   assert.throws(() => buildAcceptedReports(bad), /ontology mismatch/u);
+});
+
+
+test("v5 reports bind compressed KG transport without changing reports or diff hash", () => {
+  const options = fixture();
+  const legacyReports = buildAcceptedReports(options);
+  const plain = Buffer.from(`${canonicalJson(options.artifacts["kg.json"])}\n`);
+  const wire = gzipSync(plain, { level: 6 });
+  options.candidateManifest.versions = { candidate: "5.0.0" };
+  options.candidateManifest.artifacts["kg.json"] = { bytes: wire.length, sha256: sha256(wire) };
+  assert.deepEqual(buildAcceptedReports(options), legacyReports);
+  assert.equal(JSON.parse(buildAcceptedReports(options).get("data/review/upstream-changes.json")).diffSha256, options.candidateManifest.artifacts["diff.json"].sha256);
+  options.candidateManifest.artifacts["kg.json"] = { bytes: plain.length, sha256: sha256(plain) };
+  assert.throws(() => buildAcceptedReports(options), /candidate artifact mismatch: kg.json/u);
 });

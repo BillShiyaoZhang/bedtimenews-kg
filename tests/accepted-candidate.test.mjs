@@ -174,6 +174,10 @@ for (const contentProtocol of ["v4", "v5"]) test(`explicit ${contentProtocol} mi
     await writeFile(migrationReview, jsonBytes({ ...preview.reviewBinding, reviewedAt: generatedAt, reason: "Review exact complete news content contract" }));
     const seed = await build("content-seed", { contentProtocol, migrationReview });
     assert.equal(seed.manifest.versions.candidate, `${contentProtocol.slice(1)}.0.0`);
+    const renderedKg = seed.acceptedFiles.get(REQUIRED_ACCEPTED_PATHS[0]);
+    assert.deepEqual(await readFile(resolve(seed.output, "kg.json")), contentProtocol === "v5" ? gzipSync(renderedKg, { level: 6 }) : renderedKg);
+    assert.deepEqual(await readFile(resolve(seed.output, "news.json")), seed.acceptedFiles.get(REQUIRED_ACCEPTED_PATHS[1]));
+    assert.equal(seed.manifest.artifacts["diff.json"].sha256, sha256(jsonBytes(seed.artifacts["diff.json"])));
     assert.equal(seed.artifacts[NEWS_CONTENT_ARTIFACT].rows.length, seed.artifacts["news.json"].news.length);
     assert.deepEqual(seed.artifacts[NEWS_CONTENT_ARTIFACT].updates.addedNewsIds, []);
     for (const path of REQUIRED_ACCEPTED_PATHS.slice(0, 2)) assert.ok(seed.acceptedFiles.get(path).equals(legacy.acceptedFiles.get(path)));

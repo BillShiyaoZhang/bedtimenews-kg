@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { gzipSync } from "node:zlib";
+import { encodeAuditArtifact } from "../scripts/lib/audit-artifact.mjs";
 import { canonicalJson, sha256 } from "../scripts/lib/candidate-bundle.mjs";
 import { ALLOWED_ACCEPTED_PATHS, REQUIRED_ACCEPTED_PATHS, acceptedReleaseIdentity, classifyAcceptedRelease, createAcceptedArchiveState, createAcceptedRelease, validateAcceptedRelease, validateAcceptedReleaseFiles, validateAcceptedReleaseStructure } from "../scripts/lib/accepted-release.mjs";
 import { validateRollbackReview } from "../scripts/lib/accepted-transition.mjs";
@@ -338,4 +339,28 @@ test("legacy accepted receipts remain byte-stable while optional identity regist
   assert.throws(() => createAcceptedRelease(fixture({ configChange: { identityRegistry: { ...identityRegistry, sha256: "unknown" } } }).options), /configuration binding/u);
   const continuation = fixture({ previous: legacy, configChange: { identityRegistry } });
   assert.throws(() => createAcceptedRelease(continuation.options), /migration|epoch/u);
+});
+
+
+test("v5 receipt separates compressed KG audit binding from canonical rendered files", () => {
+  const f = fixture();
+  const manifest = f.options.candidateManifest;
+  manifest.versions = { ...versionLabels, candidate: "5.0.0" };
+  const snapshot = buildNewsContentSnapshot({ news: f.news, kg: f.kg, lifecycle: f.lifecycle, sourceCommit, rawSources: new Map() });
+  for (const [name, value] of [["kg.json", f.kg], ["lifecycle.json.gz", f.lifecycle], ["provenance.json.gz", {}], [NEWS_CONTENT_ARTIFACT, snapshot]]) manifest.artifacts[name] = binding(encodeAuditArtifact(bytes(value), name, "5.0.0"));
+  f.options.acceptedFiles[REQUIRED_ACCEPTED_PATHS[0]] = bytes(f.kg);
+  f.options.acceptedFiles[REQUIRED_ACCEPTED_PATHS[1]] = bytes(f.news);
+  f.options.acceptedFiles[NEWS_CONTENT_PATH] = bytes(snapshot);
+  f.refresh();
+  const release = createAcceptedRelease(f.options);
+  assert.deepEqual(release.acceptedFiles[REQUIRED_ACCEPTED_PATHS[0]], binding(bytes(f.kg)));
+  assert.deepEqual(release.auditReceipt.assets["kg.json"].sha256, sha256(gzipSync(bytes(f.kg), { level: 6 })));
+  assert.notEqual(release.acceptedFiles[REQUIRED_ACCEPTED_PATHS[0]].sha256, release.auditReceipt.assets["kg.json"].sha256);
+  assert.deepEqual(manifest.artifacts["news.json"], binding(bytes(f.news)));
+  assert.deepEqual(manifest.artifacts["diff.json"], binding(bytes({})));
+  assert.deepEqual(validateAcceptedRelease(release, f.options), []);
+  assert.deepEqual(validateAcceptedReleaseFiles(release, f.options.acceptedFiles)[REQUIRED_ACCEPTED_PATHS[0]], f.kg);
+  assert.throws(() => createAcceptedRelease({ ...f.options, acceptedFiles: { ...f.options.acceptedFiles, [REQUIRED_ACCEPTED_PATHS[0]]: gzipSync(bytes(f.kg)) } }), /invalid JSON/u);
+  manifest.artifacts["kg.json"] = binding(bytes(f.kg)); f.refresh();
+  assert.throws(() => createAcceptedRelease(f.options), /kg.json differs from the candidate materialization/u);
 });

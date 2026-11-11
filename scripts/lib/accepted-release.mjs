@@ -128,7 +128,7 @@ function assertMaterialization(parsed, manifest, lifecycle, sourceCommit) {
   const [kgPath, newsPath, statePath] = REQUIRED_ACCEPTED_PATHS;
   const kg = parsed[kgPath]; const news = parsed[newsPath]; const state = parsed[statePath];
   must(object(kg) && object(news) && object(state), "accepted datasets must be JSON objects");
-  for (const [name, value] of [["kg.json", kg], ["news.json", news]]) must(equal(fileBinding(jsonBytes(value)), manifest.artifacts[name]), `${name} differs from the candidate materialization`);
+  for (const [name, value] of [["kg.json", kg], ["news.json", news]]) must(equal(fileBinding(encodeAuditArtifact(jsonBytes(value), name, manifest.versions.candidate)), manifest.artifacts[name]), `${name} differs from the candidate materialization`);
   if (["4.0.0", "5.0.0"].includes(manifest.versions.candidate)) {
     const content = parsed[NEWS_CONTENT_PATH];
     validateNewsContentSnapshot(content, { news, kg, sourceCommit, effectiveInventory: lifecycle.effectiveInventory });

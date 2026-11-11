@@ -20,3 +20,22 @@ test("v5 preserves original news content bytes and exact inventory", () => {
   assert.equal(selectContentVersion(undefined, "5.0.0"), "5.0.0");
   assert.throws(() => selectContentVersion("v4", "5.0.0"), /drop/u);
 });
+
+for (const version of ["3.0.0", "4.0.0"]) test(`legacy ${version} KG/news/diff transport stays plain JSON`, () => {
+  for (const name of ["kg.json", "news.json", "diff.json"]) {
+    assert.deepEqual(encodeAuditArtifact(raw, name, version), raw);
+    assert.deepEqual(decodeAuditArtifact(raw, name, version), raw);
+  }
+});
+test("v5 compresses only KG transport and preserves decoded bytes", () => {
+  const encoded = encodeAuditArtifact(raw, "kg.json", "5.0.0");
+  assert.deepEqual(encoded, gzipSync(raw, { level: 6 }));
+  assert.deepEqual(decodeAuditArtifact(encoded, "kg.json", "5.0.0", raw.length), raw);
+  for (const name of ["news.json", "diff.json", "source-review.json"]) assert.deepEqual(encodeAuditArtifact(raw, name, "5.0.0"), raw);
+  assert.throws(() => decodeAuditArtifact(raw, "kg.json", "5.0.0"));
+  for (const bytes of [encoded.subarray(0, 4), encoded.subarray(0, -1), Buffer.from("invalid gzip")]) assert.throws(() => decodeAuditArtifact(bytes, "kg.json", "5.0.0"));
+  assert.throws(() => decodeAuditArtifact(encoded, "kg.json", "5.0.0", raw.length - 1));
+  const bomb = gzipSync(Buffer.alloc(64 * 1024, 0x61));
+  assert.ok(bomb.length < 1024);
+  assert.throws(() => decodeAuditArtifact(bomb, "kg.json", "5.0.0", 1024));
+});
