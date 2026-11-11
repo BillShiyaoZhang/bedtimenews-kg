@@ -87,7 +87,7 @@ function describeAuditManifest(manifestBytes, limits) {
   must(sha256(canonicalJson(identity)) === bundleId, "bundleId does not bind manifest contents");
   const names = Object.keys(manifest.artifacts).sort();
   must(names.every((name) => FILES.has(name)), "unsupported artifact; source archives are not permitted");
-  if (["2.0.0", "3.0.0", "4.0.0"].includes(manifest.versions.candidate)) must(names.join(",") === acceptedArtifactNames(manifest.versions.candidate).join(","), "candidate artifact inventory differs from its protocol");
+  if (["2.0.0", "3.0.0", "4.0.0", "5.0.0"].includes(manifest.versions.candidate)) must(names.join(",") === acceptedArtifactNames(manifest.versions.candidate).join(","), "candidate artifact inventory differs from its protocol");
   else must(!names.includes(NEWS_CONTENT_ARTIFACT), "content requires the versioned accepted candidate protocol");
   let totalBytes = manifestBytes.length;
   const files = { "manifest.json": { sha256: sha256(manifestBytes), bytes: manifestBytes.length } };

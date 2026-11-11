@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import { canonicalJson, sha256 } from "./lib/candidate-bundle.mjs";
-import { validateProductionPlan, snapshotProducer, validateSnapshotDirectory } from "./lib/audit-snapshot.mjs";
+import { validateProductionPlan, snapshotProducer, validateSnapshotDirectory, writeApprovedSourceReview } from "./lib/audit-snapshot.mjs";
 import { readApprovedProductionPlan } from "./lib/download-audit-snapshot.mjs";
 import { loadAcceptedGitCheckpoint, readVerifiedAcceptedCheckpoint } from "./lib/accepted-git.mjs";
 import { createGitHubReleaseStore, prepareAuditBundle } from "./lib/release-store.mjs";
@@ -61,6 +61,7 @@ if (mode === "history") {
   for (const [name,bytes] of downloaded.files) await writeFile(resolve(directory,"checkpoint",name),bytes,{flag:"wx"});
   await writeFile(resolve(directory,"plan.json"),planBytes,{flag:"wx"});
   await writeFile(resolve(directory,"migration-review.json"),`${canonicalJson(plan.migrationReview)}\n`,{flag:"wx"});
+  await writeApprovedSourceReview(plan, directory);
 } else {
   const described = await prepareAuditBundle(directory);
   must(described.bundleId === plan.bundleId);

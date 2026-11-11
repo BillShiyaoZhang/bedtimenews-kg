@@ -404,3 +404,21 @@ an explicit policy and authorization, never a hidden expiry assumption.
   records. Local rollback tests are not evidence of a production rollback
 - Storage and activation gates remain mandatory. Existing repository approval
   does not imply permission to expand the payload, change access or delete assets
+
+## Candidate v5 reader compatibility (two-phase migration)
+
+Candidate v5 preserves the v4 artifact inventory and original news-content
+contract. Only `provenance.json.gz` and `lifecycle.json.gz` use a self-contained
+JSON-string dictionary inside gzip. Decoding checks the exact canonical JSON
+byte length and SHA-256 before semantic validation. No historical evidence,
+record order, or ancestor dependency is removed or introduced. Existing v3/v4
+bytes and the 64 MiB per-ledger / 128 MiB total budgets remain unchanged.
+
+The trusted PR audit downloader runs the PR base, not proposed code. Therefore
+reader/operator compatibility must first be accepted as a coherent v4 migration
+on the existing source and semantic rules. A code-only compatibility commit does
+not satisfy the accepted generator binding. Only after that migration has passed
+independent replay, real audit staging/readback, and CI may a second reviewed
+migration emit v5 with new semantics or sources. The second migration must be
+regenerated against the actually accepted first-stage checkpoint. Never bypass
+the trusted base or substitute an unverified receipt to combine these stages.

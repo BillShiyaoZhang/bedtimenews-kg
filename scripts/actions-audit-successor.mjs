@@ -59,6 +59,8 @@ try {
   phase="scope";
   const scopeBytes=await readFile(resolve(root,"audit-recovery/reference-658/scope.json"));
   const {scope,authority,journal,approval,uploadScope}=validateSuccessorAuthority({scopeBytes,authorityBytes,operatorCommit:env.GITHUB_SHA,policy});
+  // This adapter remains limited to its frozen v3 historical incident.
+  must(scope.plan.schemaVersion === 1);
   phase="run-identity";
   const run=await api(`/actions/runs/${env.GITHUB_RUN_ID}`);
   must(String(run.id)===env.GITHUB_RUN_ID && run.run_attempt===1 && run.head_sha===env.GITHUB_SHA && run.head_branch==="main"

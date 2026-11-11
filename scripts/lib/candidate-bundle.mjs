@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { gzipSync, gunzipSync } from "node:zlib";
+import { encodeAuditArtifact, decodeAuditArtifact } from "./audit-artifact.mjs";
 import { constants } from "node:fs";
 import { lstat, mkdir, mkdtemp, open, readdir, rename, rm, rmdir } from "node:fs/promises";
 import { basename, dirname, join, parse, resolve } from "node:path";
@@ -128,10 +128,10 @@ function normalizeBindings(inputs, versions) {
   return JSON.parse(canonicalJson({ inputs, versions }));
 }
 
-function parseJson(bytes, name) {
+function parseJson(bytes, name, version) {
   let value;
   try {
-    const decoded = name.endsWith(".json.gz") ? gunzipSync(bytes, { maxOutputLength: 512 * 1024 * 1024 }) : bytes;
+    const decoded = decodeAuditArtifact(bytes, name, version);
     value = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(decoded), (_key, item) => {
       if (typeof item === "number" && !Number.isFinite(item)) throw new Error("Non-finite JSON number");
       return item;
@@ -183,10 +183,10 @@ function prepareBundle(artifacts, inputs, versions) {
     const value = property(artifacts, name);
     const suppliedBytes = Buffer.isBuffer(value) || typeof value === "string";
     const encoded = Buffer.isBuffer(value) ? Buffer.from(value) : Buffer.from(typeof value === "string" ? value : `${canonicalJson(value)}\n`);
-    const content = name.endsWith(".json.gz") && !suppliedBytes ? gzipSync(encoded, { level: 6 }) : encoded;
+    const content = !suppliedBytes ? encodeAuditArtifact(encoded, name, versions.candidate) : encoded;
     // Objects were strictly checked while encoding. Reuse/freeze them instead of
     // parsing a second full ledger into memory; supplied bytes still need parsing.
-    values.push([name, suppliedBytes ? parseJson(content, name) : value]);
+    values.push([name, suppliedBytes ? parseJson(content, name, versions.candidate) : value]);
     entries.push([name, { sha256: sha256(content), bytes: content.length }]);
     bytes.set(name, content);
   }
@@ -284,7 +284,7 @@ export async function verifyCandidateBundle(dir, { expectedInputs, validate } = 
     if (bytes.length !== binding.bytes || sha256(bytes) !== binding.sha256) {
       throw new Error(`Candidate artifact hash/size mismatch: ${name}.`);
     }
-    artifacts.push([name, parseJson(bytes, name)]);
+    artifacts.push([name, parseJson(bytes, name, manifest.versions.candidate)]);
   }
   const values = Object.fromEntries(artifacts);
   await runValidator(validate, manifest, values);
