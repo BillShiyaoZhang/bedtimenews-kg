@@ -83,6 +83,31 @@ test("event classification uses reviewed universal categories", () => {
   );
 });
 
+// Reference 662, description sentence 2, source 24b1f0bc1b3a5500c2bc8c79a3317ac05bde595a.
+// Classify the reported financial subject, without verifying the overdue-payment claim.
+test("reported debt repayment pressure has an exact financial classification witness", () => {
+  const title = "昆明轨交集团的票据又逾期了，短期偿债压力大";
+  const decision = extractor.classifyEventDecision(title);
+  assert.equal(decision.type, "economy_business");
+  assert.equal(decision.selectedInput, "primary");
+  assert.equal(decision.steps[0].stage, "weighted_keywords");
+  assert.deepEqual(decision.steps[0].evidence.map((item) => item.text), ["偿债压力"]);
+  const witness = decision.steps[0].evidence[0];
+  assert.equal(title.slice(witness.start, witness.end), "偿债压力");
+  assert.equal(extractor.classifyEvent("短期偿债压力大"), "economy_business");
+  assert.equal(extractor.classifyEvent("相关情况有了变化", "短期偿债压力大"), "economy_business");
+});
+
+test("debt pressure cue does not generalize to issuer, overdue items or ordinary pressure", () => {
+  for (const title of [
+    "昆明轨交集团", "昆明轨交集团的票据又逾期了", "借阅逾期了",
+    "短期压力大", "偿债安排有变化", "轨交集团承受客流压力",
+  ]) {
+    assert.equal(extractor.classifyEvent(title), "other", title);
+  }
+  assert.equal(extractor.classifyEvent("昆明轨交集团的铁路正式开工建设"), "infrastructure_transport");
+});
+
 test("reviewed vocabulary gives long-tail news a semantic entity", () => {
   for (const title of [
     "巴菲特再卖比亚迪并继续减持",
@@ -310,4 +335,43 @@ test("reviewed organization aliases resolve to one canonical identity", () => {
   assert.ok(byLabel.has("中国国家铁路集团有限公司"));
   assert.ok(byLabel.has("中国人民大学"));
   assert.ok(byLabel.has("华为"));
+});
+
+// Exact reviewed fragments at upstream 3944f1c780fe4ed03e77df970a798615c078a677.
+// These are reported subjects, not verification of the reported allegations.
+test("toxic haze is classified as environment without inferring an international dispute", () => {
+  const text = "今年厄尔尼诺强度爆表，印尼持续大火导致毒霾影响邻国，与新加坡爆发口水战。";
+  const decision = extractor.classifyEventDecision(text);
+  assert.equal(decision.type, "environment_energy");
+  assert.ok(decision.steps.some((step) => step.evidence?.some((item) => item.text === "毒霾")));
+  assert.equal(extractor.classifyEvent("双方爆发口水战"), "other");
+});
+
+test("episode 1123 protest description has exact governance topic evidence", () => {
+  const text = "2026年的欧洲，巴黎市民带头造反，七八个国家的市民跟着抗议，似乎回到了19世纪的革命年代。";
+  const topic = rules.topics.find((item) => item.conceptId === "topic-governance");
+  assert.deepEqual(extractor.matchTopicEvidence(text), [{ entityId: topic.entityId, terms: ["市民跟着抗议"] }]);
+  for (const unrelated of ["能输出革命，才能卖LV包", "工业革命", "巴黎市民购物"]) {
+    assert.ok(!extractor.matchTopicEvidence(unrelated).some((item) => item.entityId === topic.entityId));
+  }
+});
+
+test("reference 667 investment report maps to finance without inventing a named insurer", () => {
+  const text = "市场传闻“险企7月高位买入科技股，三季度投资亏损严重”，在三季报中得到印证。";
+  const topic = rules.topics.find((item) => item.conceptId === "topic-finance");
+  assert.deepEqual(extractor.matchTopicEvidence(text), [{ entityId: topic.entityId, terms: ["高位买入科技股"] }]);
+  const candidates = extractor.extractCandidates(text, text);
+  assert.ok(candidates.some((item) => item.type === "topic" && item.label === topic.label));
+  assert.ok(!candidates.some((item) => item.type === "organization"));
+  for (const unrelated of ["买入科技产品", "高位运行", "三季度投资亏损严重"]) {
+    assert.ok(!extractor.matchTopicEvidence(unrelated).some((item) => item.entityId === topic.entityId));
+  }
+});
+
+test("reference 668 and 669 classify exact labor and disease-control subjects", () => {
+  assert.equal(extractor.classifyEvent("河北邯郸一名继母介绍女儿到黑作坊打工，因伤致残"), "society_livelihood");
+  assert.equal(extractor.classifyEvent("四川宣布消除血吸虫病，重流行省份还剩6个"), "public_health");
+  for (const text of ["他到作坊参观", "因伤致残", "消除疑虑", "流行款式"]) {
+    assert.equal(extractor.classifyEvent(text), "other", text);
+  }
 });

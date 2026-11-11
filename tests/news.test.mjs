@@ -241,7 +241,7 @@ dateCreated: 2023-01-24T11:34:04.477Z
   assert.equal(result.news[0].date, "2019-07-12");
 });
 
-test("episode dates follow increasing title numbers and retain provenance", () => {
+test("missing episode publication dates remain unknown without interpolation", () => {
   const pages = [
     episodePage(1, "2019-07-12", "episode_preamble"),
     episodePage(2, "2023-01-24", "frontmatter"),
@@ -256,10 +256,10 @@ test("episode dates follow increasing title numbers and retain provenance", () =
 
   const summary = reconcileEpisodeDates(pages, news);
 
-  assert.equal(pages[1].publishedAt, "2019-07-15");
+  assert.equal(pages[1].publishedAt, "1900-01-01");
   assert.equal(pages[1].dateProvenance.observedAt, "2023-01-24");
-  assert.equal(pages[1].dateProvenance.resolution, "interpolated");
-  assert.equal(news[1].date, "2019-07-15");
+  assert.equal(pages[1].dateProvenance.resolution, "unknown_publication");
+  assert.equal(news[1].date, "1900-01-01");
   assert.equal(summary.adjustedPages, 1);
 });
 
@@ -313,3 +313,45 @@ function episodePage(number, publishedAt, source) {
     episode: { series: "bedtimenews", number },
   };
 }
+
+test("archive creation and repost maintenance timestamps are not publication evidence", () => {
+  const raw = `---\ntitle: 【参考信息667】市场消息\ndescription: 市场传闻投资科技股，季度投资亏损严重。\npublished: true\ndateCreated: 2026-11-01T00:00:00Z\ndate: 2026-11-07T00:00:00Z\n---\n\n2026年11月7日转发。`;
+  const parsed = parseSourcePage("reference/601-700/667.md", raw);
+  assert.equal(parsed.page.publishedAt, "1900-01-01");
+  assert.equal(parsed.page.dateProvenance.observedAt, "2026-11-01");
+  assert.equal(parsed.page.dateProvenance.source, "frontmatter");
+  assert.equal(parsed.news[0].date, "1900-01-01");
+  assert.equal(parsed.news[0].datePrecision, "unknown");
+});
+
+test("visible formatted preambles are recognized, comments are not and weekdays are checked", () => {
+  const make = (body) => parseSourcePage("main/1073.md", `---\ntitle: 【睡前消息1073】测试\npublished: true\n---\n\n${body}\n\n美国介绍工资与劳动情况，正文足够长且有可核验的新闻信息。`);
+  const known = make("**大家好**，<b>2026</b>年7月5日星期日，欢迎收看。");
+  assert.equal(known.page.publishedAt, "2026-07-05");
+  const conflict = make("大家好，2026年7月30日星期五，欢迎收看。");
+  assert.equal(conflict.page.publishedAt, "1900-01-01");
+  assert.equal(conflict.page.dateProvenance.reason, "weekday_mismatch");
+  assert.equal(conflict.news[0].date, "1900-01-01");
+  const hidden = make("<!-- 大家好，2026年7月5日星期日 -->正文没有发布日期。");
+  assert.equal(hidden.page.publishedAt, "1900-01-01");
+});
+
+test("inverted episode dates quarantine both witnesses without choosing a winner", () => {
+  const pages = [episodePage(1073, "2026-07-30", "episode_preamble"), episodePage(1074, "2026-07-05", "episode_preamble")];
+  const news = pages.map(p => ({ pageId: p.id, date: p.publishedAt }));
+  assert.equal(reconcileEpisodeDates(pages, news).rejectedAnchors, 2);
+  assert.ok(news.every(n => n.date === "1900-01-01" && n.datePrecision === "unknown"));
+  assert.ok(pages.every(p => p.dateProvenance.resolution === "conflicting_sequence" && p.dateProvenance.conflictingPaths.length === 1));
+});
+
+test("January first explicit publication date has day precision and invalid calendar dates stay unknown", () => {
+  const page = (date) => parseSourcePage("daily/date.md", `---\ntitle: 新闻\npublished: true\n---\n\n大家好，${date}，欢迎收看。美国介绍工资与劳动情况。`);
+  assert.equal(page("2026年1月1日").news[0].datePrecision, "day");
+  assert.equal(page("2026年2月30日").page.publishedAt, "1900-01-01");
+});
+
+test("conflicting path and preamble publication witnesses require review", () => {
+  const parsed = parseSourcePage("daily/2026/07/06.md", "---\ntitle: 消息\npublished: true\n---\n\n大家好，2026年7月5日星期日，欢迎收看。美国介绍工资与劳动情况。");
+  assert.equal(parsed.page.publishedAt, "1900-01-01");
+  assert.equal(parsed.page.dateProvenance.reason, "publication_witness_disagreement");
+});

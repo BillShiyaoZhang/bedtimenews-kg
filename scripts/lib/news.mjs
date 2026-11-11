@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 
 export const NEWS_DATASET_SCHEMA_VERSION = "1.1.0";
-export const SEGMENTATION_VERSION = "1.4.0";
+export const SEGMENTATION_VERSION = "1.5.0";
 
 const MEDIA_HEADING = /^(?:Tabs|B站|西瓜视频|YouTube|播客)$/iu;
 const NUMBERED_HEADING =
@@ -30,6 +30,9 @@ const DATE_RESOLUTIONS = new Set([
   "interpolated",
   "corrected_sequence_outlier",
   "extrapolated",
+  "unknown_publication",
+  "conflicting_sequence",
+  "conflicting_observation",
 ]);
 
 export function parseSourcePage(repositoryPath, raw, overrides = {}) {
@@ -54,7 +57,7 @@ export function parseSourcePage(repositoryPath, raw, overrides = {}) {
     parsed.attributes,
   );
   const episode = extractEpisode(sourceTitle);
-  const pageDate = dateObservation.date;
+  const pageDate = dateObservation.source === "frontmatter" || dateObservation.conflict ? "1900-01-01" : dateObservation.date;
   const segmentation = applyManualExclusions(
     segmentNews(
       repositoryPath,
@@ -79,9 +82,10 @@ export function parseSourcePage(repositoryPath, raw, overrides = {}) {
       repositoryPath,
     publishedAt: pageDate,
     dateProvenance: {
-      observedAt: pageDate,
+      observedAt: dateObservation.date,
       source: dateObservation.source,
-      resolution: "observed",
+      resolution: dateObservation.conflict ? "conflicting_observation" : dateObservation.source === "frontmatter" ? "unknown_publication" : "observed",
+      ...(dateObservation.conflict ? { reason: dateObservation.conflict } : {}),
     },
     ...(episode ? { episode } : {}),
     kind: pageKind(repositoryPath),
@@ -102,11 +106,8 @@ export function parseSourcePage(repositoryPath, raw, overrides = {}) {
       sourceField === "body"
         ? parsed.bodyLines.slice(section.start, section.end).join("\n")
         : section.metadataText;
-    const explicitDate = extractExplicitDate(maskHtmlComments(rawSection));
-    const hasPageDate = pageDate && pageDate !== "1900-01-01";
-    const date = hasPageDate
-      ? pageDate
-      : explicitDate?.date ?? "1900-01-01";
+    // Publication time cannot be inferred from a historical date mentioned inside a news item.
+    const date = pageDate || "1900-01-01";
     const title =
       independentNewsTitle(section.title).slice(0, 160) ||
       (segmentation.sections.length === 1
@@ -124,9 +125,7 @@ export function parseSourcePage(repositoryPath, raw, overrides = {}) {
       )}`,
       title,
       date,
-      datePrecision: hasPageDate
-        ? datePrecision(date)
-        : explicitDate?.precision ?? datePrecision(date),
+      datePrecision: datePrecision(date),
       summary,
       pageId,
       fragment: {
@@ -168,63 +167,37 @@ export function reconcileEpisodeDates(pages, news) {
     return { episodePages: 0, adjustedPages: 0, rejectedAnchors: 0 };
   }
 
-  const trusted = episodes.filter(
-    (page) =>
-      page.dateProvenance.source !== "frontmatter" &&
-      page.dateProvenance.source !== "unknown" &&
-      page.publishedAt !== "1900-01-01",
-  );
-  const retainedAnchors = longestNondecreasingDateSequence(trusted);
-  const retainedIds = new Set(retainedAnchors.map((page) => page.id));
-  const typicalDaysPerEpisode = medianEpisodeInterval(retainedAnchors);
-  const newsByPageId = Map.groupBy(news, (item) => item.pageId);
-  let adjustedPages = 0;
-
-  for (const page of episodes) {
-    const originalDate = page.publishedAt;
-    let resolvedDate = originalDate;
-    let resolution = "observed";
-    if (!retainedIds.has(page.id)) {
-      const previous = findAnchor(
-        retainedAnchors,
-        page.episode.number,
-        "previous",
-      );
-      const next = findAnchor(retainedAnchors, page.episode.number, "next");
-      if (previous && next) {
-        resolvedDate = interpolateEpisodeDate(previous, next, page);
-        resolution =
-          page.dateProvenance.source === "frontmatter" ||
-          page.dateProvenance.source === "unknown"
-            ? "interpolated"
-            : "corrected_sequence_outlier";
-      } else if (previous) {
-        resolvedDate = offsetEpisodeDate(
-          previous,
-          page,
-          typicalDaysPerEpisode,
-        );
-        resolution = "extrapolated";
-      } else if (next) {
-        resolvedDate = offsetEpisodeDate(next, page, typicalDaysPerEpisode);
-        resolution = "extrapolated";
-      }
-    }
-
-    page.publishedAt = resolvedDate;
-    page.dateProvenance.resolution = resolution;
-    if (resolvedDate !== originalDate) adjustedPages += 1;
-    for (const item of newsByPageId.get(page.id) ?? []) {
-      item.date = resolvedDate;
-      item.datePrecision = datePrecision(resolvedDate);
+  const trusted = episodes.filter((page) =>
+    !["frontmatter", "unknown"].includes(page.dateProvenance.source) && page.publishedAt !== "1900-01-01");
+  // Sequence order detects a contradiction, but cannot decide which witness is wrong.
+  // Quarantine both sides instead of silently selecting an anchor or inventing a date.
+  const conflicts = new Map();
+  for (let i = 0; i < trusted.length; i++) for (let j = i + 1; j < trusted.length; j++) {
+    if (trusted[i].publishedAt <= trusted[j].publishedAt) continue;
+    for (const [page, other] of [[trusted[i], trusted[j]], [trusted[j], trusted[i]]]) {
+      const paths = conflicts.get(page.id) ?? [];
+      paths.push(other.repositoryPath); conflicts.set(page.id, paths);
     }
   }
-
-  return {
-    episodePages: episodes.length,
-    adjustedPages,
-    rejectedAnchors: trusted.length - retainedAnchors.length,
-  };
+  const newsByPageId = Map.groupBy(news, (item) => item.pageId);
+  let adjustedPages = 0;
+  for (const page of episodes) {
+    const originalDate = page.publishedAt;
+    if (conflicts.has(page.id)) {
+      page.publishedAt = "1900-01-01";
+      page.dateProvenance.resolution = "conflicting_sequence";
+      page.dateProvenance.conflictingPaths = conflicts.get(page.id).sort();
+    } else if (["frontmatter", "unknown"].includes(page.dateProvenance.source)) {
+      page.publishedAt = "1900-01-01";
+      page.dateProvenance.resolution = "unknown_publication";
+    }
+    if (page.publishedAt !== originalDate) adjustedPages++;
+    for (const item of newsByPageId.get(page.id) ?? []) {
+      item.date = page.publishedAt;
+      item.datePrecision = datePrecision(item.date);
+    }
+  }
+  return { episodePages: episodes.length, adjustedPages, rejectedAnchors: conflicts.size };
 }
 
 export function readNewsFragment(raw, fragment) {
@@ -332,7 +305,7 @@ export function validateNewsDataset(dataset) {
     } else {
       episodeNumbers.set(page.episode.number, page.repositoryPath);
     }
-    episodePages.push(page);
+    if (page.publishedAt !== "1900-01-01") episodePages.push(page);
   }
   episodePages.sort(
     (left, right) => left.episode.number - right.episode.number,
@@ -1170,30 +1143,27 @@ function firstSentence(value) {
 }
 
 function extractDate(repositoryPath, body, attributes) {
-  const pathDate = repositoryPath.match(
-    /(?:^|\/)(\d{4})\/(\d{2})\/(\d{2})\.md$/u,
-  );
-  if (pathDate) {
-    return {
-      date: `${pathDate[1]}-${pathDate[2]}-${pathDate[3]}`,
-      source: "repository_path",
-    };
-  }
+  const observations = [];
+  const pathDate = repositoryPath.match(/(?:^|\/)(\d{4})\/(\d{2})\/(\d{2})\.md$/u);
+  const isoPathDate = repositoryPath.match(/(?:^|\/)(\d{4}-\d{2}-\d{2})\.md$/u);
+  if (pathDate || isoPathDate) observations.push({ ...checkedEditionDate(pathDate ? `${pathDate[1]}-${pathDate[2]}-${pathDate[3]}` : isoPathDate[1], ""), source: "repository_path" });
   const editionDate = extractEditionDate(body);
-  if (editionDate) return { date: editionDate, source: "episode_preamble" };
+  if (editionDate) observations.push({ ...editionDate, source: "episode_preamble" });
   const titleDate = normalizeIsoDate(attributes.title);
-  if (titleDate) return { date: titleDate, source: "page_title" };
-  const frontmatterDate = normalizeIsoDate(
-    attributes.dateCreated || attributes.date,
-  );
-  if (frontmatterDate) {
-    return { date: frontmatterDate, source: "frontmatter" };
+  if (titleDate) observations.push({ ...checkedEditionDate(titleDate, ""), source: "page_title" });
+  if (observations.length) {
+    const invalid = observations.find(item => item.conflict);
+    if (invalid) return invalid;
+    if (new Set(observations.map(item => item.date)).size > 1) return { ...observations[0], conflict: "publication_witness_disagreement" };
+    return observations[0];
   }
+  const frontmatterDate = normalizeIsoDate(attributes.dateCreated || attributes.date);
+  if (frontmatterDate) return { date: frontmatterDate, source: "frontmatter" };
   return { date: "1900-01-01", source: "unknown" };
 }
 
 function extractEditionDate(body) {
-  const preamble = body.slice(0, 5_000);
+  const preamble = cleanText(body.slice(0, 5_000));
   const compact = preamble.match(
     /睡前消息\s*[：:]\s*(\d{2,4})\s*[/.年-]\s*(\d{1,2})\s*[/.月-]\s*(\d{1,2})\s*日?/u,
   );
@@ -1205,15 +1175,23 @@ function extractEditionDate(body) {
           ? 1900 + numericYear
           : 2000 + numericYear
         : numericYear;
-    return `${year}-${pad(compact[2])}-${pad(compact[3])}`;
+    return checkedEditionDate(`${year}-${pad(compact[2])}-${pad(compact[3])}`, preamble.slice(compact.index + compact[0].length));
   }
   const spoken = preamble.match(
     /大家好[，,\s]*(?:今天是)?\s*((?:19|20)\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/u,
   );
   if (spoken) {
-    return `${spoken[1]}-${pad(spoken[2])}-${pad(spoken[3])}`;
+    return checkedEditionDate(`${spoken[1]}-${pad(spoken[2])}-${pad(spoken[3])}`, preamble.slice(spoken.index + spoken[0].length));
   }
   return null;
+}
+
+function checkedEditionDate(date, suffix) {
+  const parsed = new Date(`${date}T00:00:00Z`);
+  if (!Number.isFinite(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== date) return { date, conflict: "invalid_calendar_date" };
+  const weekday = suffix.match(/^\s*(?:星期|周)([日天一二三四五六])/u)?.[1];
+  if (weekday && "日一二三四五六"[parsed.getUTCDay()] !== weekday.replace("天", "日")) return { date, conflict: "weekday_mismatch" };
+  return { date };
 }
 
 function normalizeIsoDate(value) {
@@ -1231,89 +1209,8 @@ function extractEpisode(title) {
   };
 }
 
-function longestNondecreasingDateSequence(pages) {
-  if (!pages.length) return [];
-  const lengths = pages.map(() => 1);
-  const previous = pages.map(() => -1);
-  let bestIndex = 0;
-  for (let index = 0; index < pages.length; index += 1) {
-    for (let candidate = 0; candidate < index; candidate += 1) {
-      if (
-        pages[candidate].publishedAt <= pages[index].publishedAt &&
-        lengths[candidate] + 1 > lengths[index]
-      ) {
-        lengths[index] = lengths[candidate] + 1;
-        previous[index] = candidate;
-      }
-    }
-    if (lengths[index] >= lengths[bestIndex]) bestIndex = index;
-  }
-  const retained = [];
-  for (let index = bestIndex; index >= 0; index = previous[index]) {
-    retained.push(pages[index]);
-    if (previous[index] === -1) break;
-  }
-  return retained.reverse();
-}
-
-function findAnchor(anchors, episodeNumber, direction) {
-  if (direction === "previous") {
-    for (let index = anchors.length - 1; index >= 0; index -= 1) {
-      if (anchors[index].episode.number < episodeNumber) return anchors[index];
-    }
-    return null;
-  }
-  return (
-    anchors.find((page) => page.episode.number > episodeNumber) ?? null
-  );
-}
-
-function interpolateEpisodeDate(previous, next, page) {
-  const range = next.episode.number - previous.episode.number;
-  const position = page.episode.number - previous.episode.number;
-  const start = isoDateToDay(previous.publishedAt);
-  const end = isoDateToDay(next.publishedAt);
-  return dayToIsoDate(start + Math.round(((end - start) * position) / range));
-}
-
-function offsetEpisodeDate(anchor, page, daysPerEpisode) {
-  const episodeOffset = page.episode.number - anchor.episode.number;
-  return dayToIsoDate(
-    isoDateToDay(anchor.publishedAt) +
-      Math.round(episodeOffset * daysPerEpisode),
-  );
-}
-
-function medianEpisodeInterval(anchors) {
-  const intervals = [];
-  for (let index = 1; index < anchors.length; index += 1) {
-    const episodeGap =
-      anchors[index].episode.number - anchors[index - 1].episode.number;
-    const dayGap =
-      isoDateToDay(anchors[index].publishedAt) -
-      isoDateToDay(anchors[index - 1].publishedAt);
-    const interval = dayGap / episodeGap;
-    if (interval > 0 && interval <= 14) intervals.push(interval);
-  }
-  if (!intervals.length) return 2;
-  intervals.sort((left, right) => left - right);
-  const middle = Math.floor(intervals.length / 2);
-  return intervals.length % 2
-    ? intervals[middle]
-    : (intervals[middle - 1] + intervals[middle]) / 2;
-}
-
-function isoDateToDay(value) {
-  const [year, month, day] = value.split("-").map(Number);
-  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
-}
-
-function dayToIsoDate(value) {
-  return new Date(value * 86_400_000).toISOString().slice(0, 10);
-}
-
 function datePrecision(date) {
-  return date.endsWith("-01-01") ? "year" : "day";
+  return date === "1900-01-01" ? "unknown" : "day";
 }
 
 function pageKind(repositoryPath) {

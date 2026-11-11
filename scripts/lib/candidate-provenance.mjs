@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { canonicalJson } from "./candidate-bundle.mjs";
 import { buildKnowledgeGraph } from "./kg-build.mjs";
-import { extractExplicitDate, readNewsFragment } from "./news.mjs";
+import { readNewsFragment } from "./news.mjs";
 import { normalizeExtractionText } from "./extraction.mjs";
 import { attachIdentityResolution } from "./identity-materialization.mjs";
 import { normalizeActionFragment, ACTION_NORMALIZATION_VERSION } from "./action-extraction.mjs";
@@ -60,15 +60,8 @@ export function buildCandidateProvenance({ kg, dataset, sourceInventory, rawPage
     const revision = { newsId: news.id, sourceRevisionId, recordHash };
     const newsRevisionId = put("newsRevisions", { id: identity("news-revision", revision), ...revision });
     newsRevisionByEvent.set(event.id, newsRevisionId);
-    let date;
-    if (page.publishedAt === "1900-01-01" && news.date !== "1900-01-01") {
-      const fragment = normalizeExtractionText(traceByEvent.get(event.id)?.inputs.fragment ?? "");
-      const explicit = extractExplicitDate(fragment, { includeWitness: true });
-      ensure(explicit?.date === news.date && explicit?.precision === news.datePrecision, `fragment date fallback differs for ${news.id}`);
-      date = { kind: "fragment_explicit_date", sourceRevisionId, newsRevisionId, date: news.date, datePrecision: news.datePrecision, evidenceId: witness(event.id, explicit.witness, "fragment"), ruleRef: "extractExplicitDate", pageObservation: page.dateProvenance };
-    } else {
-      date = { kind: news.date === "1900-01-01" ? "unknown" : page.dateProvenance.resolution === "observed" ? "page_publication_date" : "corpus_reconciled_publication_date", sourceRevisionId, date: news.date, datePrecision: news.datePrecision, provenance: page.dateProvenance, ...(page.dateProvenance.resolution !== "observed" ? { corpusInventoryHash: inventoryHash } : {}) };
-    }
+    ensure(news.date === page.publishedAt, `news publication date differs from page evidence for ${news.id}`);
+    const date = { kind: news.date === "1900-01-01" ? "unknown" : page.dateProvenance.resolution === "observed" ? "page_publication_date" : "corpus_reconciled_publication_date", sourceRevisionId, date: news.date, datePrecision: news.datePrecision, provenance: page.dateProvenance, ...(page.dateProvenance.resolution !== "observed" ? { corpusInventoryHash: inventoryHash } : {}) };
     dateByEvent.set(event.id, put("dateDerivations", { id: identity("date", date), ...date }));
   }
   function input(eventId, role) {
@@ -290,7 +283,7 @@ export function buildCandidateProvenance({ kg, dataset, sourceInventory, rawPage
     evidence.occurrenceCount = evidence.ranges.length;
     delete evidence.ranges;
   }
-  return { chronologySemantics: "legacy_selected_news_date_order_including_explicit_fragment_fallback_not_actual_occurrence_order", witnessPolicy: "first_exact_span_per_input_and_surface_with_occurrence_count", ...(actionEnabled ? { actionWitnessPolicy: "exact_occurrence_in_offset_preserving_visible_news_fragment" } : {}), ...(reportDescriptionEnabled ? { reportDescriptionVersion: "1.0.0", reportDescriptionWitnessPolicy: "exact_occurrence_in_offset_preserving_visible_news_fragment" } : {}), schemaVersion: "1.0.0", epistemicScope: "extraction_assignment", independence: "not_assessed_support_count_is_not_independent_source_count", bindings, sourceInventoryHash: inventoryHash, ...Object.fromEntries(Object.entries(tables).map(([name, table]) => [name, sorted(table.values())])), duplicateContentGroups: sorted(duplicateContentGroups) };
+  return { chronologySemantics: "verified_publication_date_order_excluding_unknown_and_conflicting_dates_not_actual_occurrence_order", witnessPolicy: "first_exact_span_per_input_and_surface_with_occurrence_count", ...(actionEnabled ? { actionWitnessPolicy: "exact_occurrence_in_offset_preserving_visible_news_fragment" } : {}), ...(reportDescriptionEnabled ? { reportDescriptionVersion: "1.0.0", reportDescriptionWitnessPolicy: "exact_occurrence_in_offset_preserving_visible_news_fragment" } : {}), schemaVersion: "1.0.0", epistemicScope: "extraction_assignment", independence: "not_assessed_support_count_is_not_independent_source_count", bindings, sourceInventoryHash: inventoryHash, ...Object.fromEntries(Object.entries(tables).map(([name, table]) => [name, sorted(table.values())])), duplicateContentGroups: sorted(duplicateContentGroups) };
 }
 
 // Recompute decisions from verified source input; stored ledger records are not trusted.

@@ -398,13 +398,13 @@ test("v4 continuation prepares and reloads the exact recorded-content output", a
 
 test("ordinary and reviewed migration preparation reject every unsupported content protocol", async () => {
   await fixture(async ({ options }) => {
-    for (const candidate of ["2.0.0", "5.0.0", undefined]) {
+    for (const candidate of ["2.0.0", "6.0.0", undefined]) {
       const candidateManifest = clone(options.candidateManifest); candidateManifest.versions.candidate = candidate;
       await assert.rejects(prepareAcceptedCommit({ ...options, candidateManifest }), /verification differs from trusted checkpoint/u);
     }
   });
   await migrationFixture(async ({ options }) => {
-    for (const candidate of ["2.0.0", "5.0.0", undefined]) {
+    for (const candidate of ["2.0.0", "6.0.0", undefined]) {
       const candidateManifest = clone(options.candidateManifest); candidateManifest.versions.candidate = candidate;
       await assert.rejects(prepareReviewedMigrationCommit({ ...options, candidateManifest }), /migration verification differs/u);
     }

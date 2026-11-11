@@ -101,7 +101,7 @@ export function validateNewsContentSnapshot(snapshot, { news, kg, sourceCommit, 
 
 /** Server/build entry point. Only receipt-bound tracked JSON, no source fallback. */
 export async function readContentSnapshot(root, { receipt, news, kg } = {}) {
-  const required = receipt?.versions?.candidate === "4.0.0";
+  const required = ["4.0.0", "5.0.0"].includes(receipt?.versions?.candidate);
   // A local preview file beside a legacy receipt never upgrades that receipt.
   if (!required) return null;
   let bytes;

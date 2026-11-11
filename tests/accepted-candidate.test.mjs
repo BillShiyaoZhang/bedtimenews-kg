@@ -164,16 +164,20 @@ test("operational and documentation changes do not force a semantic migration", 
   });
 });
 
-test("explicit v4 migration binds original content and lifecycle updates through no-op, withdrawal, restoration and source-free rollback", async () => {
+for (const contentProtocol of ["v4", "v5"]) test(`explicit ${contentProtocol} migration binds original content and lifecycle updates through no-op, withdrawal, restoration and source-free rollback`, async () => {
   await workspace(async ({ directory, archive, build, accept, load, store, review }) => {
     const legacy = await build("content-legacy"); await accept(legacy);
     assert.equal(legacy.manifest.versions.candidate, "3.0.0");
     assert.equal(await readContentSnapshot(directory, { receipt: JSON.parse(await readFile(resolve(directory, "data/accepted-release.json"), "utf8")) }), null);
-    const preview = await previewAcceptedMigration(directory, { source: archive, generatedAt, checkpoint: await load(), store, contentProtocol: "v4" });
+    const preview = await previewAcceptedMigration(directory, { source: archive, generatedAt, checkpoint: await load(), store, contentProtocol });
     const migrationReview = resolve(directory, "content.review.json");
     await writeFile(migrationReview, jsonBytes({ ...preview.reviewBinding, reviewedAt: generatedAt, reason: "Review exact complete news content contract" }));
-    const seed = await build("content-seed", { contentProtocol: "v4", migrationReview });
-    assert.equal(seed.manifest.versions.candidate, "4.0.0");
+    const seed = await build("content-seed", { contentProtocol, migrationReview });
+    assert.equal(seed.manifest.versions.candidate, `${contentProtocol.slice(1)}.0.0`);
+    const renderedKg = seed.acceptedFiles.get(REQUIRED_ACCEPTED_PATHS[0]);
+    assert.deepEqual(await readFile(resolve(seed.output, "kg.json")), contentProtocol === "v5" ? gzipSync(renderedKg, { level: 6 }) : renderedKg);
+    assert.deepEqual(await readFile(resolve(seed.output, "news.json")), seed.acceptedFiles.get(REQUIRED_ACCEPTED_PATHS[1]));
+    assert.equal(seed.manifest.artifacts["diff.json"].sha256, sha256(jsonBytes(seed.artifacts["diff.json"])));
     assert.equal(seed.artifacts[NEWS_CONTENT_ARTIFACT].rows.length, seed.artifacts["news.json"].news.length);
     assert.deepEqual(seed.artifacts[NEWS_CONTENT_ARTIFACT].updates.addedNewsIds, []);
     for (const path of REQUIRED_ACCEPTED_PATHS.slice(0, 2)) assert.ok(seed.acceptedFiles.get(path).equals(legacy.acceptedFiles.get(path)));
@@ -182,7 +186,7 @@ test("explicit v4 migration binds original content and lifecycle updates through
     const newPath = "daily/old-date-newly-collected.md";
     await writeFile(resolve(archive, newPath), sourceText("1990-01-01", "上海市介绍地方情况。").replace("title: 华为工资与排班", "title: 上海地方情况")); await commit(archive);
     const added = await build("content-added");
-    assert.equal(added.manifest.versions.candidate, "4.0.0");
+    assert.equal(added.manifest.versions.candidate, `${contentProtocol.slice(1)}.0.0`);
     const addedIds = added.artifacts[NEWS_CONTENT_ARTIFACT].updates.addedNewsIds;
     assert.equal(addedIds.length, 1);
     await accept(added);
@@ -211,6 +215,29 @@ test("explicit v4 migration binds original content and lifecycle updates through
       for (const path of REQUIRED_ACCEPTED_PATHS.slice(0, 2)) assert.ok(rollback.acceptedFiles.get(path).equals(seed.acceptedFiles.get(path)));
       await verifyAcceptedRollback(directory, rollback.output, options);
     } finally { await rename(away, archive); }
+  });
+});
+
+test("reviewed v4-to-v5 storage-only migration is not a rendered-data no-op", async () => {
+  await workspace(async ({ directory, archive, build, accept, load, store }) => {
+    const seed = await build("storage-v4", { contentProtocol: "v4" });
+    await accept(seed);
+    await assert.rejects(build("storage-unreviewed", { contentProtocol: "v5" }), /explicit migration required/u);
+    const preview = await previewAcceptedMigration(directory, { source: archive, generatedAt, checkpoint: await load(), store, contentProtocol: "v5" });
+    const migrationReview = resolve(directory, "storage.review.json");
+    await writeFile(migrationReview, jsonBytes({ ...preview.reviewBinding, reviewedAt: generatedAt, reason: "Review self-contained lossless audit encoding with identical rendered news" }));
+    const migrated = await build("storage-v5", { contentProtocol: "v5", migrationReview });
+    assert.equal(migrated.noop, false);
+    assert.equal(migrated.manifest.versions.candidate, "5.0.0");
+    assert.equal(migrated.classification.hasChanges, true);
+    assert.ok(migrated.classification.changed.includes("semanticEpoch"));
+    for (const path of REQUIRED_ACCEPTED_PATHS.slice(0, 2)) assert.deepEqual(migrated.acceptedFiles.get(path), seed.acceptedFiles.get(path));
+    await verifyAcceptedCandidate(directory, migrated.output, { source: archive, checkpoint: await load(), store, migrationReview });
+    await accept(migrated);
+    const unchanged = await build("storage-v5-noop");
+    assert.equal(unchanged.noop, true);
+    assert.equal(unchanged.manifest.bundleId, migrated.manifest.bundleId);
+    await assert.rejects(build("storage-unused-review", { migrationReview }), /unused/u);
   });
 });
 

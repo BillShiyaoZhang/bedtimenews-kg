@@ -1,7 +1,7 @@
 import { reportDescriptionDiff } from "./report-description-reporting.mjs";
 import { readFile } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
-import { gunzipSync } from "node:zlib";
+import { decodeAuditArtifact } from "./audit-artifact.mjs";
 import { canonicalJson, sha256, diffKnowledgeGraphs, diffRecords, publishCandidateBundle, verifyCandidateBundle } from "./candidate-bundle.mjs";
 import { activeSnapshot, candidateVersions, candidateRuntimeBinding, sourceInventory, assertCandidateOutput, assertBaselineUnchanged, CANDIDATE_STORAGE_BUDGET } from "./candidate-run.mjs";
 import { lifecycleCandidateSettings, lifecycleCandidateInputs, planLifecycleSources, materializeLifecycleCandidate, assertLifecycleArtifacts, assertLifecycleBudget } from "./lifecycle-run.mjs";
@@ -39,9 +39,9 @@ function checkOptions(options, hooks) {
   must(!Object.hasOwn(options, "baseline") && !Object.hasOwn(options, "receipt") && !Object.hasOwn(options, "verified") && !Object.hasOwn(options, "origin"), "local baselines, receipts, origin objects and trust flags cannot establish accepted checkpoint authority");
   must(Object.keys(hooks).every((name) => ["afterInputSnapshot", "afterNewsRegeneration", "beforeVerifyReturn", "beforePublish"].includes(name) && typeof hooks[name] === "function"), "invalid test hooks");
 }
-function json(content, name) {
+function json(content, name, version) {
   try {
-    const decoded = name.endsWith(".gz") ? gunzipSync(content, { maxOutputLength: name === NEWS_CONTENT_ARTIFACT ? NEWS_CONTENT_MAX_BYTES : 512 * 1024 * 1024 }) : content;
+    const decoded = decodeAuditArtifact(content, name, version, name === NEWS_CONTENT_ARTIFACT ? NEWS_CONTENT_MAX_BYTES : 512 * 1024 * 1024);
     return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(decoded));
   } catch (error) { throw new Error(`Accepted candidate: invalid checkpoint artifact ${name}`, { cause: error }); }
 }
@@ -87,7 +87,7 @@ async function readCheckpointBundle(checkpoint, store) {
   const artifacts = {};
   for (const name of names) {
     must(equal(fileBinding(files.get(name)), manifest.artifacts[name]), `checkpoint candidate artifact mismatch: ${name}`);
-    artifacts[name] = json(files.get(name), name);
+    artifacts[name] = json(files.get(name), name, manifest.versions.candidate);
   }
   must(ACCEPTED_CONTENT_VERSIONS.includes(manifest.versions.candidate) && manifest.versions.candidate === release.versions.candidate && manifest.versions.lifecycle === "1.0.0", "accepted checkpoint needs an explicit candidate/verification migration");
   const verification = manifest.inputs.verification;
@@ -199,7 +199,7 @@ function releaseSnapshot(manifest, artifacts) {
 }
 async function materializeAccepted(context, recipe, plan, inputs, baseline, review) {
   const artifacts = await materializeLifecycleCandidate(context, recipe, plan, inputs, baseline, review);
-  if (context.contentVersion === "4.0.0") {
+  if (["4.0.0", "5.0.0"].includes(context.contentVersion)) {
     const rawSources = await readVerifiedGitSources({ sourceRoot: context.sourceRoot, commit: recipe.archiveCommit, inventory: plan.effectiveInventory });
     artifacts[NEWS_CONTENT_ARTIFACT] = buildNewsContentSnapshot({ news: artifacts["news.json"], kg: artifacts["kg.json"], lifecycle: artifacts["lifecycle.json.gz"], sourceCommit: recipe.archiveCommit, rawSources, baseline });
     artifacts["diff.json"].newsContent = newsContentDiff(baseline?.content ?? null, artifacts[NEWS_CONTENT_ARTIFACT]);
@@ -216,7 +216,7 @@ function assertAcceptedArtifacts(actual, expected) {
 function acceptedFiles(context, manifest, artifacts) {
   const state = createAcceptedArchiveState({ previousState: context.state, candidateManifest: manifest, lifecycle: artifacts["lifecycle.json.gz"], sourceCommit: manifest.inputs.recipe.archiveCommit, ontologyCompilation: artifacts["kg.json"].source.ontologyCompilation });
   return new Map([[REQUIRED_ACCEPTED_PATHS[0], bytes(artifacts["kg.json"])], [REQUIRED_ACCEPTED_PATHS[1], bytes(artifacts["news.json"])], [REQUIRED_ACCEPTED_PATHS[2], bytes(state)],
-    ...(manifest.versions.candidate === "4.0.0" ? [[NEWS_CONTENT_PATH, bytes(artifacts[NEWS_CONTENT_ARTIFACT])]] : []),
+    ...(["4.0.0", "5.0.0"].includes(manifest.versions.candidate) ? [[NEWS_CONTENT_PATH, bytes(artifacts[NEWS_CONTENT_ARTIFACT])]] : []),
     ...buildAcceptedReports({ candidateManifest: manifest, artifacts, previousKG: context.baseline?.kg ?? context.snapshot.json("acceptedKG"), ontology: context.ontology })]);
 }
 function resultContext(context) {
@@ -281,6 +281,16 @@ async function buildAccepted(root, options = {}, hooks = {}, previewMigration = 
   applyMigrationReview(context, inputs, binding, migrationReview);
   const classification = classifyAcceptedRelease({ previous: context.baseline ? releaseSnapshot(context.baseline.manifest, context.baseline.artifacts) : null,
     current: { inputs, kg: artifacts["kg.json"], news: artifacts["news.json"], lifecycle: artifacts["lifecycle.json.gz"], content: artifacts[NEWS_CONTENT_ARTIFACT] ?? null } });
+  // A validated epoch migration must materialize even when rendered records
+  // are identical (for example v4 -> v5 audit encoding). Keep the projection
+  // fingerprints and bind the independent epoch change explicitly. Merely
+  // changing a parent, generation time or source commit still remains a no-op.
+  if (context.transition) {
+    classification.classification = "changed";
+    classification.hasChanges = true;
+    classification.changed.push("semanticEpoch");
+    classification.semanticEpoch = { previousHash: context.transition.review.fromHash, currentHash: context.transition.review.toHash };
+  }
   if (!classification.hasChanges) {
     // Parent movement, source commit and generatedAt alone cannot mint versions.
     // Still replay and check all current raw bytes before claiming honest reuse.
@@ -292,7 +302,7 @@ async function buildAccepted(root, options = {}, hooks = {}, previewMigration = 
     const completedMetrics = metrics(start, artifacts, context.baseline.manifest);
     artifacts = null;
     const restored = { ...context.baseline.artifacts,
-      "provenance.json.gz": json(context.baseline.files.get("provenance.json.gz"), "provenance.json.gz") };
+      "provenance.json.gz": json(context.baseline.files.get("provenance.json.gz"), "provenance.json.gz", context.baseline.manifest.versions.candidate) };
     return { noop: true, existing: true, output: null, manifest: context.baseline.manifest,
       artifacts: restored, acceptedFiles: new Map(context.checkpoint.files), classification,
       ...resultContext(context), metrics: completedMetrics };
@@ -327,7 +337,7 @@ export async function verifyAcceptedCandidate(root, directory, options = {}, hoo
   checkOptions(options, hooks);
   const target = resolve(root, directory);
   const bundle = await verifyCandidateBundle(target);
-  const context = await prepare(resolve(root), { ...options, contentProtocol: options.contentProtocol ?? (bundle.manifest.versions.candidate === "4.0.0" ? "v4" : "v3") }, hooks, { allowMigration: Boolean(options.migrationReview) || bundle.manifest.inputs.transition?.kind === "reviewed-semantic-migration" });
+  const context = await prepare(resolve(root), { ...options, contentProtocol: options.contentProtocol ?? `v${bundle.manifest.versions.candidate[0]}` }, hooks, { allowMigration: Boolean(options.migrationReview) || bundle.manifest.inputs.transition?.kind === "reviewed-semantic-migration" });
   assertCandidateOutput(root, target, context.sourceRoot);
   const migrationReview = await readMigrationReview(root, context, options.migrationReview) ?? bundle.manifest.inputs.transition?.review ?? null;
   must(!bundle.manifest.inputs.transition || bundle.manifest.inputs.transition.kind === "reviewed-semantic-migration", "rendered rollback requires the separate accepted-output verifier");
@@ -393,7 +403,7 @@ function restoreArtifacts(context) {
   const lifecycle = buildCandidateLifecycle({ baseline: { bundleId: baseline.manifest.bundleId, summary: baseline.summary, lifecycle: baseline.lifecycle },
     current: { summary: targetBundle.summary }, sourcePlan: plan });
   const kg = targetBundle.kg; const news = targetBundle.news;
-  const provenance = json(targetBundle.files.get("provenance.json.gz"), "provenance.json.gz");
+  const provenance = json(targetBundle.files.get("provenance.json.gz"), "provenance.json.gz", targetBundle.manifest.versions.candidate);
   const content = targetBundle.content ? { ...clone(targetBundle.content), updates: buildNewsContentUpdates({ news, kg, lifecycle, baseline }) } : null;
   if (content) validateNewsContentSnapshot(content, { news, kg, sourceCommit: context.target.manifest.source.commit, effectiveInventory: lifecycle.effectiveInventory });
   const diff = { schemaVersion: "2.0.0", epistemicScope: "extraction_assignment",
@@ -443,7 +453,7 @@ export async function buildAcceptedRollback(root, options = {}, hooks = {}) {
     assertAcceptedArtifacts(restored.artifacts, restoreArtifacts(context).artifacts);
     await hooks.beforePublish?.(); await recheckRollback(context);
     return { noop: true, existing: true, output: null, manifest: context.baseline.manifest,
-      artifacts: { ...context.baseline.artifacts, "provenance.json.gz": json(context.baseline.files.get("provenance.json.gz"), "provenance.json.gz") },
+      artifacts: { ...context.baseline.artifacts, "provenance.json.gz": json(context.baseline.files.get("provenance.json.gz"), "provenance.json.gz", context.baseline.manifest.versions.candidate) },
       acceptedFiles: new Map(context.checkpoint.files), classification, ...rollbackResult(context), metrics: metrics(start, restored.artifacts, context.baseline.manifest) };
   }
   const output = resolve(root, options.output ?? resolve(context.historyRoot, hash(restored.inputs).slice(0, 20)));

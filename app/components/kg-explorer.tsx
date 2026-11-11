@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { eventWithinYears } from "../lib/publication-date.mjs";
 import { FormEvent, useMemo, useState, useSyncExternalStore, type CSSProperties } from "react";
 import {
   formatEventDate,
@@ -194,8 +195,7 @@ function KGExplorerView({ initialKG, initialOntology, updateIndex, locationSearc
       if (!eventMatchesAction(initialOntology, event, actionFilter(appliedFilters))) return false;
       if (!eventMatchesReportingForm(event, { status: appliedFilters.reportingFormStatus, conceptId: appliedFilters.reportingFormConceptId })) return false;
       if (!eventMatchesNumericObservation(event, { status: appliedFilters.numericStatus, comparison: appliedFilters.numericComparison })) return false;
-      const year = event.date.slice(0, 4);
-      return (!appliedFilters.fromYear || year >= appliedFilters.fromYear) && (!appliedFilters.toYear || year <= appliedFilters.toYear);
+      return eventWithinYears(event, appliedFilters.fromYear, appliedFilters.toYear);
     });
     return matches.sort((a, b) => (sort === "relevance" ? rankEventSearchDocument(b, browse.query) - rankEventSearchDocument(a, browse.query) : 0) || b.event.date.localeCompare(a.event.date) || a.event.title.localeCompare(b.event.title, "zh-CN")).map(({ event }) => event);
   }, [documents, browse.query, sort, feed, appliedFilters, initialOntology, invalidLocation, today]);

@@ -1,4 +1,4 @@
-import { gzipSync } from "node:zlib";
+import { encodeAuditArtifact } from "./audit-artifact.mjs";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { isSourceReviewTimestamp, validateCandidateSourceInventory, planCandidateSourceReview } from "./candidate-source-review.mjs";
 import { validateMigrationTransition, validateMigrationReview, validateRollbackReview } from "./accepted-transition.mjs";
@@ -109,7 +109,7 @@ function lifecycleFor(value, manifest) {
     baselineSourceStates: value.sourceStates, currentInventory: value.observedInventory, includedRoots: scope });
   must(equal(manifest.inputs.sourceInventory, inventoryBinding(value.observedInventory)), "observed source inventory binding mismatch");
   must(equal(manifest.inputs.effectiveInventory, inventoryBinding(value.effectiveInventory)), "effective source inventory binding mismatch");
-  must(equal(manifest.artifacts["lifecycle.json.gz"], fileBinding(gzipSync(jsonBytes(value), { level: 6 }))), "lifecycle artifact byte binding mismatch");
+  must(equal(manifest.artifacts["lifecycle.json.gz"], fileBinding(encodeAuditArtifact(jsonBytes(value), "lifecycle.json.gz", manifest.versions.candidate))), "lifecycle artifact byte binding mismatch");
   return value;
 }
 function outputs(files) {
@@ -128,11 +128,11 @@ function assertMaterialization(parsed, manifest, lifecycle, sourceCommit) {
   const [kgPath, newsPath, statePath] = REQUIRED_ACCEPTED_PATHS;
   const kg = parsed[kgPath]; const news = parsed[newsPath]; const state = parsed[statePath];
   must(object(kg) && object(news) && object(state), "accepted datasets must be JSON objects");
-  for (const [name, value] of [["kg.json", kg], ["news.json", news]]) must(equal(fileBinding(jsonBytes(value)), manifest.artifacts[name]), `${name} differs from the candidate materialization`);
-  if (manifest.versions.candidate === "4.0.0") {
+  for (const [name, value] of [["kg.json", kg], ["news.json", news]]) must(equal(fileBinding(encodeAuditArtifact(jsonBytes(value), name, manifest.versions.candidate)), manifest.artifacts[name]), `${name} differs from the candidate materialization`);
+  if (["4.0.0", "5.0.0"].includes(manifest.versions.candidate)) {
     const content = parsed[NEWS_CONTENT_PATH];
     validateNewsContentSnapshot(content, { news, kg, sourceCommit, effectiveInventory: lifecycle.effectiveInventory });
-    must(equal(fileBinding(gzipSync(jsonBytes(content), { level: 6 })), manifest.artifacts[NEWS_CONTENT_ARTIFACT]), "news content differs from candidate materialization");
+    must(equal(fileBinding(encodeAuditArtifact(jsonBytes(content), NEWS_CONTENT_ARTIFACT, manifest.versions.candidate)), manifest.artifacts[NEWS_CONTENT_ARTIFACT]), "news content differs from candidate materialization");
   } else must(!Object.hasOwn(parsed, NEWS_CONTENT_PATH), "legacy accepted output cannot claim recorded content");
   const v = manifest.versions;
   must(kg.schemaVersion === v.ontology && news.schemaVersion === v.news && news.segmentation?.version === v.segmentation && news.segmentation?.overrideVersion === v.overrides, "KG/news version mismatch");
@@ -217,7 +217,7 @@ export function validateAcceptedReleaseStructure(manifest) {
   must(HASH.test(manifest.inventories.sourceStatesHash ?? ""), "invalid source states binding");
   must(object(manifest.acceptedFiles) && REQUIRED_ACCEPTED_PATHS.every((path) => Object.hasOwn(manifest.acceptedFiles, path)) && Object.entries(manifest.acceptedFiles).every(([path, value]) => ALLOWED_ACCEPTED_PATHS.includes(path) && binding(value)), "invalid accepted output bindings");
   acceptedArtifactNames(manifest.versions.candidate);
-  must(Object.hasOwn(manifest.acceptedFiles, NEWS_CONTENT_PATH) === (manifest.versions.candidate === "4.0.0"), "accepted content path differs from candidate protocol");
+  must(Object.hasOwn(manifest.acceptedFiles, NEWS_CONTENT_PATH) === (["4.0.0", "5.0.0"].includes(manifest.versions.candidate)), "accepted content path differs from candidate protocol");
   if (manifest.mode === "bootstrap") must(manifest.predecessor === null && manifest.rollbackTarget === null, "bootstrap cannot have predecessor/rollback target");
   else reference(manifest.predecessor, "predecessor");
   if (manifest.mode === "rollback") reference(manifest.rollbackTarget, "rollback target");
@@ -248,7 +248,7 @@ export function validateAcceptedReleaseFiles(manifest, acceptedFiles) {
   validateAcceptedReleaseStructure(manifest);
   const { parsed, bindings } = outputs(acceptedFiles);
   must(equal(bindings, manifest.acceptedFiles), "accepted output bytes differ from the checkpoint");
-  if (manifest.versions.candidate === "4.0.0") {
+  if (["4.0.0", "5.0.0"].includes(manifest.versions.candidate)) {
     const content = parsed[NEWS_CONTENT_PATH];
     must(equal(fileBinding(jsonBytes(content)), manifest.acceptedFiles[NEWS_CONTENT_PATH]), "accepted content must use canonical JSON bytes");
     validateNewsContentSnapshot(content, { kg: parsed[REQUIRED_ACCEPTED_PATHS[0]], news: parsed[REQUIRED_ACCEPTED_PATHS[1]], sourceCommit: manifest.source.commit });
@@ -279,7 +279,7 @@ export function createAcceptedRelease({ candidateManifest, lifecycle, acceptedFi
   for (const name of ORIGIN_NAMES) must(equal(candidateManifest.inputs[name], initial.bindings[name]), `candidate immutable origin mismatch: ${name}`);
   const { parsed, bindings } = outputs(acceptedFiles);
   assertMaterialization(parsed, candidateManifest, lifecycle, sourceCommit);
-  if (candidateManifest.versions.candidate === "4.0.0") must(equal(bindings[NEWS_CONTENT_PATH], fileBinding(jsonBytes(parsed[NEWS_CONTENT_PATH]))), "accepted content must use canonical JSON bytes");
+  if (["4.0.0", "5.0.0"].includes(candidateManifest.versions.candidate)) must(equal(bindings[NEWS_CONTENT_PATH], fileBinding(jsonBytes(parsed[NEWS_CONTENT_PATH]))), "accepted content must use canonical JSON bytes");
   const state = parsed[REQUIRED_ACCEPTED_PATHS[2]];
   const manifest = { schemaVersion: 1, kind: "accepted-release", mode, transition: clone(transition), origin: initial,
     predecessor: predecessor === null ? null : reference(predecessor, "predecessor"),
