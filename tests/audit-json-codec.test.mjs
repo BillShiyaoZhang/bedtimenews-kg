@@ -108,3 +108,17 @@ test('chunked scanning preserves exact token and dictionary limits',()=>{
  assert.throws(()=>decodeAuditJson(encoded,{maxTokens:17999}),/reference/u);
  assert.throws(()=>decodeAuditJson(encoded,{maxStrings:2}),/envelope/u);
 });
+
+
+test('decoded text validation preserves Unicode scalar and escaped-surrogate checks', async()=>{
+ for(const value of ['😀', '\ud800', '\udfff', 'a\ud800b', '\ufffd']) {
+  const source=JSON.stringify(value)+'\n';
+  assert.deepEqual(decodeAuditJson(await uncheckedEnvelope(source)),Buffer.from(source));
+ }
+ // These malicious envelopes are correctly hash-bound to UTF-8 replacement
+ // bytes, but their dictionary tokens contain noncanonical raw surrogates.
+ for(const source of ['"\ud800"\n','"\udfff"\n','"a\ud800b"\n']) {
+  const encoded=await uncheckedEnvelope(source);
+  assert.throws(()=>decodeAuditJson(encoded));
+ }
+});

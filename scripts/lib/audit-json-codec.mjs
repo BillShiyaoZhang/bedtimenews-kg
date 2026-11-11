@@ -136,5 +136,10 @@ export function decodeAuditJson(bytes,options={}) {
  if(size>l.maxDecodedBytes)fail('decoded size limit');
  if(used.size!==e.dictionary.length||size!==e.decodedBytes)fail('dictionary/size mismatch');
  const source=replaceTokensBounded(e.body,/~([^~]*)~/g,([,id])=>e.dictionary[Number(id)]);
- const result=Buffer.from(source);if(result.length!==e.decodedBytes||hash(result)!==e.decodedSha256)fail('decoded binding mismatch');parseCanonical(result,l);return result;
+ // The envelope and dictionary were already strictly UTF-8 decoded. Validate
+ // the reconstructed text directly rather than decoding a second full UTF-16
+ // copy from result. Canonical string validation also rejects raw lone
+ // surrogates (JSON.stringify must escape those), so UTF-8 conversion is exact.
+ validateCanonicalText(source,l);
+ const result=Buffer.from(source);if(result.length!==e.decodedBytes||hash(result)!==e.decodedSha256)fail('decoded binding mismatch');return result;
 }
