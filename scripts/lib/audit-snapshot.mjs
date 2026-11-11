@@ -1,16 +1,40 @@
-import { lstat, open, readdir, realpath } from "node:fs/promises";
+import { lstat, open, readdir, realpath, writeFile } from "node:fs/promises";
 import { canonicalJson, sha256 } from "./candidate-bundle.mjs";
 import { constants } from "node:fs";
 import { resolve } from "node:path";
+import { validateCandidateSourceReview } from "./candidate-source-review.mjs";
 import { acceptedBundleNames, contentVersionFromFiles } from "./accepted-content-protocol.mjs";
 
 export const SNAPSHOT_FILES = Object.freeze(acceptedBundleNames("3.0.0"));
 export const snapshotFilesForReceipt = (receipt) => acceptedBundleNames(contentVersionFromFiles(Object.keys(receipt.assets ?? {})));
-export const snapshotFilesForPlan = (plan) => {
-  if (plan.schemaVersion === 1) return acceptedBundleNames("3.0.0");
-  if (plan.schemaVersion === 2) return acceptedBundleNames("4.0.0");
+export function contentVersionForPlan(plan) {
+  if (plan.schemaVersion === 1) return "3.0.0";
+  if (plan.schemaVersion === 2) return "4.0.0";
+  if (plan.schemaVersion === 3) return "5.0.0";
   throw new Error("Audit snapshot: unsupported production plan");
-};
+}
+export const snapshotFilesForPlan = (plan) => acceptedBundleNames(contentVersionForPlan(plan));
+export function sourceReviewBytesForPlan(plan) {
+  if (plan.schemaVersion !== 3) { contentVersionForPlan(plan); return null; }
+  must(Object.hasOwn(plan, "sourceReview"), "missing source review");
+  if (plan.sourceReview !== null) validateCandidateSourceReview(plan.sourceReview);
+  const bytes = Buffer.from(`${canonicalJson(plan.sourceReview)}\n`);
+  must(HASH.test(plan.sourceReviewSha256 ?? "") && sha256(bytes) === plan.sourceReviewSha256
+    && plan.migrationReview?.sourceReviewHash === plan.sourceReviewSha256
+    && same(plan.files?.["source-review.json"], { bytes: bytes.length, sha256: plan.sourceReviewSha256 }), "source review binding differs");
+  if (plan.sourceReview !== null) must(plan.sourceReview.baselineBundleId === plan.migrationReview.baseline?.bundleId
+    && plan.sourceReview.currentInventoryHash === plan.migrationReview.observedInventoryHash, "source review inventory differs");
+  return bytes;
+}
+export async function writeApprovedSourceReview(plan, directory) {
+  const bytes = sourceReviewBytesForPlan(plan);
+  if (bytes) await writeFile(resolve(directory, "source-review.json"), bytes, { flag: "wx" });
+}
+export function auditCandidateOptionsForPlan(plan, directory = "/approved") {
+  sourceReviewBytesForPlan(plan);
+  return { contentProtocol: `v${contentVersionForPlan(plan)[0]}`,
+    ...(plan.schemaVersion === 3 ? { sourceReview: resolve(directory, "source-review.json") } : {}) };
+}
 const SHA = /^[a-f0-9]{40}$/u, HASH = /^[a-f0-9]{64}$/u;
 const same = (a, b) => canonicalJson(a) === canonicalJson(b);
 const must = (value, message) => { if (!value) throw new Error(`Audit snapshot: ${message}`); };
@@ -44,8 +68,9 @@ export function snapshotProducer(run) {
 export const snapshotName = (bundleId) => { must(HASH.test(bundleId), "invalid bundle key"); return `kg-audit-snapshot-${bundleId}`; };
 
 export function validateProductionPlan(plan, { policy, baseCommit }) {
-  must(plan && same(Object.keys(plan).sort(), ["actor", "bundleId", "expectedMain", "files", "generatedAt", "kind", "migrationReview", "migrationReviewSha256", "proposalCommit", "proposalRef", "reason", "repository", "reviewedAt", "runtime", "schemaVersion", "sourceCommit", "storageApproved"]), "unexpected production plan fields");
-  must([1, 2].includes(plan?.schemaVersion) && plan.kind === "reviewed-audit-production-plan", "unsupported production plan");
+  const extraFields = plan?.schemaVersion === 3 ? ["sourceReview", "sourceReviewSha256"] : [];
+  must(plan && same(Object.keys(plan).sort(), [...extraFields, "actor", "bundleId", "expectedMain", "files", "generatedAt", "kind", "migrationReview", "migrationReviewSha256", "proposalCommit", "proposalRef", "reason", "repository", "reviewedAt", "runtime", "schemaVersion", "sourceCommit", "storageApproved"].sort()), "unexpected production plan fields");
+  must([1, 2, 3].includes(plan?.schemaVersion) && plan.kind === "reviewed-audit-production-plan", "unsupported production plan");
   must(plan.repository === policy.repository && plan.expectedMain === baseCommit && SHA.test(baseCommit)
     && SHA.test(plan.proposalCommit) && SHA.test(plan.sourceCommit) && HASH.test(plan.bundleId)
     && /^refs\/heads\/[A-Za-z0-9_/-]+$/u.test(plan.proposalRef) && plan.proposalRef !== "refs/heads/main", "plan identities differ");
@@ -64,6 +89,7 @@ export function validateProductionPlan(plan, { policy, baseCommit }) {
     total += binding.bytes;
   }
   must(total <= 129 * 1024 * 1024, "plan exceeds audit budget");
+  sourceReviewBytesForPlan(plan);
   return plan;
 }
 
@@ -147,6 +173,7 @@ export async function validateSnapshotDirectory({ directory, policy, baseCommit,
   const manifest = JSON.parse(files.get("manifest.json")); const { bundleId, ...payload } = manifest;
   must(files.get("manifest.json").equals(Buffer.from(`${canonicalJson(manifest)}\n`)) && bundleId === receipt.bundleId
     && manifest.schemaVersion === 1 && manifest.kind === "offline-candidate"
+    && manifest.versions.candidate === contentVersionForPlan(snapshot.plan)
     && same(acceptedBundleNames(manifest.versions.candidate), filesForReceipt)
     && same(Object.keys(manifest.artifacts).sort(), filesForReceipt.filter((name) => name !== "manifest.json"))
     && sha256(canonicalJson(payload)) === bundleId && sha256(files.get("manifest.json")) === receipt.manifestSha256, "manifest identity differs");
@@ -154,6 +181,8 @@ export async function validateSnapshotDirectory({ directory, policy, baseCommit,
   must(manifest.inputs.reviewProposal.commit === snapshot.plan.proposalCommit && manifest.inputs.recipe.archiveCommit === snapshot.plan.sourceCommit
     && manifest.inputs.recipe.generatedAt === snapshot.plan.generatedAt
     && same(manifest.inputs.transition.review, snapshot.plan.migrationReview), "manifest proposal/recipe differs");
+  if (snapshot.plan.schemaVersion === 3) must(manifest.inputs.sourceReview?.sha256 === snapshot.plan.sourceReviewSha256
+    && files.get("source-review.json").equals(sourceReviewBytesForPlan(snapshot.plan)), "manifest source review differs");
   return snapshot;
 }
 

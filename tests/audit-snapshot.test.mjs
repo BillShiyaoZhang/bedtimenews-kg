@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
 import { canonicalJson, sha256 } from "../scripts/lib/candidate-bundle.mjs";
-import { createSnapshotSplitStore, discoverSnapshotArtifacts, SNAPSHOT_FILES, snapshotProducer, validateSnapshotDirectory } from "../scripts/lib/audit-snapshot.mjs";
+import { createSnapshotSplitStore, discoverSnapshotArtifacts, SNAPSHOT_FILES, snapshotProducer, validateSnapshotDirectory, validateProductionPlan, auditCandidateOptionsForPlan, writeApprovedSourceReview } from "../scripts/lib/audit-snapshot.mjs";
 import { downloadAuditSnapshot } from "../scripts/lib/download-audit-snapshot.mjs";
 import { createHash } from "node:crypto";
 import { createSnapshotReadClient } from "../scripts/lib/audit-snapshot-http.mjs";
@@ -40,16 +40,19 @@ test("split store recognizes only exact candidate and predecessor, without fallb
   assert.equal(published, 0);
   assert.equal(await store.readBundle({ receipt: predecessorReceipt }), "history");
 });
-async function fixture(callback, contentVersion = "3.0.0") {
+async function fixture(callback, contentVersion = "3.0.0", sourceReview = null) {
   const directory = await mkdtemp(resolve(tmpdir(), "snapshot-test-"));
   try {
-    const migrationReview = { kind: "semantic-migration", reason: "Reviewed fixture" };
+    const sourceReviewSha256 = sha256(encode(sourceReview));
+    const migrationReview = { kind: "semantic-migration", reason: "Reviewed fixture", ...(contentVersion === "5.0.0" ? { sourceReviewHash: sourceReviewSha256, baseline: { bundleId: sourceReview?.baselineBundleId }, observedInventoryHash: sourceReview?.currentInventoryHash } : {}) };
+    if (contentVersion === "5.0.0" && sourceReview === null) { migrationReview.baseline = null; migrationReview.observedInventoryHash = null; }
     const files = Object.fromEntries(acceptedBundleNames(contentVersion).filter((n) => n !== "manifest.json").map((n) => [n, Buffer.from("null\n")]));
+    if (contentVersion === "5.0.0") files["source-review.json"] = encode(sourceReview);
     const binding = (b) => ({ bytes: b.length, sha256: sha256(b) });
-    const payload = { schemaVersion: 1, kind: "offline-candidate", versions: { candidate: contentVersion }, artifacts: Object.fromEntries(Object.entries(files).map(([n,b]) => [n,binding(b)])), inputs: { reviewProposal: { commit: proposalCommit }, recipe: { archiveCommit: "e".repeat(40), generatedAt: "2026-01-01T00:00:00Z" }, transition: { review: migrationReview } } };
+    const payload = { schemaVersion: 1, kind: "offline-candidate", versions: { candidate: contentVersion }, artifacts: Object.fromEntries(Object.entries(files).map(([n,b]) => [n,binding(b)])), inputs: { ...(contentVersion === "5.0.0" ? { sourceReview: { sha256: sourceReviewSha256 } } : {}), reviewProposal: { commit: proposalCommit }, recipe: { archiveCommit: "e".repeat(40), generatedAt: "2026-01-01T00:00:00Z" }, transition: { review: migrationReview } } };
     const bundleId = sha256(canonicalJson(payload)); files["manifest.json"] = encode({ ...payload, bundleId });
     const bindings = Object.fromEntries(Object.entries(files).map(([n,b]) => [n,binding(b)]));
-    const plan = { schemaVersion: contentVersion === "4.0.0" ? 2 : 1, kind: "reviewed-audit-production-plan", repository: policy.repository, expectedMain: baseCommit, proposalCommit, proposalRef: "refs/heads/review/fixture", sourceCommit: "e".repeat(40), bundleId, storageApproved: true, actor: policy.actor, reason: "Reviewed fixture", reviewedAt: "2026-01-01T00:00:00.000Z", generatedAt: "2026-01-01T00:00:00Z", runtime: { node: "22.23.2", npm: "10.9.9", locale: "en-US", timeZone: "UTC" }, migrationReview, migrationReviewSha256: sha256(encode(migrationReview)), files: bindings };
+    const plan = { schemaVersion: contentVersion === "5.0.0" ? 3 : contentVersion === "4.0.0" ? 2 : 1, ...(contentVersion === "5.0.0" ? { sourceReview, sourceReviewSha256 } : {}), kind: "reviewed-audit-production-plan", repository: policy.repository, expectedMain: baseCommit, proposalCommit, proposalRef: "refs/heads/review/fixture", sourceCommit: "e".repeat(40), bundleId, storageApproved: true, actor: policy.actor, reason: "Reviewed fixture", reviewedAt: "2026-01-01T00:00:00.000Z", generatedAt: "2026-01-01T00:00:00Z", runtime: { node: "22.23.2", npm: "10.9.9", locale: "en-US", timeZone: "UTC" }, migrationReview, migrationReviewSha256: sha256(encode(migrationReview)), files: bindings };
     const receipt = { repository: policy.repository, bundleId, targetCommit: proposalCommit, readbackVerified: true, visibilityAtReadback: "draft", assets: bindings, manifestSha256: bindings["manifest.json"].sha256 };
     const snapshot = { schemaVersion: 1, kind: "verified-audit-snapshot", operation: "produce", verification: null, plan, planCommit: "f".repeat(40), planSha256: sha256(encode(plan)), receipt, producer: snapshotProducer(run) };
     for (const [n,b] of Object.entries(files)) await writeFile(resolve(directory,n),b);
@@ -173,4 +176,57 @@ test("final live attestation persists exact combined head and receipt hash separ
     snapshot.operation="produce";await writeFile(path,encode(snapshot));
     await assert.rejects(validateSnapshotDirectory(options),/production cannot/u);
   });
+});
+
+const reviewedSource = { schemaVersion: 1, baselineBundleId: "1".repeat(64), baselineInventoryHash: "2".repeat(64), currentInventoryHash: "3".repeat(64), reviewedAt: "2026-01-01T00:00:00.000Z", reason: "Exact fixture transition", decisions: [] };
+for (const sourceReview of [null, reviewedSource]) test(`v5 producer binds and materializes ${sourceReview ? "exact" : "null"} source review at a fixed path`, async () => {
+  await fixture(async (options) => {
+    const snapshot = await validateSnapshotDirectory(options), plan = snapshot.plan;
+    assert.equal(plan.schemaVersion, 3);
+    assert.deepEqual(auditCandidateOptionsForPlan(plan), { contentProtocol: "v5", sourceReview: "/approved/source-review.json" });
+    const directory = resolve(options.directory, "approved"); await mkdir(directory);
+    await writeApprovedSourceReview(plan, directory);
+    assert.deepEqual(await readFile(resolve(directory, "source-review.json")), encode(sourceReview));
+    await assert.rejects(writeApprovedSourceReview(plan, directory), /EEXIST/u);
+    for (const mutate of [
+      p => { delete p.sourceReview; }, p => { p.sourceReviewSha256 = "0".repeat(64); },
+      p => { p.sourceReviewPath = "../../untrusted"; }, p => { p.files["source-review.json"].bytes++; },
+      p => { p.migrationReview.sourceReviewHash = "0".repeat(64); p.migrationReviewSha256 = sha256(encode(p.migrationReview)); },
+      p => { p.migrationReview.observedInventoryHash = "0".repeat(64); p.migrationReviewSha256 = sha256(encode(p.migrationReview)); if (p.sourceReview === null) p.sourceReview = "not a review"; },
+      p => { p.migrationReview.baseline = { bundleId: "0".repeat(64) }; p.migrationReviewSha256 = sha256(encode(p.migrationReview)); if (p.sourceReview === null) p.sourceReview = []; },
+      p => { p.schemaVersion = 4; }, p => { p.actor.id++; }, p => { p.storageApproved = false; },
+      p => { p.files["kg.json"].bytes = 129 * 1024 * 1024; },
+    ]) {
+      const changed = structuredClone(plan); mutate(changed);
+      assert.throws(() => validateProductionPlan(changed, { policy, baseCommit }));
+    }
+  }, "5.0.0", sourceReview);
+});
+
+test("v5 manifest cannot masquerade as schema2 merely because its filenames match v4", async () => {
+  await fixture(async (options) => {
+    const file = resolve(options.directory, "snapshot.json"), snapshot = JSON.parse(await readFile(file));
+    snapshot.plan.schemaVersion = 2; delete snapshot.plan.sourceReview; delete snapshot.plan.sourceReviewSha256;
+    snapshot.planSha256 = sha256(encode(snapshot.plan));
+    await writeFile(file, encode(snapshot));
+    await assert.rejects(validateSnapshotDirectory({ ...options, approvedPlanBytes: encode(snapshot.plan) }), /manifest identity/u);
+  }, "5.0.0");
+});
+
+test("legacy producer options remain unchanged and never materialize caller-selected review paths", async () => {
+  for (const version of ["3.0.0", "4.0.0"]) await fixture(async (options) => {
+    const { plan } = await validateSnapshotDirectory(options);
+    assert.deepEqual(auditCandidateOptionsForPlan(plan), { contentProtocol: `v${version[0]}` });
+    const changed = { ...plan, sourceReview: null, sourceReviewSha256: sha256(encode(null)) };
+    assert.throws(() => validateProductionPlan(changed, { policy, baseCommit }), /unexpected/u);
+  }, version);
+});
+
+test("trusted producer entrypoints pass only fixed approved source-review inputs", async () => {
+  const producer = await readFile(resolve("scripts/audit-production.mjs"), "utf8");
+  const build = await readFile(resolve("scripts/build-audit-production.mjs"), "utf8");
+  const successor = await readFile(resolve("scripts/actions-audit-successor.mjs"), "utf8");
+  assert.match(producer, /await writeApprovedSourceReview\(plan, directory\)/u);
+  assert.match(build, /\.\.\.auditCandidateOptionsForPlan\(plan\)/u);
+  assert.match(successor, /must\(scope\.plan\.schemaVersion === 1\)/u);
 });
