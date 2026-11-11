@@ -74,11 +74,43 @@ function parseCanonical(bytes,l) {
  validateCanonicalText(source,l);
  return source;
 }
+// RegExp replacement with a callback may retain every match before invoking
+// callbacks. Scan one match at a time and join at most 64 Ki UTF-16 code units
+// per block, instead of keeping millions of match/fragment entries alive.
+// Blocks stay strings: a boundary may split a surrogate pair, which must be
+// rejoined before UTF-8 encoding rather than replaced by per-block conversion.
+const REPLACEMENT_CHUNK_CHARACTERS = 64 * 1024;
+function replaceTokensBounded(source, expression, replacement) {
+ const pattern = new RegExp(expression.source, expression.flags);
+ const chunks = [];
+ let parts = [], pendingLength = 0, position = 0;
+ const flush = () => {
+  if(pendingLength) chunks.push(parts.join(''));
+  parts = []; pendingLength = 0;
+ };
+ const append = (text) => {
+  for(let offset = 0; offset < text.length;) {
+   const count = Math.min(REPLACEMENT_CHUNK_CHARACTERS - pendingLength, text.length - offset);
+   parts.push(text.slice(offset, offset + count));
+   pendingLength += count; offset += count;
+   if(pendingLength === REPLACEMENT_CHUNK_CHARACTERS) flush();
+  }
+ };
+ let match;
+ while((match = pattern.exec(source)) !== null) {
+  if(!match[0].length) fail('empty replacement token');
+  append(source.slice(position, match.index));
+  append(replacement(match));
+  position = match.index + match[0].length;
+ }
+ append(source.slice(position)); flush();
+ return chunks.join('');
+}
 /** Self-contained storage encoding. No ancestor or external dictionary exists. */
 export function encodeAuditJson(bytes, options={}) {
  const l=limits(options); if(!Buffer.isBuffer(bytes)) fail('Buffer required');
  const source=parseCanonical(bytes,l), dictionary=[], indices=new Map(); let count=0;
- const body=source.replace(TOKEN,token=>{if(++count>l.maxTokens)fail('token limit'); let i=indices.get(token);if(i===undefined){i=dictionary.length;if(i>=l.maxStrings)fail('dictionary limit');indices.set(token,i);dictionary.push(token);}return '~'+i+'~';});
+ const body=replaceTokensBounded(source,TOKEN,([token])=>{if(++count>l.maxTokens)fail('token limit'); let i=indices.get(token);if(i===undefined){i=dictionary.length;if(i>=l.maxStrings)fail('dictionary limit');indices.set(token,i);dictionary.push(token);}return '~'+i+'~';});
  const payload=Buffer.from(JSON.stringify({format:FORMAT,version:1,decodedBytes:bytes.length,decodedSha256:hash(bytes),dictionary,body}));
  if(payload.length>l.maxEnvelopeBytes)fail('envelope size limit');
  const result=gzipSync(payload,{level:6}); if(result.length>l.maxEncodedBytes)fail('encoded size limit'); return result;
@@ -103,6 +135,6 @@ export function decodeAuditJson(bytes,options={}) {
  }
  if(size>l.maxDecodedBytes)fail('decoded size limit');
  if(used.size!==e.dictionary.length||size!==e.decodedBytes)fail('dictionary/size mismatch');
- const source=e.body.replace(/~([^~]*)~/g,(_,id)=>e.dictionary[Number(id)]);
+ const source=replaceTokensBounded(e.body,/~([^~]*)~/g,([,id])=>e.dictionary[Number(id)]);
  const result=Buffer.from(source);if(result.length!==e.decodedBytes||hash(result)!==e.decodedSha256)fail('decoded binding mismatch');parseCanonical(result,l);return result;
 }

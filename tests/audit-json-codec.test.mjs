@@ -78,3 +78,33 @@ test('cursor depth boundary matches legacy value depth including empty container
 test('cursor checks UTF8 before token parsing',()=>{
  for(const bytes of [Buffer.from([0xc0,0xaf]),Buffer.from([0xed,0xa0,0x80]),Buffer.from([0xf0,0x28,0x8c,0x28])]) assert.throws(()=>encodeAuditJson(bytes),/UTF-8/u);
 });
+
+test('bounded replacement preserves legacy wire bytes across output block boundaries',async()=>{
+ const sources=[
+  // No string tokens: the entire literal span crosses several output blocks.
+  JSON.stringify(Array.from({length:40000},()=>0))+'\n',
+  // Many short matches: references and separators fill multiple blocks.
+  JSON.stringify(Array.from({length:20000},(_,i)=>`value-${i%31}`))+'\n',
+  // One large replacement, with a surrogate pair split exactly at 64 Ki.
+  JSON.stringify('x'.repeat(65534)+'😀'+'中'.repeat(65536)+'\\"')+'\n',
+  // Exact and adjacent boundaries, including an escaped quote in the token.
+  ...[65535,65536,65537].map(n=>JSON.stringify('x'.repeat(n)+'"')+'\n'),
+ ];
+ for(const source of sources){
+  const bytes=Buffer.from(source);
+  const encoded=encodeAuditJson(bytes);
+  // The fixture-only legacy global replacement builds the identical envelope.
+  assert.deepEqual(encoded,await uncheckedEnvelope(source));
+  assert.deepEqual(decodeAuditJson(encoded),bytes);
+ }
+});
+
+test('chunked scanning preserves exact token and dictionary limits',()=>{
+ const source=Buffer.from(JSON.stringify(Array.from({length:18000},(_,i)=>`value-${i%3}`))+'\n');
+ const encoded=encodeAuditJson(source,{maxTokens:18000,maxStrings:3});
+ assert.deepEqual(decodeAuditJson(encoded,{maxTokens:18000,maxStrings:3}),source);
+ assert.throws(()=>encodeAuditJson(source,{maxTokens:17999}),/token limit/u);
+ assert.throws(()=>encodeAuditJson(source,{maxStrings:2}),/dictionary limit/u);
+ assert.throws(()=>decodeAuditJson(encoded,{maxTokens:17999}),/reference/u);
+ assert.throws(()=>decodeAuditJson(encoded,{maxStrings:2}),/envelope/u);
+});
