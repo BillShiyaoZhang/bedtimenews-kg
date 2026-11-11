@@ -22,3 +22,59 @@ test('tight decoded bound uses final length, not longer dictionary references',(
  assert.deepEqual(decodeAuditJson(encoded,{maxDecodedBytes:bytes.length}),bytes);
  assert.throws(()=>decodeAuditJson(encoded,{maxDecodedBytes:bytes.length-1}));
 });
+
+// These bytes were produced by the unchanged 825cbc05 v1 encoder under the
+// pinned runtime. The cursor validator must not change its wire format.
+test('cursor validation preserves frozen original encoder bytes', async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const fixture=JSON.parse(await readFile(new URL('./fixtures/audit-json-codec-v1-bytes.json',import.meta.url),'utf8'));
+ for(const {source,encodedBase64} of fixture.vectors){
+  const bytes=Buffer.from(source), encoded=Buffer.from(encodedBase64,'base64');
+  assert.deepEqual(encodeAuditJson(bytes),encoded);
+  assert.deepEqual(decodeAuditJson(encoded),bytes);
+ }
+});
+
+// Deliberately bypass the encoder only in this test to give the decoder a
+// correctly hash-bound envelope containing invalid/noncanonical source JSON.
+async function uncheckedEnvelope(source){
+ const {createHash}=await import('node:crypto');
+ const dictionary=[],indices=new Map();
+ const body=source.replace(/"(?:[^"\\\u0000-\u001f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*"/gu,token=>{
+  if(!indices.has(token)){indices.set(token,dictionary.length);dictionary.push(token);}
+  return `~${indices.get(token)}~`;
+ });
+ return gzipSync(JSON.stringify({format:'bedtimenews-json-dictionary',version:1,decodedBytes:Buffer.byteLength(source),decodedSha256:createHash('sha256').update(source).digest('hex'),dictionary,body}));
+}
+
+test('cursor rejects malformed or noncanonical source at both boundaries',async()=>{
+ const invalid=[
+  '', '\n', 'null', 'null\n\n', ' null\n', 'null \n', 'null\r\n', 'truefalse\n',
+  '[1,]\n','[,1]\n','[1 2]\n','[1\n','{"a":}\n','{"a"1}\n','{"a":1,}\n',
+  '{"a":1,"a":2}\n','{"b":1,"a":2}\n','{"2":1,"10":2}\n',
+  '{"a":{"b":1,"a":2}}\n','{"a":[{"constructor":1}]}\n','{"prototype":1}\n',
+  '-0\n','01\n','1.0\n','1e2\n','1e21\n','1E+21\n','1e+021\n','0.0000001\n','1e400\n','1e-400\n','NaN\n','+1\n','.1\n','1.\n',
+  '"\\/"\n','"\\u0061"\n','"\\u000A"\n','"\\ud83d\\ude00"\n','"\\uD800"\n','"unterminated\n','"bad\\x"\n','"raw\tcontrol"\n'
+ ];
+ for(const source of invalid){
+  assert.throws(()=>encodeAuditJson(Buffer.from(source)),source);
+  const encoded=await uncheckedEnvelope(source);
+  assert.throws(()=>decodeAuditJson(encoded),source);
+ }
+});
+
+
+test('cursor depth boundary matches legacy value depth including empty containers',async()=>{
+ const exact='['.repeat(128)+'0'+']'.repeat(128)+'\n';
+ assert.deepEqual(decodeAuditJson(encodeAuditJson(Buffer.from(exact))),Buffer.from(exact));
+ const excessive='['.repeat(129)+'0'+']'.repeat(129)+'\n';
+ assert.throws(()=>encodeAuditJson(Buffer.from(excessive)),/depth/u);
+ const encoded=await uncheckedEnvelope(excessive);
+ assert.throws(()=>decodeAuditJson(encoded),/depth/u);
+ for(const source of ['[0]\n','[[]]\n','{"a":{}}\n']) assert.deepEqual(decodeAuditJson(encodeAuditJson(Buffer.from(source),{maxDepth:1}),{maxDepth:1}),Buffer.from(source));
+ assert.throws(()=>encodeAuditJson(Buffer.from('[[0]]\n'),{maxDepth:1}),/depth/u);
+});
+
+test('cursor checks UTF8 before token parsing',()=>{
+ for(const bytes of [Buffer.from([0xc0,0xaf]),Buffer.from([0xed,0xa0,0x80]),Buffer.from([0xf0,0x28,0x8c,0x28])]) assert.throws(()=>encodeAuditJson(bytes),/UTF-8/u);
+});

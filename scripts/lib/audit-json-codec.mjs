@@ -6,20 +6,73 @@ const defaults = Object.freeze({ maxEncodedBytes: 128 * 1024 * 1024, maxEnvelope
 const fail = (m) => { throw new Error(`Audit dictionary: ${m}`); };
 const hash = b => createHash('sha256').update(b).digest('hex');
 function limits(options) { for (const k of Object.keys(options)) if (!(k in defaults) || !Number.isSafeInteger(options[k]) || options[k] < 1 || options[k] > defaults[k]) fail('invalid limits'); return {...defaults,...options}; }
-function canonical(v, depth, l) {
- if(depth > l.maxDepth) fail('depth limit');
- if(v === null || typeof v === 'boolean' || typeof v === 'string') return JSON.stringify(v);
- if(typeof v === 'number') { if(!Number.isFinite(v)) fail('nonfinite number'); return JSON.stringify(v); }
- if(Array.isArray(v)) return '['+v.map(x=>canonical(x,depth+1,l)).join(',')+']';
- if(typeof v !== 'object' || Object.getPrototypeOf(v) !== Object.prototype) fail('invalid object');
- return '{'+Object.keys(v).sort().map(k=>{if(['__proto__','constructor','prototype'].includes(k)) fail('unsafe object key');return JSON.stringify(k)+':'+canonical(v[k],depth+1,l)}).join(',')+'}';
+// Validate canonical JSON with a bounded cursor stack, not a second ledger AST
+// plus a reconstructed full-size JSON string. Only the current string/number
+// token and one previous key per open object are retained during validation.
+function validateCanonicalText(source, l) {
+ const stringToken = new RegExp(TOKEN.source, 'uy');
+ const numberToken = /-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/y;
+ let offset = 0;
+ const punctuation = (expected) => {
+  if(source[offset] !== expected) fail('invalid JSON');
+  offset++;
+ };
+ function string() {
+  stringToken.lastIndex = offset;
+  const match = stringToken.exec(source);
+  if(!match) fail('invalid JSON string');
+  const token = match[0];
+  const value = JSON.parse(token);
+  if(JSON.stringify(value) !== token) fail('noncanonical JSON string');
+  offset = stringToken.lastIndex;
+  return value;
+ }
+ function value(depth) {
+  if(depth > l.maxDepth) fail('depth limit');
+  const first = source[offset];
+  if(first === '"') { string(); return; }
+  if(first === '[') {
+   offset++;
+   if(source[offset] === ']') { offset++; return; }
+   while(true) {
+    value(depth + 1);
+    if(source[offset] === ']') { offset++; return; }
+    punctuation(',');
+   }
+  }
+  if(first === '{') {
+   offset++;
+   if(source[offset] === '}') { offset++; return; }
+   let previous;
+   while(true) {
+    const key = string();
+    if(['__proto__','constructor','prototype'].includes(key)) fail('unsafe object key');
+    if(previous !== undefined && key <= previous) fail('noncanonical JSON keys');
+    previous = key;
+    punctuation(':'); value(depth + 1);
+    if(source[offset] === '}') { offset++; return; }
+    punctuation(',');
+   }
+  }
+  for(const literal of ['null','true','false']) {
+   if(source.startsWith(literal, offset)) { offset += literal.length; return; }
+  }
+  numberToken.lastIndex = offset;
+  const match = numberToken.exec(source);
+  if(!match) fail('invalid JSON');
+  const token = match[0];
+  const number = Number(token);
+  if(!Number.isFinite(number) || JSON.stringify(number) !== token) fail('noncanonical JSON number');
+  offset = numberToken.lastIndex;
+ }
+ value(0);
+ if(offset !== source.length - 1 || source[offset] !== '\n') fail('noncanonical JSON');
 }
 function parseCanonical(bytes,l) {
  if(bytes.length > l.maxDecodedBytes) fail('decoded size limit');
- let s; try { s=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes); } catch { fail('invalid UTF-8'); }
- let value;try { value=JSON.parse(s); } catch { fail('invalid JSON'); }
- if(canonical(value,0,l)+'\n' !== s) fail('noncanonical JSON');
- return s;
+ let source; try { source=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes); } catch { fail('invalid UTF-8'); }
+ validateCanonicalText(source,l);
+ return source;
 }
 /** Self-contained storage encoding. No ancestor or external dictionary exists. */
 export function encodeAuditJson(bytes, options={}) {
